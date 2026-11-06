@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Урок 3 — Викторина: Где? Местоимения. Профессии</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; background: linear-gradient(135deg, #DCE6F1 0%, #E2EFDA 100%); margin: 0; padding: 20px; min-height: 100vh; }
+  .container { max-width: 640px; margin: 0 auto; background: white; border-radius: 16px; box-shadow: 0 8px 30px rgba(31,78,121,0.15); overflow: hidden; }
+  .header { background: #1F4E79; color: white; padding: 24px; text-align: center; }
+  .header h1 { margin: 0 0 6px; font-size: 22px; }
+  .header p { margin: 0; opacity: 0.85; font-size: 14px; }
+  .progress-bar { height: 6px; background: #DCE6F1; }
+  .progress-fill { height: 100%; background: #B8860B; width: 0%; transition: width 0.3s; }
+  .quiz-body { padding: 28px; }
+  .question.active { display: block; animation: fadeIn 0.3s; }
+  @keyframes fadeIn { from {opacity:0; transform: translateY(6px);} to {opacity:1; transform: translateY(0);} }
+  .qnum { color: #B8860B; font-weight: bold; font-size: 13px; margin-bottom: 6px; }
+  .qtext { font-size: 19px; color: #1F4E79; margin-bottom: 18px; font-weight: 600; }
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .option { padding: 13px 16px; border: 2px solid #DCE6F1; border-radius: 10px; cursor: pointer; font-size: 16px; transition: all 0.15s; background: white; }
+  .option:hover { border-color: #1F4E79; background: #F5F8FC; }
+  .option.correct { border-color: #1B5E20; background: #E2EFDA; color: #1B5E20; font-weight: bold; }
+  .option.incorrect { border-color: #8B3A3A; background: #F8D7DA; color: #8B3A3A; }
+  .feedback { margin-top: 14px; padding: 12px; border-radius: 8px; font-size: 14px; display: none; }
+  .feedback.show { display: block; }
+  .feedback.correct-fb { background: #E2EFDA; color: #1B5E20; }
+  .feedback.incorrect-fb { background: #F8D7DA; color: #8B3A3A; }
+  .nav-btns { display: flex; justify-content: space-between; margin-top: 24px; }
+  button.nav { background: #1F4E79; color: white; border: none; padding: 11px 22px; border-radius: 8px; cursor: pointer; font-size: 15px; }
+  button.nav:disabled { background: #ccc; cursor: not-allowed; }
+  .results { text-align: center; padding: 20px 0; }
+  .results h2 { color: #1F4E79; }
+  .score-circle { width: 120px; height: 120px; border-radius: 50%; border: 8px solid #B8860B; display: flex; align-items: center; justify-content: center; margin: 20px auto; font-size: 32px; font-weight: bold; color: #1F4E79; }
+  .restart-btn { background: #1B5E20; color: white; border: none; padding: 12px 26px; border-radius: 8px; cursor: pointer; font-size: 15px; margin-top: 10px; }
+  .arabic { direction: rtl; font-size: 14px; color: #1B5E20; margin-top: 4px; }
+  .hint-toggle { font-size: 12.5px; color: #1F4E79; background: none; border: none; text-decoration: underline; cursor: pointer; padding: 8px 0 0; display: inline-block; }
+  .hint { font-size: 12.5px; color: #7a5c00; background: #FFF2CC; padding: 6px 10px; border-radius: 6px; margin-top: 8px; display: none; }
+  .hint.show { display: inline-block; }
+  .tag { display: inline-block; font-size: 11px; font-weight: bold; padding: 3px 9px; border-radius: 20px; margin-bottom: 10px; }
+  .tag.topic-gde { background: #DCE6F1; color: #1F4E79; }
+  .tag.topic-mestoim { background: #E8DEF8; color: #5b3a8a; }
+  .tag.topic-prof { background: #FFF2CC; color: #7a5c00; }
+  .tag.topic-tyvy { background: #FDE9EC; color: #8B3A3A; }
+  .tag.topic-phonet { background: #E2EFDA; color: #1B5E20; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header"><h1>🎯 Викторина: Урок 3</h1><p>где? • местоимения • профессии • ты/вы • произношение</p></div>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  <div class="quiz-body" id="quizBody"></div>
+</div>
+<script>
+const questions = [
+  { tag: "Где?", cls: "topic-gde", q: "Где рестора́н? — Вот ___.", ar: "أين المطعم؟ — ها هو", hint: "Согла́сная на конце́ сло́ва → како́й ро́д?", options: ["он", "она́", "оно́", "они́"], correct: 0 },
+  { tag: "Где?", cls: "topic-gde", q: "Где шко́ла? — Вот ___.", ar: "أين المدرسة؟", hint: "-а на конце́ сло́ва → како́й ро́д?", options: ["он", "она́", "оно́", "они́"], correct: 1 },
+  { tag: "Где?", cls: "topic-gde", q: "Где кафе́? — Вот ___.", ar: "أين المقهى؟", hint: "Заимствованное сло́во на -е — исключе́ние из пра́вила ро́да.", options: ["он", "она́", "оно́", "они́"], correct: 2 },
+  { tag: "Местоимения", cls: "topic-mestoim", q: "Местоиме́ние для «я + ты»:", ar: "الضمير لـ«أنا + أنت»", hint: "", options: ["вы", "мы", "они́", "он"], correct: 1 },
+  { tag: "Местоимения", cls: "topic-mestoim", q: "Местоиме́ние для гру́ппы люде́й:", ar: "الضمير لمجموعة أشخاص", hint: "", options: ["мы", "они́", "вы", "он"], correct: 2 },
+  { tag: "Местоимения", cls: "topic-mestoim", q: "«Студе́нты — ___ у́чатся.» Какое местоиме́ние?", ar: "أي ضمير يناسب «الطلاب»؟", hint: "мно́го люде́й, не мы и не вы", options: ["он", "она́", "они́", "оно́"], correct: 2 },
+  { tag: "Профессии", cls: "topic-prof", q: "Же́нская фо́рма сло́ва «студе́нт»:", ar: "الصيغة المؤنثة لكلمة «студент»", hint: "", options: ["студе́нтка", "студе́нтша", "студе́нтина", "студе́точка"], correct: 0 },
+  { tag: "Профессии", cls: "topic-prof", q: "«Учи́тель» → же́нская фо́рма:", ar: "«учитель» ← الصيغة المؤنثة", hint: "", options: ["учи́тельша", "учи́тельница", "учи́телька", "учи́тель"], correct: 1 },
+  { tag: "Профессии", cls: "topic-prof", q: "Же́нская фо́рма сло́ва «вра́ч»:", ar: "كلمة «врач» — الصيغة المؤنثة", hint: "Не все профе́ссии образу́ют же́нскую фо́рму.", options: ["вра́чка", "вра́чиха", "не меня́ется", "вра́чица"], correct: 2 },
+  { tag: "Профессии", cls: "topic-prof", q: "«Инжене́р» — э́то профе́ссия:", ar: "«инженер» — هل هي مهنة؟", hint: "Подумай, говоря́т ли «инжене́рка».", options: ["то́лько мужска́я", "то́лько же́нская", "еди́ная для обо́их родо́в", "не профе́ссия"], correct: 2 },
+  { tag: "Профессии", cls: "topic-prof", q: "«Программи́ст» и «экономи́ст» — э́то слова́:", ar: "«программист» و«экономист»", hint: "Сравни́ с «вра́ч» и «инжене́р» из предыду́щих вопро́сов.", options: ["меня́ют фо́рму", "еди́ная фо́рма для обо́их родо́в", "то́лько мужски́е", "то́лько же́нские"], correct: 1 },
+  { tag: "Ты/Вы", cls: "topic-tyvy", q: "К незнако́мцу на у́лице ты обрати́шься:", ar: "للغريب في الشارع", hint: "", options: ["ты", "вы", "они́", "мы"], correct: 1 },
+  { tag: "Ты/Вы", cls: "topic-tyvy", q: "К лу́чшему дру́гу ты обрати́шься:", ar: "لصديقك المقرب", hint: "", options: ["ты", "вы", "они́", "он"], correct: 0 },
+  { tag: "Телефон", cls: "topic-gde", q: "«Алло́! Кто э́то?» испо́льзуется:", ar: "«Алло! Кто это؟» تُستخدم", hint: "", options: ["при встре́че", "по телефо́ну", "в письме́", "в магази́не"], correct: 1 },
+  { tag: "Произношение", cls: "topic-phonet", q: "В сло́ве «они́» ударе́ние на:", ar: "النبر في كلمة «они»", hint: "", options: ["о", "н", "и", "нет ударе́ния"], correct: 2 },
+  { tag: "Произношение", cls: "topic-phonet", q: "По́сле твёрдой согла́сной (н, б, п, в, ф) пи́шем:", ar: "بعد الساكن الصلب", hint: "Твёрдые согла́сные «любят» твёрдые гла́сные бу́квы.", options: ["я, ё, ю, и", "а, о, у, ы", "е, э", "ь, ъ"], correct: 1 },
+  { tag: "Места́", cls: "topic-gde", q: "«Гости́ница» — како́го ро́да?", ar: "ما جنس كلمة «гостиница»؟", hint: "-а на конце́", options: ["он", "она́", "оно́", "они́"], correct: 1 },
+];
+let current = 0, score = 0, answered = new Array(questions.length).fill(false);
+function render() {
+  const body = document.getElementById('quizBody');
+  document.getElementById('progressFill').style.width = ((current) / questions.length * 100) + '%';
+  if (current >= questions.length) {
+    const pct = Math.round((score / questions.length) * 100);
+    let msg = pct >= 80 ? "Отлично! 🌟" : pct >= 50 ? "Хорошо, но повторите материал 👍" : "Стоит повторить урок ещё раз 📚";
+    body.innerHTML = `<div class="results"><h2>Викторина завершена!</h2><div class="score-circle">${score}/${questions.length}</div><p style="font-size:18px; color:#1F4E79; font-weight:600;">${msg}</p><button class="restart-btn" onclick="restart()">Пройти снова / أعد المحاولة</button></div>`;
+    return;
+  }
+  const item = questions[current];
+  body.innerHTML = `<div class="question active"><div class="qnum">Вопрос ${current + 1} из ${questions.length}</div><span class="tag ${item.cls}">${item.tag}</span><div class="qtext">${item.q}</div><div class="arabic">${item.ar}</div>${item.hint ? `<button class="hint-toggle" id="hintBtn" onclick="toggleHint()">💡 Показать подсказку</button><div class="hint" id="hintBox">${item.hint}</div>` : ''}<div class="options" id="optionsBox" style="margin-top:16px;"></div><div class="feedback" id="feedback"></div><div class="nav-btns"><button class="nav" onclick="prevQ()" ${current===0 ? 'disabled' : ''}>← Назад</button><button class="nav" id="nextBtn" onclick="nextQ()" disabled>Далее →</button></div></div>`;
+  const optionsBox = document.getElementById('optionsBox');
+  item.options.forEach((opt, i) => {
+    const div = document.createElement('div'); div.className = 'option'; div.textContent = opt;
+    div.onclick = () => selectOption(i); optionsBox.appendChild(div);
+  });
+  if (answered[current] !== false) showAnswerState(answered[current]);
+}
+function toggleHint() {
+  document.getElementById('hintBox').classList.toggle('show');
+}
+function selectOption(i) {
+  if (answered[current] !== false) return;
+  const item = questions[current]; const isCorrect = i === item.correct;
+  answered[current] = i; if (isCorrect) score++; showAnswerState(i);
+}
+function showAnswerState(selectedIndex) {
+  const item = questions[current]; const opts = document.querySelectorAll('.option');
+  opts.forEach((o, idx) => { o.style.pointerEvents = 'none'; if (idx === item.correct) o.classList.add('correct'); else if (idx === selectedIndex) o.classList.add('incorrect'); });
+  const fb = document.getElementById('feedback'); const isCorrect = selectedIndex === item.correct;
+  fb.className = 'feedback show ' + (isCorrect ? 'correct-fb' : 'incorrect-fb');
+  fb.textContent = isCorrect ? "✅ Правильно! / صحيح!" : "❌ Правильный ответ: " + item.options[item.correct];
+  document.getElementById('nextBtn').disabled = false;
+}
+function nextQ() { current++; render(); }
+function prevQ() { if (current > 0) { current--; render(); } }
+function restart() { current = 0; score = 0; answered = new Array(questions.length).fill(false); render(); }
+render();
+</script>
+</body>
+</html>

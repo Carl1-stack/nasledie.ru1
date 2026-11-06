@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Уро́к 17 — Виктори́на (кумуляти́вная)</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; background: linear-gradient(135deg, #DCE6F1 0%, #E2EFDA 100%); margin: 0; padding: 20px; min-height: 100vh; }
+  .container { max-width: 640px; margin: 0 auto; background: white; border-radius: 16px; box-shadow: 0 8px 30px rgba(31,78,121,0.15); overflow: hidden; }
+  .header { background: #1F4E79; color: white; padding: 24px; text-align: center; }
+  .header h1 { margin: 0 0 6px; font-size: 22px; }
+  .header p { margin: 0; opacity: 0.85; font-size: 14px; }
+  .progress-bar { height: 6px; background: #DCE6F1; }
+  .progress-fill { height: 100%; background: #B8860B; width: 0%; transition: width 0.3s; }
+  .quiz-body { padding: 28px; }
+  .question.active { display: block; animation: fadeIn 0.3s; }
+  @keyframes fadeIn { from {opacity:0; transform: translateY(6px);} to {opacity:1; transform: translateY(0);} }
+  .qnum { color: #B8860B; font-weight: bold; font-size: 13px; margin-bottom: 6px; }
+  .qtag { display: inline-block; font-size: 11px; font-weight: bold; padding: 2px 8px; border-radius: 10px; margin-bottom: 8px; }
+  .qtag.current { background: #FFF2CC; color: #8B6E00; }
+  .qtag.review { background: #E2EFDA; color: #1B5E20; }
+  .qtext { font-size: 19px; color: #1F4E79; margin-bottom: 18px; font-weight: 600; }
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .option { padding: 13px 16px; border: 2px solid #DCE6F1; border-radius: 10px; cursor: pointer; font-size: 16px; transition: all 0.15s; background: white; }
+  .option:hover { border-color: #1F4E79; background: #F5F8FC; }
+  .option.correct { border-color: #1B5E20; background: #E2EFDA; color: #1B5E20; font-weight: bold; }
+  .option.incorrect { border-color: #8B3A3A; background: #F8D7DA; color: #8B3A3A; }
+  .feedback { margin-top: 14px; padding: 12px; border-radius: 8px; font-size: 14px; display: none; }
+  .feedback.show { display: block; }
+  .feedback.correct-fb { background: #E2EFDA; color: #1B5E20; }
+  .feedback.incorrect-fb { background: #F8D7DA; color: #8B3A3A; }
+  .nav-btns { display: flex; justify-content: space-between; margin-top: 24px; }
+  button.nav { background: #1F4E79; color: white; border: none; padding: 11px 22px; border-radius: 8px; cursor: pointer; font-size: 15px; }
+  button.nav:disabled { background: #ccc; cursor: not-allowed; }
+  .results { text-align: center; padding: 20px 0; }
+  .results h2 { color: #1F4E79; }
+  .score-circle { width: 120px; height: 120px; border-radius: 50%; border: 8px solid #B8860B; display: flex; align-items: center; justify-content: center; margin: 20px auto; font-size: 28px; font-weight: bold; color: #1F4E79; }
+  .breakdown { font-size: 14px; color: #555; margin-top: 10px; }
+  .restart-btn { background: #1B5E20; color: white; border: none; padding: 12px 26px; border-radius: 8px; cursor: pointer; font-size: 15px; margin-top: 10px; }
+  .arabic { direction: rtl; font-size: 14px; color: #1B5E20; margin-top: 4px; }
+.hint-toggle { font-size: 12.5px; color: #1F4E79; background: none; border: none; text-decoration: underline; cursor: pointer; padding: 8px 0 0; display: inline-block; }
+  .hint { font-size: 12.5px; color: #7a5c00; background: #FFF2CC; padding: 6px 10px; border-radius: 6px; margin-top: 8px; display: none; }
+  .hint.show { display: inline-block; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>🎯 Виктори́на: Уро́к 17</h1>
+    <p>30 вопро́сов — Уро́к 17 (16) + повторе́ние (14) / 30 سؤالًا — الدرس 17 + مراجعة</p>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  <div class="quiz-body" id="quizBody"></div>
+</div>
+<script>
+const questions = [{"tag": "current", "q": "Я́ (встава́ть) — я́ ___.", "ar": "أنا (أستيقظ)", "hint": "В настоя́щем вре́мени сло́г -ва- исчеза́ет.", "options": ["встава́ю", "встаю́", "встаёю", "вста́влю"], "correct": 1}, {"tag": "current", "q": "Ты́ (устава́ть) — ты́ ___.", "ar": "أنت (تتعب)", "hint": "Убери́ -ть и -ва-, пото́м доба́вь оконча́ние для «ты́».", "options": ["устава́ешь", "устаёшь", "уставёшь", "устаю́"], "correct": 1}, {"tag": "current", "q": "Мы́ (дава́ть) — мы́ ___.", "ar": "نحن (نعطي)", "hint": "Ко́рень да- + уда́рное оконча́ние для «мы́».", "options": ["даём", "дава́ем", "дади́м", "давём"], "correct": 0}, {"tag": "current", "q": "Они́ (продава́ть) — они́ ___.", "ar": "هم (يبيعون)", "hint": "Ка́к «встаю́т»: без -ва-, оконча́ние для «они́».", "options": ["продава́ют", "продаю́т", "продая́т", "продаёт"], "correct": 1}, {"tag": "current", "q": "В како́й фо́рме сло́г -ва- НЕ исчеза́ет?", "ar": "في أي صيغة لا يختفي المقطع -ва-؟", "hint": "Вспо́мни сло́во, кото́рым мы́ предлага́ем: «… встре́тимся!».", "options": ["я́ встаю́", "встава́й!", "они́ встаю́т", "мы́ встаём"], "correct": 1}, {"tag": "current", "q": "«Я́ сдаю́ экза́мен» зна́чит:", "ar": "«Я сдаю экзамен» تعني", "hint": "Поду́май: результа́т уже́ изве́стен и́ли ещё не́т?", "options": ["نجحت في الامتحان", "أؤدي الامتحان", "رسبت في الامتحان", "أصحح الامتحان"], "correct": 1}, {"tag": "current", "q": "Я́ (спа́ть) — я́ ___.", "ar": "أنا (أنام)", "hint": "В фо́рме «я́» по́сле «п» появля́ется ещё одна́ бу́ква.", "options": ["спа́ю", "сплю́", "спю́", "спи́шь"], "correct": 1}, {"tag": "current", "q": "Я́ (гото́вить) — я́ ___.", "ar": "أنا (أطبخ)", "hint": "Осно́ва конча́ется на «в» — губна́я бу́ква.", "options": ["гото́вю", "гото́влю", "гото́виш", "гото́ваю"], "correct": 1}, {"tag": "current", "q": "Они́ (гото́вить) — они́ ___.", "ar": "هم (يطبخون)", "hint": "Ли́шняя бу́ква быва́ет то́лько в фо́рме «я́».", "options": ["гото́влят", "гото́вят", "го́товют", "гото́вим"], "correct": 1}, {"tag": "current", "q": "Я́ (купи́ть) — я́ ___.", "ar": "أنا (سأشتري)", "hint": "То же пра́вило, что́ у «люби́ть → люблю́».", "options": ["купю́", "куплю́", "купа́ю", "ку́пишь"], "correct": 1}, {"tag": "current", "q": "«___ я́ встаю́ ра́но.» (в нача́ле дня́)", "ar": "«أستيقظ مبكرًا صباحًا»", "hint": "Вре́мя дня́ зде́сь — без предло́га.", "options": ["В у́тро", "У́тром", "На у́тро", "В у́тром"], "correct": 1}, {"tag": "current", "q": "«Снача́ла я́ принима́ю ду́ш, ___ за́втракаю.»", "ar": "«أولًا أستحم، ثم أتناول الفطور»", "hint": "Сло́во, кото́рое идёт по́сле «снача́ла».", "options": ["по́том", "сно́ва", "у́же", "ещё"], "correct": 0}, {"tag": "current", "q": "Противополо́жность сло́ва «ча́сто»:", "ar": "عكس كلمة «часто»", "hint": "Э́то зна́чит «не ча́сто, иногда́ о́чень мало́».", "options": ["ра́но", "ре́дко", "по́здно", "ско́ро"], "correct": 1}, {"tag": "current", "q": "Противополо́жность сло́ва «светло́»:", "ar": "عكس كلمة «светло»", "hint": "Зимо́й на Се́вере да́же днём…", "options": ["темно́", "ти́хо", "пло́хо", "по́здно"], "correct": 0}, {"tag": "current", "q": "«Жа́воронок» — э́то челове́к, кото́рый:", "ar": "«жаворонок» شخص", "hint": "Э́та пти́ца поёт на рассве́те.", "options": ["лю́бит встава́ть по́здно", "лю́бит встава́ть ра́но", "никогда́ не спи́т", "спи́т ве́сь де́нь"], "correct": 1}, {"tag": "current", "q": "«Сова́» рабо́тает продукти́вно:", "ar": "«сова» تعمل بإنتاجية", "hint": "Э́та пти́ца охо́тится, когда́ темно́.", "options": ["ра́но у́тром", "в по́лдень", "ве́чером и но́чью", "никогда́"], "correct": 2}, {"tag": "review", "q": "«Хва́тит спа́ть!» означа́ет:", "ar": "«хватит спать!» تعني", "hint": "«Хва́тит» = доста́точно.", "options": ["حان وقت النوم", "كفى نومًا", "لا تنام أبدًا", "نم أكثر"], "correct": 1}, {"tag": "review", "q": "Уже́ по́лночь! ___ спа́ть!", "ar": "منتصف الليل! حان وقت النوم!", "hint": "Э́то сло́во зна́чит «наступи́ло вре́мя».", "options": ["Пора́", "Хва́тит", "У́же", "Ещё"], "correct": 0}, {"tag": "review", "q": "Сло́во «вре́мя» — э́то:", "ar": "كلمة «время» هي", "hint": "Конча́ется на -мя — осо́бая гру́ппа.", "options": ["о́н", "она́", "оно́ (и́скл.)", "они́"], "correct": 2}, {"tag": "review", "q": "Где́ ба́нк? — Во́т ___.", "ar": "أين البنك؟", "hint": "Сло́во «ба́нк» — мужско́й ро́д.", "options": ["он", "она", "оно", "они"], "correct": 0}, {"tag": "review", "q": "Я́ (чита́ть) — я́ чита___.", "ar": "أنا (أقرأ)", "hint": "Пе́рвое спряже́ние, фо́рма «я́».", "options": ["ю", "ешь", "ет", "ем"], "correct": 0}, {"tag": "review", "q": "Ты́ (говори́ть) — ты́ говор___.", "ar": "أنت (تتحدث)", "hint": "Второ́е спряже́ние, фо́рма «ты́».", "options": ["ю", "ишь", "ит", "им"], "correct": 1}, {"tag": "review", "q": "«___ зову́т А́нна.» (я́)", "ar": "«اسمي آنا»", "hint": "Зде́сь ну́жен вини́тельный падеж от «я́».", "options": ["Я́", "Меня́", "Мне́", "Мо́й"], "correct": 1}, {"tag": "review", "q": "«Дру́г» во мно́жественном числе́:", "ar": "جمع «друг»", "hint": "Э́то сло́во-исключе́ние с оконча́нием -ья.", "options": ["дру́ги", "друзья́", "друго́в", "други́и"], "correct": 1}, {"tag": "review", "q": "«Э́то ___ до́м.» (я́)", "ar": "هذا منزلي", "hint": "«До́м» — мужско́й ро́д.", "options": ["мой", "моя", "моё", "мои"], "correct": 0}, {"tag": "review", "q": "Я́ живу́ в (Росси́я) ___.", "ar": "أعيش في روسيا", "hint": "Предло́жный падеж: где́?", "options": ["Росси́я", "Росси́и", "Росси́ю", "Росси́ей"], "correct": 1}, {"tag": "review", "q": "Она́ ___ (бы́ть) до́ма.", "ar": "كانت في المنزل", "hint": "Проше́дшее вре́мя, же́нский ро́д.", "options": ["бы́л", "была́", "бы́ло", "бы́ли"], "correct": 1}, {"tag": "review", "q": "О́н игра́ет ___ футбо́л.", "ar": "يلعب كرة القدم", "hint": "Со спорти́вными и́грами — э́тот предло́г.", "options": ["в", "на", "с", "к"], "correct": 0}, {"tag": "review", "q": "Я́ ___ (хоте́ть) ко́фе.", "ar": "أريد قهوة", "hint": "Непра́вильный глаго́л, фо́рма «я́».", "options": ["хочу́", "хо́чешь", "хо́чет", "хоти́м"], "correct": 0}, {"tag": "review", "q": "40 по-ру́сски:", "ar": "40 بالروسية", "hint": "Э́то число́ не похо́же на «четы́ре».", "options": ["четыредцать", "соро́к", "четыредесять", "сорокова́ть"], "correct": 1}];
+let current = 0, score = 0, answered = new Array(questions.length).fill(false);
+function render() {
+  const body = document.getElementById('quizBody');
+  document.getElementById('progressFill').style.width = ((current) / questions.length * 100) + '%';
+  if (current >= questions.length) {
+    const pct = Math.round((score / questions.length) * 100);
+    let msg = pct >= 80 ? "Отли́чно! 🌟" : pct >= 50 ? "Хорошо́, но повтори́те материа́л 👍" : "Сто́ит повтори́ть уро́ки ещё ра́з 📚";
+    body.innerHTML = `<div class="results"><h2>Виктори́на завершена́!</h2><div class="score-circle">${score}/${questions.length}</div><p style="font-size:18px; color:#1F4E79; font-weight:600;">${msg}</p><p class="breakdown">Уро́к 17: ${questions.filter((q,i)=>q.tag==='current' && answered[i]===q.correct).length}/${questions.filter(q=>q.tag==='current').length} · Повторе́ние: ${questions.filter((q,i)=>q.tag==='review' && answered[i]===q.correct).length}/${questions.filter(q=>q.tag==='review').length}</p><button class="restart-btn" onclick="restart()">Пройти́ сно́ва / أعد المحاولة</button></div>`;
+    return;
+  }
+  const item = questions[current];
+  const tagLabel = item.tag === 'current' ? `Уро́к 17` : `Повторе́ние`;
+  body.innerHTML = `<div class="question active"><div class="qnum">Вопро́с ${current + 1} из ${questions.length}</div><div class="qtag ${item.tag}">${tagLabel}</div><div class="qtext">${item.q}</div><div class="arabic">${item.ar}</div>${item.hint ? `<button class="hint-toggle" id="hintBtn" onclick="toggleHint()">💡 Показа́ть подска́зку</button><div class="hint" id="hintBox">${item.hint}</div>` : ''}<div class="options" id="optionsBox" style="margin-top:16px;"></div><div class="feedback" id="feedback"></div><div class="nav-btns"><button class="nav" onclick="prevQ()" ${current===0 ? 'disabled' : ''}>← Наза́д</button><button class="nav" id="nextBtn" onclick="nextQ()" disabled>Да́лее →</button></div></div>`;
+  const optionsBox = document.getElementById('optionsBox');
+  item.options.forEach((opt, i) => {
+    const div = document.createElement('div');
+    div.className = 'option';
+    div.textContent = opt;
+    div.onclick = () => selectOption(i);
+    optionsBox.appendChild(div);
+  });
+  if (answered[current] !== false) showAnswerState(answered[current]);
+}
+function toggleHint() { document.getElementById('hintBox').classList.toggle('show'); }
+function selectOption(i) {
+  if (answered[current] !== false) return;
+  const item = questions[current];
+  const isCorrect = i === item.correct;
+  answered[current] = i;
+  if (isCorrect) score++;
+  showAnswerState(i);
+}
+function showAnswerState(selectedIndex) {
+  const item = questions[current];
+  const opts = document.querySelectorAll('.option');
+  opts.forEach((o, idx) => { o.style.pointerEvents = 'none'; if (idx === item.correct) o.classList.add('correct'); else if (idx === selectedIndex) o.classList.add('incorrect'); });
+  const fb = document.getElementById('feedback');
+  const isCorrect = selectedIndex === item.correct;
+  fb.className = 'feedback show ' + (isCorrect ? 'correct-fb' : 'incorrect-fb');
+  fb.textContent = isCorrect ? "✅ Пра́вильно! / صحيح!" : "❌ Пра́вильный отве́т: " + item.options[item.correct];
+  document.getElementById('nextBtn').disabled = false;
+}
+function nextQ() { current++; render(); }
+function prevQ() { if (current > 0) { current--; render(); } }
+function restart() { current = 0; score = 0; answered = new Array(questions.length).fill(false); render(); }
+render();
+</script>
+</body>
+</html>

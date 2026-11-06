@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Урок 6 — Викторина: Местоимения в винительном падеже, «Как вас зовут?»</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; background: linear-gradient(135deg, #DCE6F1 0%, #E2EFDA 100%); margin: 0; padding: 20px; min-height: 100vh; }
+  .container { max-width: 640px; margin: 0 auto; background: white; border-radius: 16px; box-shadow: 0 8px 30px rgba(31,78,121,0.15); overflow: hidden; }
+  .header { background: #1F4E79; color: white; padding: 24px; text-align: center; }
+  .header h1 { margin: 0 0 6px; font-size: 22px; }
+  .header p { margin: 0; opacity: 0.85; font-size: 14px; }
+  .progress-bar { height: 6px; background: #DCE6F1; }
+  .progress-fill { height: 100%; background: #B8860B; width: 0%; transition: width 0.3s; }
+  .quiz-body { padding: 28px; }
+  .question.active { display: block; animation: fadeIn 0.3s; }
+  @keyframes fadeIn { from {opacity:0; transform: translateY(6px);} to {opacity:1; transform: translateY(0);} }
+  .qnum { color: #B8860B; font-weight: bold; font-size: 13px; margin-bottom: 6px; }
+  .qtext { font-size: 19px; color: #1F4E79; margin-bottom: 18px; font-weight: 600; }
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .option { padding: 13px 16px; border: 2px solid #DCE6F1; border-radius: 10px; cursor: pointer; font-size: 16px; transition: all 0.15s; background: white; }
+  .option:hover { border-color: #1F4E79; background: #F5F8FC; }
+  .option.correct { border-color: #1B5E20; background: #E2EFDA; color: #1B5E20; font-weight: bold; }
+  .option.incorrect { border-color: #8B3A3A; background: #F8D7DA; color: #8B3A3A; }
+  .feedback { margin-top: 14px; padding: 12px; border-radius: 8px; font-size: 14px; display: none; }
+  .feedback.show { display: block; }
+  .feedback.correct-fb { background: #E2EFDA; color: #1B5E20; }
+  .feedback.incorrect-fb { background: #F8D7DA; color: #8B3A3A; }
+  .nav-btns { display: flex; justify-content: space-between; margin-top: 24px; }
+  button.nav { background: #1F4E79; color: white; border: none; padding: 11px 22px; border-radius: 8px; cursor: pointer; font-size: 15px; }
+  button.nav:disabled { background: #ccc; cursor: not-allowed; }
+  .results { text-align: center; padding: 20px 0; }
+  .results h2 { color: #1F4E79; }
+  .score-circle { width: 120px; height: 120px; border-radius: 50%; border: 8px solid #B8860B; display: flex; align-items: center; justify-content: center; margin: 20px auto; font-size: 32px; font-weight: bold; color: #1F4E79; }
+  .restart-btn { background: #1B5E20; color: white; border: none; padding: 12px 26px; border-radius: 8px; cursor: pointer; font-size: 15px; margin-top: 10px; }
+  .arabic { direction: rtl; font-size: 14px; color: #1B5E20; margin-top: 4px; }
+  .hint-toggle { font-size: 12.5px; color: #1F4E79; background: none; border: none; text-decoration: underline; cursor: pointer; padding: 8px 0 0; display: inline-block; }
+  .hint { font-size: 12.5px; color: #7a5c00; background: #FFF2CC; padding: 6px 10px; border-radius: 6px; margin-top: 8px; display: none; }
+  .hint.show { display: inline-block; }
+  .tag { display: inline-block; font-size: 11px; font-weight: bold; padding: 3px 9px; border-radius: 20px; margin-bottom: 10px; }
+  .tag.topic-pron { background: #DCE6F1; color: #1F4E79; }
+  .tag.topic-name { background: #FDE9EC; color: #8B3A3A; }
+  .tag.topic-phonet { background: #E2EFDA; color: #1B5E20; }
+  .tag.topic-recip { background: #E8DEF8; color: #5b3a8a; }
+  .tag.topic-cult { background: #FFF2CC; color: #7a5c00; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header"><h1>🎯 Викторина: Урок 6</h1><p>местоиме́ния вини́тельного падежа́ • «Ка́к ва́с зову́т?» • произноше́ние</p></div>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  <div class="quiz-body" id="quizBody"></div>
+</div>
+<script>
+const questions = [
+  { tag: "Местоимения", cls: "topic-pron", q: "«Ты меня ___» (понимать) — какое местоимение-объект для «я»?", ar: "ضمير المفعول المناسب لـ «أنا»", hint: "Посмотри́ на са́мую пе́рвую стро́чку табли́цы местоиме́ний.", options: ["я", "меня", "мне", "моя"], correct: 1 },
+  { tag: "Местоимения", cls: "topic-pron", q: "«Я ___ слу́шаю» (о тебе́) — кака́я фо́рма для «ты»?", ar: "ضمير المفعول المناسب لـ «أنت»", hint: "Не пу́тай подлежа́щее «ты́» с объе́ктом!", options: ["ты", "тебя", "твой", "тебе"], correct: 1 },
+  { tag: "Местоимения", cls: "topic-pron", q: "«Ка́к ___ зову́т?» (об о́не) — пра́вильное местоиме́ние:", ar: "ضمير المفعول المناسب لـ «هو»", hint: "Произно́сится [ево́], хотя́ пи́шется с бу́квой Г.", options: ["он", "его", "ему", "им"], correct: 1 },
+  { tag: "Местоимения", cls: "topic-pron", q: "«Я ___ не зна́ю» (о ней) — пра́вильное местоиме́ние:", ar: "ضمير المفعول المناسب لـ «هي»", hint: "Коро́ткое сло́во из двух бу́кв.", options: ["она", "её", "ей", "ею"], correct: 1 },
+  { tag: "Местоимения", cls: "topic-pron", q: "«Они́ ___ не слу́шают» (о нас) — пра́вильное местоиме́ние:", ar: "ضمير المفعول المناسب لـ «نحن»", hint: "Рифму́ется с «кла́сс».", options: ["мы", "нас", "нам", "наш"], correct: 1 },
+  { tag: "Местоимения", cls: "topic-pron", q: "«Я ___ слу́шаю» (о ва́с, форма́льно) — пра́вильное местоиме́ние:", ar: "ضمير المفعول المناسب لـ «أنتم» (رسمي)", hint: "То́чно как подлежа́щее «вы́», то́лько без «ы»... почти́.", options: ["вы", "вас", "вам", "ваш"], correct: 1 },
+  { tag: "Местоимения", cls: "topic-pron", q: "«Мы́ ___ слу́шаем» (о ни́х) — пра́вильное местоиме́ние:", ar: "ضمير المفعول المناسب لـ «هم»", hint: "Дво́йная бу́ква «и» в коро́тком сло́ве.", options: ["они", "их", "им", "ими"], correct: 1 },
+  { tag: "Представление", cls: "topic-name", q: "Ка́к сказа́ть «меня́ зову́т» по-друго́му, дослов́но?", ar: "المعنى الحرفي لعبارة «меня зовут»", hint: "Подумай: кто кого «называет»?", options: ["я называюсь сам", "меня называют (другие)", "я зову кого-то", "это вопрос, а не ответ"], correct: 1 },
+  { tag: "Представление", cls: "topic-name", q: "Форма́льный вопро́с «Ка́к ва́с зову́т?» испо́льзуется:", ar: "متى نستخدم «как вас зовут؟» الرسمية", hint: "Сравни́ с «ты́» про́тив «вы́».", options: ["то́лько с детьми́", "в форма́льной ситуа́ции (на «вы́»)", "то́лько по телефо́ну", "никогда́ не испо́льзуется"], correct: 1 },
+  { tag: "Представление", cls: "topic-name", q: "Что́ отвеча́ют по́сле того́, как узна́ли и́мя собесе́дника?", ar: "ماذا نقول بعد معرفة اسم الطرف الآخر؟", hint: "Два сло́ва, второ́е начина́ется на «п».", options: ["Споко́йной но́чи!", "О́чень прия́тно!", "До свида́ния!", "Пожа́луйста!"], correct: 1 },
+  { tag: "Представление", cls: "topic-name", q: "«Меня́ зову́т А́нна. А ___?» — пра́вильный отве́тный вопро́с (неформа́льно):", ar: "السؤال المتبادل غير الرسمي", hint: "Коро́ткое сло́во, объе́ктная фо́рма от «ты́».", options: ["ты", "тебя", "вас", "твоё"], correct: 1 },
+  { tag: "Произношение", cls: "topic-phonet", q: "Ка́к произно́сится сло́во «его́» в значе́нии «его́ зову́т»?", ar: "كيف يُنطق «его»؟", hint: "Исключе́ние: одна́ бу́ква звучи́т не так, ка́к пи́шется.", options: ["[его́]", "[ево́]", "[ега́]", "[эго́]"], correct: 1 },
+  { tag: "Произношение", cls: "topic-phonet", q: "Слоги́ «на́» и «ня́» различа́ются:", ar: "الفرق بين المقطعين «на» و«ня»", hint: "Оди́н твёрдый, друго́й мя́гкий — зави́сит от согла́сной.", options: ["твёрдостью/мя́гкостью согла́сной", "ударе́нием", "коли́чеством бу́кв", "ничем, они́ одина́ковые"], correct: 0 },
+  { tag: "Произношение", cls: "topic-phonet", q: "В па́ре «су́п — зу́б» разли́чие в пе́рвом зву́ке:", ar: "الفرق بين «с» و«з»", hint: "Оди́н зву́к глухо́й, друго́й зво́нкий.", options: ["гла́сный про́тив согла́сного", "глухо́й [с] про́тив зво́нкого [з]", "твёрдый про́тив мя́гкого", "нет разли́чия"], correct: 1 },
+  { tag: "Произношение", cls: "topic-phonet", q: "Где ударе́ние в сло́ве «программи́ст»?", ar: "أين يقع النبر في كلمة «программист»؟", hint: "Четы́ре сло́га: про-гра-ми́-ст — счита́й с конца́.", options: ["на 1-м сло́ге", "на 2-м сло́ге", "на 3-м сло́ге", "на 4-м сло́ге"], correct: 2 },
+  { tag: "Взаимность", cls: "topic-recip", q: "«Я ва́с слу́шаю, а ___?» — ка́к спроси́ть то́т же вопро́с в отве́т (форма́льно)?", ar: "كيف نطرح نفس السؤال بالمقابل رسميًا؟", hint: "Коро́тко: «А» + подлежа́щее «вы́».", options: ["а ты?", "а вас?", "а вы?", "а тебя?"], correct: 2 },
+  { tag: "Культура", cls: "topic-cult", q: "Что́ тако́е «о́тчество» в ру́сском по́лном и́мени?", ar: "ما هو «الأوتشيستفو» في الاسم الروسي الكامل؟", hint: "Образу́ется от и́мени одного́ из роди́телей.", options: ["фами́лия ма́тери", "и́мя, образо́ванное от и́мени отца́", "второ́е ли́чное и́мя по вы́бору", "назва́ние го́рода рожде́ния"], correct: 1 },
+];
+let current = 0, score = 0, answered = new Array(questions.length).fill(false);
+function render() {
+  const body = document.getElementById('quizBody');
+  document.getElementById('progressFill').style.width = ((current) / questions.length * 100) + '%';
+  if (current >= questions.length) {
+    const pct = Math.round((score / questions.length) * 100);
+    let msg = pct >= 80 ? "Отлично! 🌟" : pct >= 50 ? "Хорошо, но повторите материал 👍" : "Стоит повторить урок ещё раз 📚";
+    body.innerHTML = `<div class="results"><h2>Викторина завершена!</h2><div class="score-circle">${score}/${questions.length}</div><p style="font-size:18px; color:#1F4E79; font-weight:600;">${msg}</p><button class="restart-btn" onclick="restart()">Пройти снова / أعد المحاولة</button></div>`;
+    return;
+  }
+  const item = questions[current];
+  body.innerHTML = `<div class="question active"><div class="qnum">Вопрос ${current + 1} из ${questions.length}</div><span class="tag ${item.cls}">${item.tag}</span><div class="qtext">${item.q}</div><div class="arabic">${item.ar}</div>${item.hint ? `<button class="hint-toggle" id="hintBtn" onclick="toggleHint()">💡 Показать подсказку</button><div class="hint" id="hintBox">${item.hint}</div>` : ''}<div class="options" id="optionsBox" style="margin-top:16px;"></div><div class="feedback" id="feedback"></div><div class="nav-btns"><button class="nav" onclick="prevQ()" ${current===0 ? 'disabled' : ''}>← Назад</button><button class="nav" id="nextBtn" onclick="nextQ()" disabled>Далее →</button></div></div>`;
+  const optionsBox = document.getElementById('optionsBox');
+  item.options.forEach((opt, i) => {
+    const div = document.createElement('div'); div.className = 'option'; div.textContent = opt;
+    div.onclick = () => selectOption(i); optionsBox.appendChild(div);
+  });
+  if (answered[current] !== false) showAnswerState(answered[current]);
+}
+function toggleHint() {
+  document.getElementById('hintBox').classList.toggle('show');
+}
+function selectOption(i) {
+  if (answered[current] !== false) return;
+  const item = questions[current]; const isCorrect = i === item.correct;
+  answered[current] = i; if (isCorrect) score++; showAnswerState(i);
+}
+function showAnswerState(selectedIndex) {
+  const item = questions[current]; const opts = document.querySelectorAll('.option');
+  opts.forEach((o, idx) => { o.style.pointerEvents = 'none'; if (idx === item.correct) o.classList.add('correct'); else if (idx === selectedIndex) o.classList.add('incorrect'); });
+  const fb = document.getElementById('feedback'); const isCorrect = selectedIndex === item.correct;
+  fb.className = 'feedback show ' + (isCorrect ? 'correct-fb' : 'incorrect-fb');
+  fb.textContent = isCorrect ? "✅ Правильно! / صحيح!" : "❌ Правильный ответ: " + item.options[item.correct];
+  document.getElementById('nextBtn').disabled = false;
+}
+function nextQ() { current++; render(); }
+function prevQ() { if (current > 0) { current--; render(); } }
+function restart() { current = 0; score = 0; answered = new Array(questions.length).fill(false); render(); }
+render();
+</script>
+</body>
+</html>
