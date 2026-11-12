@@ -203,10 +203,11 @@ function finishSpeak(){if(stream)stream.getTracks().forEach(t=>t.stop());
 
 // ---------- result ----------
 function levelPct(k){const r=rec[k];if(!r.done)return null;if(k!==prodLv)return r.ok/r.n;return (r.ok+wPts+sPts)/(r.n+2*PP);}
-// productive cap: writing + speaking below 66 % of their points → the level under the productive one at most;
-// below 33 % (a few words, no speech) → letters known only (start A1). The teacher's report gives the real level.
+// productive cap (2026-11-12, after the teacher's own run): writing AND speaking both nearly empty → letters known only
+// (start A1); otherwise, writing + speaking below 66 % of their points → at most the level under the productive one.
+// A skipped task alone therefore costs that level, not the whole test. The teacher's report gives the real level.
 function known(){let K=-1;for(let k=0;k<LV.length;k++){const p=levelPct(k);if(p===null||p<PASS-1e-9)break;K=k;}
-  if(prodLv>0){const pr=(wPts+sPts)/(2*PP);if(pr<0.33)K=Math.min(K,0);else if(pr<PASS)K=Math.min(K,prodLv-1);}return K;}
+  if(prodLv>0){const wr=wPts/PP,sr=sPts/PP;if(wr<0.33&&sr<0.33)K=Math.min(K,0);else if((wr+sr)/2<PASS)K=Math.min(K,prodLv-1);}return K;}
 function placement(){const K=known(),a1=rec[1].done?rec[1].ok/rec[1].n:0;
   if(K<0)return 'من الصفر: الحروف والقراءة (الدرس 1)';
   if(K==0)return a1<=0.34?'المستوى A1 من الأول (الدرس 2)':a1<=0.6?'المستوى A1: الوحدة 2 (الدرس 6)':'المستوى A1: الوحدة 4 (الدرس 16)';
