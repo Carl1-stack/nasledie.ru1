@@ -40,6 +40,7 @@ textarea{min-height:150px;font-size:18px}input.name{direction:rtl;text-align:rig
 .row .t{flex:1;height:14px;background:#EEE6D8;border-radius:8px;overflow:hidden}.row .t i{display:block;height:100%}.row span{width:54px;font-family:Montserrat;font-weight:800}
 .result{font-size:26px;font-weight:800;color:#fff;background:linear-gradient(90deg,var(--teal),var(--navy));border-radius:18px;padding:16px;text-align:center}
 .small{font-size:14px;color:#777;line-height:1.7}.note{background:#FFF4E0;border-right:6px solid var(--amber);border-radius:12px;padding:10px 14px;margin-top:12px;font-size:15px;line-height:1.7}
+.skr b{width:150px;white-space:nowrap}.skr span{width:auto;flex:1;text-align:start;font-family:Cairo;font-weight:800;color:var(--navy)}
 ul.steps{line-height:2;font-size:16px;padding-inline-start:20px}
 footer{text-align:center;color:#888;font-size:13px;padding:20px}
 </style></head><body>
@@ -203,18 +204,45 @@ function finishSpeak(){if(stream)stream.getTracks().forEach(t=>t.stop());
 
 // ---------- result ----------
 function levelPct(k){const r=rec[k];if(!r.done)return null;if(k!==prodLv)return r.ok/r.n;return (r.ok+wPts+sPts)/(r.n+2*PP);}
-// productive cap (2026-11-12, after the teacher's own run): writing AND speaking both nearly empty → letters known only
-// (start A1); otherwise, writing + speaking below 66 % of their points → at most the level under the productive one.
-// A skipped task alone therefore costs that level, not the whole test. The teacher's report gives the real level.
-function known(){let K=-1;for(let k=0;k<LV.length;k++){const p=levelPct(k);if(p===null||p<PASS-1e-9)break;K=k;}
-  if(prodLv>0){const wr=wPts/PP,sr=sPts/PP;if(wr<0.33&&sr<0.33)K=Math.min(K,0);else if((wr+sr)/2<PASS)K=Math.min(K,prodLv-1);}return K;}
-function placement(){const K=known(),a1=rec[1].done?rec[1].ok/rec[1].n:0;
+// Level on the screen = the SAME ТРКИ rules as the teacher's report (placement/evaluate.py), teacher 2026-11-12:
+// «show them the real results». Each skill gets its own level (highest level in a row at ≥ 66 %); the final level is
+// the highest level that ALL five skills reach (one skill may be at 60 %). Writing / speaking on the screen use length
+// and voice time (the report then checks the language itself). A skipped task = its points lost → its level is not
+// confirmed (at most the level below it); nothing written AND nothing said → A1.
+function skillLv(s,mark){if(!rec[0].done||rec[0].ok/rec[0].n<PASS-1e-9)return -1;let k=0;
+  for(let i=1;i<LV.length;i++){const r=rec[i];if(!r.done||!r.sk[s])break;const [o,n]=r.sk[s];if(o/n<mark-1e-9)break;k=i;}return k;}
+// writing on the screen: the highest level whose ТРКИ length the text reaches (≥ 80 % of its minimum words);
+// speaking: voice time against the task time (≥ 66 % → the task level, ≥ 33 % → one below, less → below A1)
+function writeLv(){if(prodLv<=0)return 0;const n=writing.length?writing[0].words:0;if(!n)return null;let k=0;
+  for(let L=1;L<=prodLv;L++)if(LV[L].prod&&n>=0.8*LV[L].prod.write.words)k=L;return k;}
+function speakLv(skip){if(prodLv<=0)return 0;if(skip)return null;const r=sPts/PP;return r>=PASS-1e-9?prodLv:r>=0.33?prodLv-1:0;}
+function levels(){const wSkip=!writing.length||!writing[0].words,sSkip=!parts.some(p=>!p.skipped);
+  const w=writeLv(),s=speakLv(sSkip);
+  const R={gram:skillLv('gram',PASS),read:skillLv('read',PASS),listen:skillLv('listen',PASS)},
+        soft={gram:skillLv('gram',0.6),read:skillLv('read',0.6),listen:skillLv('listen',0.6)};
+  let fin=0;const cap=prodLv-1,P=[w===null?cap:w,s===null?cap:s];
+  if(R.gram<0)fin=-1;
+  else if(prodLv<=0||(wSkip&&sSkip))fin=0;
+  else for(let L=1;L<LV.length;L++){const st=[R.gram,R.read,R.listen,...P],le=[soft.gram,soft.read,soft.listen,...P];
+    if(st.every(v=>v>=L)||(le.every(v=>v>=L)&&st.filter(v=>v<L).length<=1))fin=L;else break;}
+  return {R,w,s,wSkip,sSkip,fin,noProd:prodLv>0&&Math.max(w===null?0:w,s===null?0:s)==0};}
+function known(){return levels().fin;}
+function placement(){const V=levels(),K=V.fin;let a1=rec[1].done?rec[1].ok/rec[1].n:0;if(V.noProd)a1=Math.min(a1,0.6);
   if(K<0)return 'من الصفر: الحروف والقراءة (الدرس 1)';
   if(K==0)return a1<=0.34?'المستوى A1 من الأول (الدرس 2)':a1<=0.6?'المستوى A1: الوحدة 2 (الدرس 6)':'المستوى A1: الوحدة 4 (الدرس 16)';
-  if(K==1)return levelPct(1)<0.85?'المستوى A1: الوحدة 5 (الدرس 21)، وبعدها A2':'المستوى A2 من الأول';
+  if(K==1)return rec[1].ok/rec[1].n<0.85?'المستوى A1: الوحدة 5 (الدرس 21)، وبعدها A2':'المستوى A2 من الأول';
   if(K==2)return 'المستوى B1 من الأول';
   if(K==3)return 'المستوى B2 من الأول';
   return 'أعلى من B2: المدرس هيحدد بعد ما يسمعك';}
+const LVL=k=>k===null?'—':k<0?'لسه':k==0?'أقل من A1':LV[k].id;
+// the five skills with their level, and which of them decided the result
+function skillRows(){const V=levels(),top=Math.max(V.R.gram,V.R.read,V.R.listen);
+  const rows=[['📚 قواعد وكلمات',V.R.gram],['📖 قراءة',V.R.read],['🎧 استماع',V.R.listen],
+    ['✍️ كتابة',V.wSkip&&prodLv>0?'skip':V.w],['🎙️ كلام',V.sSkip&&prodLv>0?'skip':V.s]];
+  const lim=rows.filter(([n,v])=>V.fin<top&&(v==='skip'||(v!==null&&v<=V.fin)));
+  const lab=v=>v==='skip'?'اتسابت ❌':mix(LVL(v));
+  return `<div class="rows">${rows.map(([n,v])=>`<div class="row skr"><b>${n}</b><span>${lab(v)}</span></div>`).join('')}</div>`+
+   (lim.length?`<div class="note">🔎 مستواك اتحدد بـ: ${lim.map(([n,v])=>n.replace(/^\S+ /,'')+(v==='skip'?' (اتسابت، ودرجتها اتخصمت)':' ('+mix(LVL(v))+')')).join('، ')}.<br>نظام <span class="ru">ТРКИ</span>: المستوى بيتحسب لما كل المهارات الخمسة توصله.</div>`:'');}
 const pct=x=>x===null?'—':Math.round(x*100)+'%';
 function summary(){return ['اختبار تحديد المستوى · Наследие','الاسم: '+stu,'المستوى المبدئي: '+placement(),'',
   ...LV.map((l,k)=>`${l.id}: ${pct(levelPct(k))}`),'',`الكتابة: ${writing.length?writing[0].words+' كلمة':'—'} · التسجيلات: ${recs.length}`].join('\n');}
@@ -223,9 +251,9 @@ function result(){finished=true;stopAll();document.getElementById('bar').style.w
   const sk={};rec.forEach(r=>Object.entries(r.sk).forEach(([k,v])=>{sk[k]=sk[k]||[0,0];sk[k][0]+=v[0];sk[k][1]+=v[1];}));
   S().innerHTML=`<div class="card"><div class="small" style="text-align:center">مستواك المبدئي، ابدأ من:</div><div class="result">${mix(placement())}</div>
    <div class="rows">${LV.map((l,k)=>{const p=levelPct(k);return `<div class="row"><b>${l.id=='L0'?'الحروف':'<span class="ru">'+l.id+'</span>'}</b><div class="t"><i style="width:${p===null?0:p*100}%;background:${col(p)}"></i></div><span>${pct(p)}</span></div>`}).join('')}</div>
-   <div class="rows">${Object.keys(sk).map(k=>`<div class="row"><b>${SK[k]}</b><div class="t"><i style="width:${sk[k][0]/sk[k][1]*100}%;background:var(--teal)"></i></div><span>${sk[k][0]}/${sk[k][1]}</span></div>`).join('')}</div>
+   ${skillRows()}
    ${RESULTS_URL?`<div class="note" id="auto">⏳ بنبعت نتيجتك وتسجيلاتك للمدرس دلوقتي… متقفلش الصفحة.</div>`:''}
-   <div class="note">📩 المدرس هيقرا كتابتك ويسمع كلامك، وبعدين يأكدلك مستواك النهائي.</div>
+   <div class="note">📩 الكتابة والكلام اتقيّموا هنا بالطول والوقت بس. المدرس هيقرا كتابتك ويسمع كلامك، وبيأكدلك مستواك النهائي.</div>
    <button class="btn teal" onclick="copyRes()">📋 انسخ النتيجة</button></div>`;
   if(RESULTS_URL)autoSend();}
 const b64=b=>new Promise((ok,no)=>{const r=new FileReader();r.onload=()=>ok(String(r.result).split(',')[1]);r.onerror=no;r.readAsDataURL(b);});
