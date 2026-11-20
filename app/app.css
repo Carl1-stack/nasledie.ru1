@@ -803,3 +803,87 @@ body.rmd .hero>img{filter:saturate(.75) brightness(.8) hue-rotate(-8deg)}
 .gcard.duel.hot{border-color:var(--green)}
 .gcard.duel.done{opacity:.85}
 @media (prefers-reduced-motion:reduce){.cbm,.cbm.typing i{animation:none}}
+
+/* ---------- cinematic moves (2026-11-21) ---------- */
+#tabs{view-transition-name:tabs}#mini{view-transition-name:mini}
+::view-transition-group(tabs),::view-transition-group(mini){animation:none}
+::view-transition-old(root){animation:vt-out .26s cubic-bezier(.4,0,1,1) both}
+::view-transition-new(root){animation:vt-in .48s cubic-bezier(.16,1,.3,1) both}
+html[data-nav=fwd]::view-transition-new(root){animation-name:vt-in-l}
+html[data-nav=back]::view-transition-new(root){animation-name:vt-in-r}
+html[data-nav=fwd]::view-transition-old(root){animation-name:vt-out-r}
+html[data-nav=back]::view-transition-old(root){animation-name:vt-out-l}
+@keyframes vt-out{to{opacity:0;transform:scale(.975);filter:blur(4px) brightness(.7)}}
+@keyframes vt-out-r{to{opacity:0;transform:translateX(28px) scale(.985);filter:blur(3px)}}
+@keyframes vt-out-l{to{opacity:0;transform:translateX(-28px) scale(.985);filter:blur(3px)}}
+@keyframes vt-in{from{opacity:0;transform:translateY(16px) scale(1.012);filter:blur(4px)}}
+@keyframes vt-in-l{from{opacity:0;transform:translateX(-36px);filter:blur(3px)}}
+@keyframes vt-in-r{from{opacity:0;transform:translateX(36px);filter:blur(3px)}}
+#view.vin{animation:vt-in .45s cubic-bezier(.16,1,.3,1) both}
+#segbody.segin{animation:seg-in .34s cubic-bezier(.16,1,.3,1) both}
+@keyframes seg-in{from{opacity:0;transform:translateY(10px)}}
+
+/* opening + farewell */
+#splash,#farewell{position:fixed;inset:0;z-index:90;display:grid;place-items:center;background:radial-gradient(120% 80% at 50% 38%,#1A2B4F 0%,#0A1120 62%,#05080F 100%);overflow:hidden;cursor:pointer}
+#splash .sp-in,#farewell .sp-in{display:grid;justify-items:center;gap:14px;text-align:center;padding:24px}
+.sp-logo{width:92px;height:92px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 1px rgba(240,212,155,.5),0 0 60px rgba(214,168,90,.25);animation:sp-logo 1.1s cubic-bezier(.16,1,.3,1) both}
+@keyframes sp-logo{from{opacity:0;transform:scale(.7);filter:blur(8px)}}
+.sp-word{display:flex;font:600 46px var(--d-ru,var(--ru));color:var(--gold-hi);letter-spacing:.5px;direction:ltr}
+.sp-word span{display:inline-block;animation:sp-letter .7s cubic-bezier(.16,1,.3,1) both;animation-delay:calc(.35s + var(--i) * .06s)}
+@keyframes sp-letter{from{opacity:0;transform:translateY(18px);filter:blur(6px)}}
+.sp-vine{width:200px;height:22px;overflow:visible}
+.sp-vine path{fill:none;stroke:var(--gold);stroke-width:1.6;stroke-linecap:round;stroke-dasharray:260;stroke-dashoffset:260;animation:sp-draw 1.1s .8s ease-out forwards}
+.sp-vine circle{fill:#C8402F;opacity:0;animation:sp-berry .4s 1.6s ease-out forwards}
+@keyframes sp-draw{to{stroke-dashoffset:0}}@keyframes sp-berry{to{opacity:1}}
+.sp-hello{display:grid;gap:4px;animation:sp-hello .8s 1.25s cubic-bezier(.16,1,.3,1) both}
+.sp-hello .ru{font:600 24px var(--ru);color:#F4EDE0}
+.sp-hello .ar{font:600 16px var(--ar);color:var(--dim)}
+.sp-hello.big .ru{font-size:32px;color:var(--gold-hi)}
+@keyframes sp-hello{from{opacity:0;transform:translateY(10px)}}
+.sp-sweep{position:absolute;inset:0;background:linear-gradient(105deg,transparent 40%,rgba(240,212,155,.14) 50%,transparent 60%);transform:translateX(-120%);animation:sp-sweep 1.6s .5s ease-in-out both;pointer-events:none}
+@keyframes sp-sweep{to{transform:translateX(120%)}}
+#splash.out{animation:sp-out .65s cubic-bezier(.4,0,.2,1) forwards}
+@keyframes sp-out{to{opacity:0;transform:scale(1.04);filter:blur(6px)}}
+#farewell{animation:fw-in .5s ease-out both}
+@keyframes fw-in{from{opacity:0}}
+#farewell .sp-hello{animation-delay:.15s}
+.fw-moon{width:54px;height:54px;border-radius:50%;box-shadow:inset -14px -6px 0 0 var(--gold-hi);transform:rotate(-20deg);animation:sp-logo .9s cubic-bezier(.16,1,.3,1) both}
+.fw-st{color:var(--dim);font-size:13px;animation:sp-hello .6s .5s both}
+
+/* Кот Баю́н (mascot sample) */
+#cat{position:fixed;z-index:40;left:max(10px,calc(50vw - 230px));bottom:calc(var(--tabs) + var(--safe-b) + 8px);display:flex;align-items:flex-end;gap:6px;pointer-events:none;direction:ltr}
+#cat.high{bottom:calc(var(--tabs) + var(--safe-b) + 70px)}
+#cat[hidden]{display:none}
+.cat-btn{pointer-events:auto;width:62px;height:68px;border:0;background:none;padding:0;cursor:pointer;filter:drop-shadow(0 6px 14px rgba(0,0,0,.45));animation:cat-in .8s cubic-bezier(.2,1.4,.4,1) both}
+@keyframes cat-in{from{opacity:0;transform:translateY(30px) scale(.8)}}
+#cat.hop .cat-btn{animation:cat-hop .45s cubic-bezier(.2,1.6,.4,1)}
+@keyframes cat-hop{40%{transform:translateY(-8px) rotate(-4deg)}}
+.catsvg{width:100%;height:100%;overflow:visible}
+.catsvg .c-body,.catsvg .c-face,.catsvg .c-ear,.catsvg .c-tail path:first-child{fill:#2C4778;stroke:#E8C77E;stroke-width:2;stroke-linejoin:round}
+.catsvg .c-in{fill:#C8402F;opacity:.75}
+.catsvg .c-chest{fill:#3A5A92;stroke:#E8C77E;stroke-width:1.2}
+.catsvg .c-leaf{fill:#E8C77E;opacity:.85}
+.catsvg .c-paw{fill:#2C4778;stroke:#E8C77E;stroke-width:1.6}
+.catsvg .c-curl{fill:none;stroke:#E8C77E;stroke-width:1.4}
+.catsvg .c-eyes ellipse:not(.c-pupil){fill:#7ED6A4}
+.catsvg .c-pupil{fill:#0B1424}.catsvg .c-glint{fill:#fff}
+.catsvg .c-nose{fill:#E89A8E}.catsvg .c-mouth,.catsvg .c-wh{fill:none;stroke:#F2E3C2;stroke-width:1.2;stroke-linecap:round}
+.catsvg .c-chain circle{fill:none;stroke:#F0D49B;stroke-width:1.6}.catsvg .c-chain .c-medal{fill:#D6A85A;stroke:#F0D49B}
+.catsvg .c-tail{transform-origin:82px 110px;animation:c-tail 3.4s ease-in-out infinite}
+@keyframes c-tail{50%{transform:rotate(-9deg)}}
+.catsvg .c-eyes{transform-origin:61px 45px;animation:c-blink 5.5s infinite}
+@keyframes c-blink{0%,93%,100%{transform:none}95%{transform:scaleY(.1)}}
+.catsvg .c-ear.r{transform-origin:80px 36px;animation:c-ear 7s infinite}
+@keyframes c-ear{0%,88%,100%{transform:none}90%{transform:rotate(9deg)}92%{transform:none}}
+.catsvg .c-head{transform-origin:61px 66px;animation:c-head 6s ease-in-out infinite}
+@keyframes c-head{50%{transform:rotate(-2.5deg)}}
+.cat-bub{pointer-events:auto;max-width:min(260px,calc(100vw - 100px));margin-bottom:44px;padding:10px 12px;border-radius:16px 16px 16px 4px;background:#F4EDE0;color:#14213B;box-shadow:0 10px 30px rgba(0,0,0,.4);display:grid;gap:2px;opacity:0;transform:translateY(8px) scale(.96);transform-origin:left bottom;transition:opacity .25s ease,transform .3s cubic-bezier(.16,1,.3,1);visibility:hidden}
+#cat.talk .cat-bub{opacity:1;transform:none;visibility:visible}
+.cat-bub b{font:700 11px var(--ru);color:#B7791F}
+.cat-bub span.ar{font:600 13.5px/1.7 var(--ar);direction:rtl;text-align:right}
+.cat-bub .ru{direction:ltr;unicode-bidi:isolate}
+@media (prefers-reduced-motion:reduce){
+ ::view-transition-old(root),::view-transition-new(root){animation:none}
+ #view.vin,#segbody.segin,.sp-logo,.sp-word span,.sp-hello,.sp-sweep,#splash.out,#farewell,.fw-moon,.fw-st,.cat-btn,.catsvg *{animation:none!important}
+ .sp-vine path{stroke-dashoffset:0;animation:none}.sp-vine circle{opacity:1;animation:none}
+}
