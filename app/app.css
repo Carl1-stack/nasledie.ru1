@@ -514,4 +514,55 @@ select.hsel{margin-top:6px;padding:6px 10px;width:auto;font-size:13px;border-rad
 .cmp .chip2{display:inline-flex;align-items:center;gap:4px}.cmp .ico{width:14px;height:14px}
 .moment .freeze{font-size:12.5px;color:#B9E6CC}.moment .freeze .ico{width:14px;height:14px;vertical-align:-2px}
 .m-ask select{max-width:180px;margin:0 auto}
+/* Ramadan mode (opt-in; reports/Ramadan mode design.md): indigo night, the fanous, crescent, eight-point stars, a khayamiya band */
+:root{--rmd-indigo:#141A3D;--rmd-cream:#F3E6C8;--rmd-dusk:linear-gradient(180deg,#0E1433 0%,#1E2457 45%,#3A2A55 70%,#080D18 100%)}
+body.rmd .hero:after{background:linear-gradient(180deg,rgba(14,20,51,.78) 0%,rgba(20,26,61,.35) 35%,rgba(8,13,24,.86) 72%,#080D18 100%)}
+body.rmd .hero>img{filter:saturate(.75) brightness(.8) hue-rotate(-8deg)}
+.rsky{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none}
+.rmd-orn{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden}
+.fanous{position:absolute;width:62px;height:134px;overflow:visible}
+.fanous.f1{top:calc(var(--safe-t) - 18px);left:38%}
+.fanous.f2{top:calc(var(--safe-t) - 50px);left:58%;width:44px;height:96px;opacity:.85}
+.fanous .swing{transform-origin:60px 0;animation:fsway 5.5s ease-in-out infinite alternate}
+.fanous.f2 .swing{animation-duration:6.8s;animation-delay:-2s}
+@keyframes fsway{from{transform:rotate(-3deg)}to{transform:rotate(3deg)}}
+.fanous .f-glow{animation:fglow 3.2s ease-in-out infinite}
+@keyframes fglow{0%,100%{opacity:.85}40%{opacity:.6}60%{opacity:.95}}
+.f-gold{fill:#D6A85A;stroke:#8A5A1E;stroke-width:1}.f-gold-l{fill:none;stroke:#D6A85A;stroke-width:3}
+.f-line{stroke:#8A5A1E;stroke-width:1.6;fill:none}.f-chain{stroke:#B98C4A;stroke-width:1.4}
+.f-pane{opacity:.92}.f-orn{fill:none;stroke:#FFE7A8;stroke-width:1.2;opacity:.8}
+.crescent{width:58px;height:58px}
+.rmd-orn .crescent{position:absolute;top:calc(var(--safe-t) + 54px);right:34px;animation:crise 2.4s cubic-bezier(.16,1,.3,1) .3s both}
+@keyframes crise{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
+.khatam{width:200px;height:34px;display:block;direction:ltr;margin:2px auto 2px 0}
+.k-line{fill:none;stroke:#D6A85A;stroke-width:1.2;opacity:.6}
+.k-star{fill:none;stroke:#F0D49B;stroke-width:1.4}.k-dot{fill:#E0584A}
+/* the nights card */
+.rcard{position:relative;border-radius:20px;padding:16px 14px 14px;background:radial-gradient(130% 90% at 80% 0%,#262D66 0%,#141A3D 55%,#0C1128 100%);border:1px solid rgba(240,212,155,.3);display:grid;gap:8px;overflow:hidden}
+.kh-band{position:absolute;inset:0 0 auto;height:9px;opacity:.9;background:
+  repeating-linear-gradient(90deg,#1E2A6B 0 12px,#B3261E 12px 14px,#E9D7AE 14px 18px,#B3261E 18px 20px,#1E2A6B 20px 32px)}
+.rhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:6px}
+.rhead b{font-size:20px;color:var(--gold-hi)}
+.rhead .crescent{width:34px;height:34px;flex:0 0 34px}
+.rtime{margin:0;font-size:13px;color:var(--rmd-cream)}
+.rcity{font-size:12px;color:var(--dim);display:flex;align-items:center;gap:6px}
+.rcity .hsel{margin:0}
+.rnight{border-radius:16px;padding:12px;background:rgba(255,255,255,.05);display:grid;gap:4px}
+.rnight .small{font-size:11.5px;color:var(--gold)}
+.rnight .big{font:600 20px/1.35 var(--ru);color:var(--fg)}
+.rnight .ar{font-size:13px;color:var(--dim)}
+.rnight .row2{margin-top:6px}
+.rdots{display:grid;grid-template-columns:repeat(15,1fr);gap:5px;direction:rtl;margin-top:2px}
+.rdots i{aspect-ratio:1;border-radius:50%;border:1px solid rgba(240,212,155,.35)}
+.rdots i.on{background:var(--gold);border-color:var(--gold)}
+.rdots i.now{box-shadow:0 0 0 2px rgba(240,212,155,.55)}
+.rfact summary{cursor:pointer;font-size:12.5px;font-weight:800;color:var(--gold-hi);list-style:none}
+.rfact p{margin:6px 0 0;font-size:13px;color:var(--rmd-cream)}
+.seg3{display:flex;gap:4px;flex:0 0 auto}
+.seg3 button{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:5px 10px;font:700 12px var(--ar);cursor:pointer;color:var(--fg)}
+.seg3 button.on{background:var(--gold);color:var(--ink);border-color:var(--gold)}
+.m-rmd .fanous,.m-eid .crescent{position:static;width:70px;height:150px;margin:0 auto}
+.m-eid .crescent{width:90px;height:90px;animation:crise 2.4s cubic-bezier(.16,1,.3,1) both}
+.m-rmd .fanous .swing{animation-duration:4.5s}
+.moment .rec{background:rgba(255,255,255,.06);text-align:right}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}

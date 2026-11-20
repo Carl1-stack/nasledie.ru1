@@ -30,7 +30,7 @@ function touchStreak() {
   var t = today(); if (S.streak.last === t) return;
   var y = new Date(); y.setDate(y.getDate() - 1);
   var ys = y.getFullYear() + '-' + (y.getMonth() + 1) + '-' + y.getDate();
-  var note = gentleStep(); if (S.streak.count > 1) S.streakNew = S.streak.count; save(); updateStreakChips(); pushSeen(); if (note) setTimeout(function () { toast(note); }, 600);
+  var note = gentleStep(); rmdTouch(); if (S.streak.count > 1) S.streakNew = S.streak.count; save(); updateStreakChips(); pushSeen(); if (note) setTimeout(function () { toast(note); }, 600);
 }
 function streakNow() { var t = today(); var y = new Date(); y.setDate(y.getDate() - 1);
   var ys = y.getFullYear() + '-' + (y.getMonth() + 1) + '-' + y.getDate();
@@ -224,6 +224,7 @@ function vHome() {
     '<span class="meta">الوحدة ' + ad(unitOf(n) + 1) + ' · الدرس ' + ad(n) + '</span></div></div></section>';
   var md = mistDue().length;
   if (md) h += '<section class="shelf pad"><a class="lrow due" href="#mistakes">' + ico('review') + '<span class="tx"><b>' + G('راجع غلطاتك', 'راجعي غلطاتك') + ' · ' + ad(md) + ' سؤال</b><small>' + G('الأسئلة اللي غلطت فيها رجعت عشان تثبت', 'الأسئلة اللي غلطتي فيها رجعت عشان تثبت') + '</small></span>' + ico('back', 'end') + '</a></section>';
+  h += rmdCard();
   h += socialHtml();
   h += '<section class="shelf pad"><h2><span>الوحدات</span><span class="ru">А1</span></h2><div class="hs ltr">' + posters() + '</div></section>';
   h += '<section class="shelf pad"><h2><span>' + G('كمان ليك', 'كمان ليكي') + '</span></h2><div class="hs">' +
@@ -438,8 +439,8 @@ function vine(svg) {   // Khokhloma: a gold stem that draws itself, gold leaves 
     if (i % 2 === 0) { var b = sv('g', { transform: 'translate(' + p.x + ' ' + (p.y + s[1] * 9) + ')' }, svg); sv('circle', { class: 'v-berry', r: 3.6 }, b); sv('circle', { class: 'v-hl', r: 1.1, cx: -1.1, cy: -1.2 }, b); popIn(b, 500 + i * 220); }
   });
 }
-function vineTag() { return '<svg class="vine" viewBox="0 0 220 40" aria-hidden="true"></svg>'; }
-function playOrnaments() { view.querySelectorAll('svg.vine').forEach(vine); view.querySelectorAll('svg.bk-orn').forEach(bukvOrn); }
+function vineTag() { return rmdMode() === 'full' && (rmdPhase() || S.rmdPreviewDay === today()) ? khatamTag() : '<svg class="vine" viewBox="0 0 220 40" aria-hidden="true"></svg>'; }
+function playOrnaments() { view.querySelectorAll('svg.khatam').forEach(khatam); document.body.classList.toggle('rmd', rmdMode() === 'full' && !!(rmdPhase() || S.rmdPreviewDay === today())); rmdDecorate(); view.querySelectorAll('svg.vine').forEach(vine); view.querySelectorAll('svg.bk-orn').forEach(bukvOrn); }
 function bukvTitle(ru) {   // Old Slavonic initial (буквица): the first letter in cinnabar with a gold vine around it
   var t = String(ru || ''), first = t.charAt(0), rest = t.slice(1);
   if (rest.charAt(0) === '́') { first += rest.charAt(0); rest = rest.slice(1); }
@@ -577,6 +578,7 @@ function gentleStep() {   // called once per new day of practice; returns a note
   if (!st.last) { st.count = 1; }
   else {
     var gap = dayGap(st.last, t), missed = Math.max(0, gap - 1);
+    if (missed && rmdMode() !== 'off' && (rmdPhase() === 'ramadan' || rmdPhase() === 'eid')) { missed = 0; note = 'في رمضان السلسلة بتستنى: رجعت مكانها'; }
     if (missed) { var use = Math.min(missed, S.freezes); S.freezes -= use; missed -= use;
       if (use) note = use === 1 ? 'الحماية حافظت على سلسلتك يوم ما ' + G('غبت', 'غبتي') : 'الحماية حافظت على سلسلتك ' + ad(use) + ' أيام'; }
     st.count = missed ? Math.max(1, st.count - missed + 1) : st.count + 1;
@@ -728,6 +730,141 @@ function videoOffline(btn) {
   caches.open('nasl-video').then(function (c) { return fetch(url).then(function (r) { if (!r.ok) throw new Error('x'); return c.put(url, r); }); })
     .then(function () { S.voff = S.voff || {}; S.voff[url.split('?')[0]] = 1; store(); btn.querySelector('small').textContent = 'اتحمّل، بيشتغل من غير نت'; toast('الفيديو اتحمّل'); })
     .catch(function () { btn.disabled = false; btn.querySelector('small').textContent = 'التحميل وقف، ' + G('جرب', 'جربي') + ' تاني على واي فاي'; });
+}
+
+/* ---------- Ramadan mode (2026-11-20, reports/Ramadan mode design.md) ----------
+   Opt-in, three levels: 'full' (night sky, fanous, star band, nights card) · 'light' (nights card + timing only) · 'off'.
+   Nothing assumes the student fasts. No Qur'anic text, no Names of God, no mosque imagery as decoration. */
+var SEASON = null;
+function loadSeason() {
+  return getJSON('data/season.json').then(function (d) { SEASON = d;
+    if (API) return fetch(API + '/api/season').then(function (r) { return r.json(); }).then(function (o) { if (o && o.ramadan && o.ramadan.start) SEASON.ramadan = o.ramadan; }).catch(function () {}); }).catch(function () {});
+}
+function rmdMode() { var m = S.ramadan; return m === true ? 'full' : (m === 'full' || m === 'light') ? m : 'off'; }
+function rmdDates() { var r = (SEASON && SEASON.ramadan) || { start: '2027-02-08', eid: '2027-03-09' }; return r; }
+function ymd(iso) { var p = iso.split('-').map(Number); return p[0] + '-' + p[1] + '-' + p[2]; }
+function rmdPhase() {   // 'before' (10 days before) · 'ramadan' · 'eid' (3 days) · 'after' (11 days) · null
+  var r = rmdDates(), t = today(), s = ymd(r.start), e = ymd(r.eid);
+  var toStart = dayGap(t, s), fromEid = dayGap(e, t);
+  if (toStart > 0 && toStart <= 10) return 'before';
+  if (toStart <= 0 && dayGap(t, e) > 0) return 'ramadan';
+  if (fromEid >= 0 && fromEid < 3) return 'eid';
+  if (fromEid >= 3 && fromEid < 14) return 'after';
+  return null;
+}
+function rmdNight() { var n = dayGap(ymd(rmdDates().start), today()) + 1; return Math.max(1, Math.min(30, n)); }
+function rmdActive() { return rmdMode() !== 'off' && rmdPhase() === 'ramadan'; }
+var CITIES = [['القاهرة', 30.0444, 31.2357], ['الجيزة', 30.0131, 31.2089], ['الإسكندرية', 31.2001, 29.9187], ['المنصورة', 31.0409, 31.3785], ['طنطا', 30.7865, 31.0004],
+  ['الزقازيق', 30.5877, 31.502], ['بورسعيد', 31.2653, 32.3019], ['السويس', 29.9668, 32.5498], ['الإسماعيلية', 30.5965, 32.2715], ['أسيوط', 27.181, 31.1837], ['المنيا', 28.1099, 30.7503],
+  ['سوهاج', 26.5591, 31.6957], ['قنا', 26.1551, 32.716], ['الأقصر', 25.6872, 32.6396], ['أسوان', 24.0889, 32.8998], ['الغردقة', 27.2579, 33.8116], ['مرسى مطروح', 31.3543, 27.2373]];
+function prayerToday() {
+  if (!window.adhan) return null;
+  var c = CITIES[S.city || 0] || CITIES[0];
+  try { var t = new adhan.PrayerTimes(new adhan.Coordinates(c[1], c[2]), new Date(), adhan.CalculationMethod.Egyptian()); return { fajr: t.fajr, maghrib: t.maghrib, isha: t.isha }; } catch (e) { return null; }
+}
+function hm(d) { return ad(d.getHours() > 12 ? d.getHours() - 12 : d.getHours()) + ':' + ad(pad(d.getMinutes())); }
+function iftarLine() {
+  var p = prayerToday(); if (!p) return '';
+  var now = new Date();
+  if (now < p.maghrib) { var m = Math.round((p.maghrib - now) / 60000);
+    return 'المغرب الساعة ' + hm(p.maghrib) + ' · باقي ' + (m >= 60 ? ad(Math.floor(m / 60)) + ' ساعة و' : '') + ad(m % 60) + ' دقيقة'; }
+  var study = new Date(p.isha.getTime() + 60 * 60000);
+  return now < study ? 'وقت الروسي الهادي: من الساعة ' + hm(study) + ' بالليل' : 'وقتك دلوقتي: ٥ دقايق روسي وتبقى ' + G('خلّصت', 'خلّصتي') + ' ليلتك';
+}
+/* the fanous (Egyptian Ramadan lantern), drawn from scratch: gold frame, dome, jewel-glass panes, warm inner light */
+function fanousSvg(cls) {
+  return '<svg class="fanous ' + (cls || '') + '" viewBox="0 0 120 260" aria-hidden="true"><defs>' +
+    '<radialGradient id="fglow" cx="50%" cy="55%" r="55%"><stop offset="0" stop-color="#FFE7A8" stop-opacity=".95"/><stop offset=".5" stop-color="#F2B24A" stop-opacity=".45"/><stop offset="1" stop-color="#F2B24A" stop-opacity="0"/></radialGradient>' +
+    '<linearGradient id="gA" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F6C25B"/><stop offset="1" stop-color="#B8641E"/></linearGradient>' +
+    '<linearGradient id="gR" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#E0584A"/><stop offset="1" stop-color="#7E1C1A"/></linearGradient>' +
+    '<linearGradient id="gT" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3FB8A8"/><stop offset="1" stop-color="#0D5A5E"/></linearGradient></defs>' +
+    '<g class="swing"><line x1="60" y1="0" x2="60" y2="46" class="f-chain"/><circle cx="60" cy="50" r="6" class="f-gold-l"/>' +
+    '<path d="M38 92 C40 70 50 60 60 58 C70 60 80 70 82 92 Z" class="f-gold"/><path d="M44 92 H76" class="f-line"/>' +
+    '<circle class="f-glow" cx="60" cy="150" r="70" fill="url(#fglow)"/>' +
+    '<path d="M36 96 L48 96 L48 196 L36 186 Z" fill="url(#gT)" class="f-pane"/><path d="M48 96 L72 96 L72 196 L48 196 Z" fill="url(#gA)" class="f-pane"/><path d="M72 96 L84 96 L84 186 L72 196 Z" fill="url(#gR)" class="f-pane"/>' +
+    '<path d="M34 92 H86 V98 H34 Z M34 186 L48 198 H72 L86 186" class="f-gold"/>' +
+    '<path d="M48 96 V196 M72 96 V196 M36 96 V186 M84 96 V186" class="f-line"/>' +
+    '<path d="M60 112 L66 126 L60 140 L54 126 Z M60 150 L66 164 L60 178 L54 164 Z" class="f-orn"/>' +
+    '<path d="M44 198 L60 232 L76 198 Z" class="f-gold"/><circle cx="60" cy="238" r="5" class="f-gold-l"/><path d="M60 243 V256" class="f-chain"/></g></svg>';
+}
+function crescentSvg() { return '<svg class="crescent" viewBox="0 0 100 100" aria-hidden="true"><defs><mask id="cm"><rect width="100" height="100" fill="#fff"/><circle cx="62" cy="40" r="34" fill="#000"/></mask></defs><circle cx="46" cy="50" r="36" fill="#F0D49B" mask="url(#cm)"/></svg>'; }
+function khatamTag() { return '<svg class="khatam" viewBox="0 0 220 36" aria-hidden="true"></svg>'; }
+function khatam(svg) {   // a band of eight-point stars (two squares, one turned 45°) joined by a gold line
+  svg.innerHTML = '';
+  drawIn(sv('path', { class: 'k-line', d: 'M4 18 H216' }, svg), 1200, 150);
+  for (var i = 0; i < 5; i++) { var x = 26 + i * 42, s = 9;
+    var g = sv('g', { transform: 'translate(' + x + ' 18)' }, svg);
+    var a = sv('rect', { class: 'k-star', x: -s, y: -s, width: s * 2, height: s * 2 }, g), b = sv('rect', { class: 'k-star', x: -s, y: -s, width: s * 2, height: s * 2, transform: 'rotate(45)' }, g);
+    popIn(g, 300 + i * 160); sv('circle', { class: 'k-dot', r: 2.2 }, g); }
+}
+var starRaf = 0;
+function nightSky(host) {   // ≤ 40 slow-twinkling stars on a canvas; the crescent rises once
+  var cv = document.createElement('canvas'); cv.className = 'rsky'; cv.setAttribute('aria-hidden', 'true'); host.insertBefore(cv, host.firstChild.nextSibling);
+  var r = host.getBoundingClientRect(), d = Math.min(2, window.devicePixelRatio || 1); cv.width = r.width * d; cv.height = r.height * d; var x = cv.getContext('2d'); x.setTransform(d, 0, 0, d, 0, 0);
+  var stars = []; for (var i = 0; i < 38; i++) stars.push({ x: Math.random() * r.width, y: Math.random() * r.height * .55, r: .6 + Math.random() * 1.3, p: Math.random() * 6.28, s: .4 + Math.random() * .9 });
+  cancelAnimationFrame(starRaf);
+  function frame(tm) { if (!cv.isConnected) return; x.clearRect(0, 0, r.width, r.height);
+    stars.forEach(function (s) { var a = RM ? .7 : .35 + .55 * (0.5 + 0.5 * Math.sin(s.p + tm / 1000 * s.s)); x.globalAlpha = a; x.fillStyle = '#FFF3D6'; x.beginPath(); x.arc(s.x, s.y, s.r, 0, 6.283); x.fill(); });
+    if (!RM) starRaf = requestAnimationFrame(frame); }
+  starRaf = requestAnimationFrame(frame);
+}
+function rmdDecorate() {   // full mode, home and unit heroes: night sky + fanous + crescent; the star band replaces the vine
+  if (rmdMode() !== 'full' || !rmdPhase() && S.rmdPreviewDay !== today()) return;
+  document.body.classList.add('rmd');
+  var hero = view.querySelector('.hero'); if (!hero || hero.querySelector('.fanous')) return;
+  nightSky(hero);
+  hero.insertAdjacentHTML('beforeend', '<div class="rmd-orn" aria-hidden="true">' + fanousSvg('f1') + fanousSvg('f2') + crescentSvg() + '</div>');
+}
+function rmdCard() {   // home: «ليالي رمضان»
+  var mode = rmdMode(), ph = rmdPhase(); if (mode === 'off' || !SEASON || (!ph && S.rmdPreviewDay !== today())) return '';
+  var preview = !ph, n = ph === 'ramadan' ? rmdNight() : 1, N = SEASON.nights[n - 1], card = SEASON.cards[(n - 1) % SEASON.cards.length];
+  var head = ph === 'before' ? 'رمضان بعد ' + ad(dayGap(today(), ymd(rmdDates().start))) + ' أيام' : ph === 'eid' ? 'كل سنة وانت طيب · عيد سعيد' : ph === 'after' ? G('وحشتنا! نرجع للروسي؟', 'وحشتينا! نرجع للروسي؟') :
+    ph === 'ramadan' ? 'رمضان كريم · الليلة ' + ad(n) + ' من ٣٠' : 'معاينة وضع رمضان · بيبدأ ' + dmy(new Date(rmdDates().start + 'T12:00:00').getTime());
+  if (ph === 'after') return '<section class="shelf pad"><div class="rcard"><div class="kh-band" aria-hidden="true"></div><b class="d-ar">' + head + '</b><p class="ar">' + G('ابدأ', 'ابدئي') + ' بخمس دقايق: راجع غلطاتك، وبعدين احجز حصتك الجاية.</p>' +
+    '<div class="row2"><a class="btn sm" href="#mistakes">' + ico('review') + G('راجع غلطاتك', 'راجعي غلطاتك') + '</a>' + (CONF.whatsapp ? '<a class="btn ghost sm" href="https://wa.me/' + CONF.whatsapp.replace(/\D/g, '') + '?text=' + encodeURIComponent('أهلًا يا مستر، عايز أحجز الحصة الجاية بعد العيد 🙂') + '">احجز حصة</a>' : '') + '</div></div></section>';
+  var done = S.rnights || {}, dots = '';
+  for (var i = 1; i <= 30; i++) dots += '<i class="' + (done[i] ? 'on' : '') + (ph === 'ramadan' && i === n ? ' now' : '') + '"></i>';
+  return '<section class="shelf pad"><div class="rcard"><div class="kh-band" aria-hidden="true"></div>' +
+    '<div class="rhead"><b class="d-ar">' + head + '</b>' + (mode === 'full' ? crescentSvg() : '') + '</div>' +
+    (ph === 'ramadan' || preview ? '<p class="ar rtime">' + iftarLine() + '</p><label class="rcity ar">' + G('مدينتك', 'مدينتك') + ' <select class="f hsel" id="rcity">' + CITIES.map(function (c, i) { return '<option value="' + i + '"' + ((S.city || 0) === i ? ' selected' : '') + '>' + c[0] + '</option>'; }).join('') + '</select></label>' : '') +
+    '<div class="rnight"><span class="ar small">' + (ph === 'eid' ? 'كلمة العيد' : 'كلمة الليلة') + '</span><span class="ru big">' + esc(ph === 'eid' ? SEASON.nights[28].ru : N.ru) + '</span><span class="ar">' + esc(ph === 'eid' ? SEASON.nights[28].ar : N.ar) + '</span>' +
+    '<div class="row2"><button class="btn sm" data-act="rplay" data-a="' + (ph === 'eid' ? SEASON.nights[28].a : N.a) + '">' + ico('sound') + G('اسمع', 'اسمعي') + '</button><button class="btn ghost sm" data-act="rc" data-url="audio/season/' + (ph === 'eid' ? SEASON.nights[28].a : N.a) + '.mp3">' + ico('mic') + G('سجّل وقارن', 'سجّلي وقارني') + '</button></div></div>' +
+    (ph !== 'eid' ? '<div class="rdots" aria-label="٣٠ ليلة">' + dots + '</div><p class="note ar" style="margin:4px 0 0">هدف رمضان: ٥ دقايق في اليوم. السلسلة في رمضان بتستنى ' + G('لو غبت', 'لو غبتي') + '، مش بتقع.</p>' : '') +
+    '<details class="rfact"><summary class="ar">روسيا في رمضان</summary><p class="ar">' + mix(card.ar) + '</p></details></div></section>';
+}
+function rmdTouch() { if (rmdActive()) { S.rnights = S.rnights || {}; S.rnights[rmdNight()] = 1; } }
+function rmdOffer() {   // asked once, close to Ramadan; never assumes fasting
+  if (S.ramadan != null || !SEASON || !rmdPhase() || rmdPhase() === 'after') return;
+  S.ramadan = 'off'; store();
+  var o = overlay(fanousSvg('f-offer') + '<h3 class="d-ar">رمضان كريم!</h3><p class="ar">' + G('تحب', 'تحبي') + ' التطبيق يلبس ثوب رمضان؟ ليل وفوانيس، كلمة روسي كل ليلة، والتنبيه بعد العشا. ' + G('تقدر تغيّره', 'تقدري تغيّريه') + ' في «حسابي».</p>' +
+    '<div class="row2" style="justify-content:center"><button class="btn" data-rmd="full">أيوه، كامل</button><button class="btn ghost" data-rmd="light">هادي من غير زينة</button><button class="btn ghost" data-close>لأ، شكرًا</button></div>', 'm-rmd');
+  o.addEventListener('click', function (e) { var b = e.target.closest('[data-rmd]'); if (!b) return; setRamadan(b.dataset.rmd); o.querySelector('[data-close]').click(); });
+}
+function setRamadan(m) {
+  S.ramadan = m; if (m === 'off') document.body.classList.remove('rmd'); if (!rmdPhase() && m !== 'off') S.rmdPreviewDay = today(); store(); save();
+  if (S.push && m !== 'off') { var p = prayerToday(), h = p ? Math.min(23, new Date(p.isha.getTime() + 60 * 60000).getHours() + (new Date(p.isha.getTime() + 60 * 60000).getMinutes() > 30 ? 1 : 0)) : 20;
+    S.push.hour = Math.max(20, h); }
+  if (S.push) navigator.serviceWorker.ready.then(function (r) { return r.pushManager.getSubscription(); }).then(function (sub) { if (!sub) return;
+    return fetch(API + '/api/push' + (S.token ? '?t=' + encodeURIComponent(S.token) : ''), { method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ sub: sub.toJSON(), hour: S.push.hour, tz: -new Date().getTimezoneOffset(), device: S.device, g: S.g || 'm', last: S.streak.last || '', ramadan: m !== 'off' }) }); }).catch(function () {});
+  toast(m === 'full' ? 'رمضان كريم! التطبيق لبس ثوب رمضان' : m === 'light' ? 'وضع رمضان الهادي اشتغل' : 'وضع رمضان اتقفل');
+  render();
+}
+function rmdRow() {
+  var m = rmdMode();
+  return '<div class="set"><span class="tx">وضع رمضان<small>' + (rmdPhase() ? 'بيشتغل في رمضان' : 'بيبدأ لوحده في رمضان · ' + G('تقدر تشوفه', 'تقدري تشوفيه') + ' دلوقتي') + '</small></span>' +
+    '<span class="seg3">' + [['full', 'كامل'], ['light', 'هادي'], ['off', 'مقفول']].map(function (x) { return '<button data-act="rmdset" data-m="' + x[0] + '" class="' + (m === x[0] ? 'on' : '') + '">' + x[1] + '</button>'; }).join('') + '</span></div>';
+}
+function eidMoment() {   // once, on the first Eid days
+  if (rmdMode() === 'off' || rmdPhase() !== 'eid') return;
+  var y = rmdDates().eid.slice(0, 4); S.eidShown = S.eidShown || {}; if (S.eidShown[y]) return; S.eidShown[y] = 1; store();
+  var N = SEASON.nights[28];
+  var o = overlay(crescentSvg() + '<h3 class="d-ar">كل سنة وانت طيب</h3><p class="ar">عيد سعيد عليك وعلى أهلك</p><span class="ru msub">' + esc(N.ru) + '</span>' +
+    '<div class="row2" style="justify-content:center"><button class="btn ghost" data-act="rplay" data-a="' + N.a + '">' + ico('sound') + 'С пра́здником!</button>' +
+    '<button class="btn ghost" data-share-eid>' + G('شارك تهنئة', 'شاركي تهنئة') + '</button><button class="btn" data-close>شكرًا</button></div>' +
+    (S.token ? recHtml(0, 'eid', 'ابعت تهنئة العيد للمدرس بالروسي') : ''), 'm-eid');
+  chime([784, 988, 1175, 1568]);
+  o.addEventListener('click', function (e) { if (e.target.closest('[data-share-eid]')) shareCard('عيد سعيد', 'كل سنة وانت طيب', 'С пра́здником! · Насле́дие').then(function (b) { shareBlob(b, 'كل سنة وانت طيب! С праздником!'); }); });
 }
 
 /* ---------- daily reminders (web push; on iPhone only when the app is on the home screen) ---------- */
@@ -1304,7 +1441,7 @@ function drawChat() {
 }
 function aiCall(end) {
   if (CH.busy) return; CH.busy = true; if (CH.call) callUi(); else drawChat();
-  var c = CH, body = { lesson: c.n, mission: c.mi, mode: c.call ? 'call' : 'chat', messages: c.msgs, g: S.g, name: S.name || '', device: S.device, chat: c.id, end: !!end };
+  var c = CH, body = { season: rmdActive() ? 'ramadan' : '', lesson: c.n, mission: c.mi, mode: c.call ? 'call' : 'chat', messages: c.msgs, g: S.g, name: S.name || '', device: S.device, chat: c.id, end: !!end };
   fetch(API + '/api/ai' + (S.token ? '?t=' + encodeURIComponent(S.token) : ''), { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) })
     .then(function (r) { return r.json(); })
     .then(function (j) {
@@ -1386,7 +1523,7 @@ function vProfile() {
     setRow('hideTr', 'إخفاء الترجمة في الحوارات', G('عشان تفهم بالروسي بس', 'عشان تفهمي بالروسي بس')) +
     setRow('light', 'الوضع الفاتح', 'للمذاكرة في النور') +
     remindRow() +
-    setRow('ramadan', 'وضع رمضان', 'التنبيه بعد الفطار، والكلام بروح رمضان') +
+    rmdRow() +
     (S.token ? '<button class="set" data-act="invite"><span class="tx">' + G('اعزم صاحبك', 'اعزمي صاحبتك') + '<small>لو اشترك، إنتوا الاتنين بتاخدوا هدية من المدرس</small><small id="friends"></small></span>' + ico('send') + '</button>' : '') +
     '<a class="set" href="#certs"><span class="tx">' + G('شهاداتي', 'شهاداتي') + '<small>شهادة لكل وحدة ' + G('تخلصها', 'تخلصيها') + '</small></span>' + ico('star') + '</a>' +
     '<a class="set" href="#welcome"><span class="tx">' + G('غيّر اسمك وصورتك', 'غيّري اسمك وصورتك') + '</span>' + ico('back') + '</a>' +
@@ -1472,6 +1609,8 @@ document.addEventListener('click', function (e) {
   }
   else if (a === 'offline') { saveOffline(LS.n, LS.L, act); }
   else if (a === 'goal') { goalTick(+act.dataset.i, act); }
+  else if (a === 'rmdset') { setRamadan(act.dataset.m); }
+  else if (a === 'rplay') { playOne(act, 'audio/season/' + act.dataset.a + '.mp3'); }
   else if (a === 'rcline') { var d0 = LS.L && LS.segs && dlgOf(LS.segs[LS.seg].k), li = P.meta && P.meta.key === LS.n + LS.segs[LS.seg].k ? P.i : 0; var ln0 = d0 && d0.lines[Math.max(0, li)];
     if (ln0) { toast(G('قول: ', 'قولي: ') + ln0.ru.replace(/\u0301/g, '')); recCompare(act, audioUrl(LS.n, ln0.a), ''); } }
   else if (a === 'invite') { invite(); }
@@ -1532,6 +1671,7 @@ document.addEventListener('keydown', function (e) {
   if (e.key === 'Enter' && e.target.id === 'code') tryCode();
   if (e.key === 'Enter' && e.target.id === 'ai-in') { e.preventDefault(); aiSend(e.target.value); }
 });
+document.addEventListener('change', function (e) { if (e.target.id === 'rcity') { S.city = +e.target.value; store(); render(); return; } });
 document.addEventListener('change', function (e) {
   if (e.target.id !== 'rhour' || !S.push) return; var hour = +e.target.value;
   navigator.serviceWorker.ready.then(function (r) { return r.pushManager.getSubscription(); }).then(function (sub) { if (!sub) return;
@@ -1561,6 +1701,7 @@ getJSON('data/index.json').then(function (idx) {
   IDX = idx; idx.units.forEach(function (u) { u.lessons.forEach(function (l) { LES[l.num] = l; }); });
   render(); fillCreditsLater();
   loadSocial().then(function () { if (parse().name === 'home') render(); });
+  loadSeason().then(function () { if (parse().name === 'home') render(); setTimeout(function () { rmdOffer(); eidMoment(); }, 1200); });
   loadVideos().then(function () { var nm = parse().name; if ((nm === 'lesson' || nm === 'course' || nm === 'watch') && !document.getElementById('vplayer')) render(); });
   refreshStatus().then(function () { if (!S.token) return; return pullProgress().then(function () { if (parse().name !== 'chat' && parse().name !== 'call' && parse().name !== 'open') render(); }); });
 }).catch(function () { view.innerHTML = '<div class="page pad"><p class="ar">التطبيق محتاج نت أول مرة يفتح.</p></div>'; });
