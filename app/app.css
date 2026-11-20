@@ -726,3 +726,28 @@ body.rmd .hero>img{filter:saturate(.75) brightness(.8) hue-rotate(-8deg)}
 .acard.playing{box-shadow:0 0 0 2px var(--gold)}
 @media (prefers-reduced-motion:reduce){.mc .mbk,.mc .face{transition:none}}
 .bline .endm{font:700 20px var(--ru);align-self:center}
+
+/* games wave 3 (2026-11-20): dictation keyboard, endings forge, unit boss */
+.dtyped{min-height:54px;width:100%;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;font:600 26px var(--ru);direction:ltr;padding:8px 12px;border-radius:14px;border:1px solid rgba(214,168,90,.45);background:rgba(8,13,24,.35);letter-spacing:.5px}
+.dtyped .cur{display:inline-block;width:2px;height:28px;background:var(--gold-hi);margin-left:2px;animation:blink 1s steps(1) infinite}
+.dtyped.ok{border-color:var(--green);background:rgba(63,163,107,.14)}.dtyped.no{border-color:var(--red);background:rgba(192,57,43,.12)}
+.dtyped.ok .cur,.dtyped.no .cur{display:none}
+@keyframes blink{50%{opacity:0}}
+.kbd{width:100%;display:grid;gap:6px;direction:ltr;user-select:none}
+.kr{display:flex;gap:4px;justify-content:center}
+.kr button{flex:1 1 0;min-width:0;max-width:42px;height:44px;border-radius:9px;border:1px solid var(--line);background:#1E2C47;color:inherit;font:600 17px var(--ru);cursor:pointer;padding:0;touch-action:manipulation}
+.kr button:active{background:#2B3F66}
+.kr button.wide{max-width:60px;flex-grow:1.5;font-size:18px}
+.kr button.space{max-width:none;flex:5}
+.kr button.go{max-width:none;flex:2;background:var(--gold);color:var(--ink);border-color:var(--gold)}
+.kr button.go .ico{width:22px;height:22px}
+.gru .gap{display:inline-block;min-width:34px;border-bottom:2px dashed var(--gold);color:var(--gold-hi);text-align:center}
+.gru .gap.filled{border-bottom-style:solid;color:#7FD3A2}
+.gopts.two3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.rounds{display:flex;gap:6px;margin-bottom:10px}
+.rounds span{flex:1;text-align:center;font:600 12px var(--ar);padding:6px 4px;border-radius:999px;border:1px solid var(--line);color:var(--dim)}
+.rounds span.on{border-color:var(--gold);color:var(--gold-hi);background:rgba(214,168,90,.12)}
+.rounds span.ok{border-color:var(--green);color:#7FD3A2}
+.gcard.boss .ni{background:rgba(209,73,91,.15);color:#F09AA6}
+.gcard.boss.won .ni{background:rgba(214,168,90,.2);color:var(--gold-hi)}
+@media (prefers-reduced-motion:reduce){.dtyped .cur{animation:none}}
