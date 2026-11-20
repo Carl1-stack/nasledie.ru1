@@ -1,6 +1,6 @@
 /* Наследие app service worker: the app shell works offline; a lesson saved with «حمّل الدرس» plays offline.
    Bump VERSION after changing app files so phones fetch the new shell. */
-var VERSION = 'nasl-shell-v5';
+var VERSION = 'nasl-shell-v7';
 var SHELL = ['./', 'index.html', 'app.css', 'app.js', 'config.js', 'manifest.webmanifest', 'data/index.json', 'data/credits.json',
   'img/logo.png', 'img/icon-192.png', 'img/u1.jpg', 'img/u2.jpg', 'img/u3.jpg', 'img/u4.jpg', 'img/u5.jpg', 'img/u6.jpg', 'img/l2.jpg', 'img/l3.jpg',
   'img/lera.jpg', 'img/omar.jpg', 'img/olga.jpg', 'img/learner_m.jpg'];
@@ -14,6 +14,18 @@ self.addEventListener('fetch', function (e) {
   var url = new URL(req.url);
   var isFont = /fonts\.(googleapis|gstatic)\.com$/.test(url.hostname);
   var isApi = /\.workers\.dev$/.test(url.hostname) && url.pathname.indexOf('/c/') === 0;
+  if (/\.workers\.dev$/.test(url.hostname) && url.pathname.indexOf('/v/') === 0) {   // a lesson video saved for offline (Android): answer range requests from the saved copy
+    e.respondWith(caches.open('nasl-video').then(function (c) { return c.match(req.url, { ignoreVary: true }); }).then(function (hit) {
+      if (!hit) return fetch(req);
+      return hit.blob().then(function (b) {
+        var m = /bytes=(\d+)-(\d*)/.exec(req.headers.get('range') || '');
+        if (!m) return new Response(b, { headers: { 'content-type': 'video/mp4', 'content-length': String(b.size), 'accept-ranges': 'bytes' } });
+        var a0 = +m[1], a1 = m[2] ? Math.min(+m[2], b.size - 1) : b.size - 1;
+        return new Response(b.slice(a0, a1 + 1), { status: 206, headers: { 'content-type': 'video/mp4', 'content-range': 'bytes ' + a0 + '-' + a1 + '/' + b.size, 'content-length': String(a1 - a0 + 1), 'accept-ranges': 'bytes' } });
+      });
+    }));
+    return;
+  }
   if (isApi) { e.respondWith(caches.match(req, { ignoreVary: true }).then(function (hit) { return hit || fetch(req); })); return; }
   if (url.origin !== location.origin && !isFont) return;
   if (req.headers.get('range')) return;   // let the browser stream audio ranges itself
