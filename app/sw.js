@@ -1,6 +1,6 @@
 /* Наследие app service worker: the app shell works offline; a lesson saved with «حمّل الدرس» plays offline.
    Bump VERSION after changing app files so phones fetch the new shell. */
-var VERSION = 'nasl-shell-v4';
+var VERSION = 'nasl-shell-v5';
 var SHELL = ['./', 'index.html', 'app.css', 'app.js', 'config.js', 'manifest.webmanifest', 'data/index.json', 'data/credits.json',
   'img/logo.png', 'img/icon-192.png', 'img/u1.jpg', 'img/u2.jpg', 'img/u3.jpg', 'img/u4.jpg', 'img/u5.jpg', 'img/u6.jpg', 'img/l2.jpg', 'img/l3.jpg',
   'img/lera.jpg', 'img/omar.jpg', 'img/olga.jpg', 'img/learner_m.jpg'];
@@ -28,5 +28,18 @@ self.addEventListener('fetch', function (e) {
       if (isFont && (r.ok || r.type === 'opaque')) { var c = r.clone(); caches.open(VERSION).then(function (ca) { ca.put(req, c); }); }
       return r;
     });
+  }));
+});
+/* daily reminder (sent by the gatekeeper's hourly cron when the student has not practised today) */
+self.addEventListener('push', function (e) {
+  var d = {}; try { d = e.data ? e.data.json() : {}; } catch (x) { d = { body: e.data ? e.data.text() : '' }; }
+  e.waitUntil(self.registration.showNotification(d.title || 'Насле́дие', { body: d.body || '', icon: 'img/icon-192.png', badge: 'img/icon-192.png', dir: 'rtl', lang: 'ar', tag: 'daily', data: { url: d.url || './' } }));
+});
+self.addEventListener('notificationclick', function (e) {
+  e.notification.close();
+  var url = new URL((e.notification.data && e.notification.data.url) || './', self.registration.scope).href;
+  e.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (cs) {
+    for (var i = 0; i < cs.length; i++) { if (cs[i].url.indexOf(self.registration.scope) === 0 && 'focus' in cs[i]) { cs[i].navigate(url); return cs[i].focus(); } }
+    return self.clients.openWindow(url);
   }));
 });
