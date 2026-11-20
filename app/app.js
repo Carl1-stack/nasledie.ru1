@@ -198,6 +198,7 @@ function parse() {
     if (/^b1\/index\.html$/.test(p)) return { name: 'course', arg: 'b1' };
     return { name: 'view', arg: 'p/' + p };
   }
+  if (h === 'album') return { name: 'album', arg: null };
   m = h.match(/^game\/(\w+)$/);
   if (m) return { name: 'game', arg: m[1] };
   m = h.match(/^inbox(?:\/(\d+))?$/);
@@ -215,7 +216,7 @@ function render() {
   if (route.name !== 'chat' && route.name !== 'call') stopVoice();
   if (route.name !== 'game' && GM) { clearTimeout(GM.tt); GM = null; }
   var R = { home: vHome, library: vLibrary, unit: vUnit, lesson: vLesson, practice: vPractice, profile: vProfile, welcome: vWelcome, unlock: vUnlock,
-    open: vOpen, chat: vChat, call: vCall, view: vView, course: vCourse, quiz: vQuiz, mistakes: vMistakes, certs: vCerts, watch: vWatch, inbox: vInbox, games: vGames, game: vGame }[route.name] || vHome;
+    open: vOpen, chat: vChat, call: vCall, view: vView, course: vCourse, quiz: vQuiz, mistakes: vMistakes, certs: vCerts, watch: vWatch, inbox: vInbox, games: vGames, game: vGame, album: vAlbum }[route.name] || vHome;
   if (route.quiz) LS = { n: route.arg, seg: -1 };   // an old quiz link opens the lesson on its quiz tab
   view.innerHTML = '';
   R(route.arg);
@@ -229,7 +230,7 @@ function refreshChrome() {
   var tabs = document.getElementById('tabs'), mini = document.getElementById('mini');
   var noTabs = route.name === 'welcome' || route.name === 'chat' || route.name === 'call' || route.name === 'view';
   tabs.hidden = noTabs;
-  var tab = { home: 'home', library: 'library', unit: 'library', lesson: 'library', practice: 'practice', profile: 'profile', unlock: 'library', course: 'library', quiz: 'library', view: 'library', mistakes: 'home', inbox: 'home', games: 'practice', game: 'practice', certs: 'profile', chat: 'practice', call: 'practice', watch: 'library' }[route.name];
+  var tab = { home: 'home', library: 'library', unit: 'library', lesson: 'library', practice: 'practice', profile: 'profile', unlock: 'library', course: 'library', quiz: 'library', view: 'library', mistakes: 'home', inbox: 'home', games: 'practice', game: 'practice', album: 'practice', certs: 'profile', chat: 'practice', call: 'practice', watch: 'library' }[route.name];
   tabs.querySelectorAll('a').forEach(function (a) { a.classList.toggle('on', a.dataset.tab === tab); });
   mini.hidden = noTabs || !P.meta || route.name === 'lesson';
   view.className = noTabs ? 'notabs' : (mini.hidden ? 'noplayer' : '');
@@ -532,9 +533,13 @@ var GAMES = [
   { id: 'ik', ic: 'talk', ru: 'Детекти́в интона́ции', ar: 'محقق النغمة', d: 'اسمع الجملة: سؤال ولا جملة عادية؟', need: 'ik' },
   { id: 'catch', ic: 'play', ru: 'Пойма́й сло́во', ar: 'امسك الكلمة', d: 'اسمع الكلمة واختار المكتوبة صح', need: 'words' },
   { id: 'meaning', ic: 'book', ru: 'Что э́то зна́чит?', ar: 'يعني إيه؟', d: 'جملة روسي: اختار معناها', need: 'sents' },
+  { id: 'conj', ic: 'spark', ru: 'Спряже́ние на ско́рость', ar: 'تصريف سريع', d: 'الضمير والفعل: اختار التصريف الصح', need: 'conj' },
+  { id: 'build', ic: 'talk', ru: 'Собери́ фра́зу', ar: 'رتّب الجملة', d: 'اسمع الجملة ورتّب كلماتها', need: 'build' },
+  { id: 'memory', ic: 'star', ru: 'Па́мять', ar: 'الذاكرة', d: 'اقلب كارتين: الروسي ومعناه', need: 'words' },
   { id: 'reader', ic: 'test', ru: 'Скорочте́ние', ar: 'قراية سريعة', d: 'اقرا الكلمة الروسي واختار نطقها بالعربي', need: 'pr' }
 ];
 var GM = null, GPOOL = null;
+var BSTART = 'я ты он она оно мы вы они это вот там тут здесь как где что кто когда куда откуда почему сколько чей чья чьё чьи у в во на а и но не да нет ну слушай привет здравствуйте спасибо пожалуйста извините мой моя моё мои твой твоя наш наша ваш ваша его её их всё все сегодня завтра вчера утром вечером можно нельзя надо мне тебе ему ей нам вам им меня тебя у с к по за из от до очень давай давайте хорошо отлично конечно сейчас потом тоже ещё уже'.split(' ');
 function plain(t) { return String(t || '').replace(/́/g, ''); }
 function editDist(a, b) {
   a = plain(a).toLowerCase(); b = plain(b).toLowerCase(); var m = a.length, n = b.length, d = [], i, j;
@@ -554,7 +559,7 @@ function gamePool() {
   var ns = gameLessons(), key = levelNow() + ':' + ns.join(',');
   if (GPOOL && GPOOL.key === key) return Promise.resolve(GPOOL);
   return Promise.all(ns.map(function (n) { return lesson(n).then(function (L) { return { n: n, L: L }; }, function () { return null; }); })).then(function (rs) {
-    var P2 = { key: key, words: [], stress: [], ik: [], sents: [], pr: [] }, seen = {};
+    var P2 = { key: key, words: [], stress: [], ik: [], sents: [], pr: [], conj: [], build: [] }, seen = {};
     rs.forEach(function (r) {
       if (!r) return; var n = r.n, L = r.L;
       (L.glossary || []).forEach(function (w) {
@@ -565,7 +570,14 @@ function gamePool() {
         if (marks === 1 && vows >= 2 && !/[\s-]/.test(w.ru)) P2.stress.push(it);
         if (w.pr) P2.pr.push(it);
       });
-      (L.vocab || []).forEach(function (b) { (b.rows || []).forEach(function (s) { if (s.a && s.ar && s.ru.length < 60) P2.sents.push({ n: n, ru: s.ru, ar: s.ar, a: s.a }); }); });
+      (L.vocab || []).forEach(function (b) { (b.rows || []).forEach(function (s) {
+        if (s.a && s.ar && s.ru.length < 60) P2.sents.push({ n: n, ru: s.ru, ar: s.ar, a: s.a });
+        var wn = String(s.ru || '').trim().split(/\s+/).length; if (s.a && wn >= 3 && wn <= 7 && !/[«»—]/.test(s.ru)) P2.build.push({ n: n, ru: s.ru.trim(), ar: s.ar, a: s.a });
+      }); });
+      (L.conj || []).forEach(function (v) {
+        var fs = (v.forms || []).map(function (f) { var w = String(f.ru).trim().split(/\s+/); return { pron: w[0], verb: w.slice(1).join(' '), ru: f.ru, a: f.a }; }).filter(function (f) { return f.verb; });
+        fs.forEach(function (f) { P2.conj.push({ n: n, ru: f.ru, ar: v.ar, a: f.a, inf: v.ru, pron: f.pron, verb: f.verb, all: fs }); });
+      });
       (L.dialogues || []).forEach(function (d) { (d.lines || []).forEach(function (l) {
         var t = String(l.ru || '').trim(); if (!l.a || t.length > 70) return;
         if (/\?$/.test(t)) P2.ik.push({ n: n, ru: t, ar: l.ar, a: l.a, q: true }); else if (/\.$/.test(t)) P2.ik.push({ n: n, ru: t, ar: l.ar, a: l.a, q: false });
@@ -597,17 +609,32 @@ function makeQ(type, pool) {
   if (type === 'ik') { it = pickItems(pool.ik, 1)[0]; if (!it) return null; return { type: type, it: it }; }
   if (type === 'catch') { it = pickItems(pool.words, 1)[0]; if (!it) return null; opts = distract(it, pool.words, 'ru', 3); if (opts.length < 2) return null; return { type: type, it: it, opts: shuffle(opts.concat([it])) }; }
   if (type === 'meaning') { it = pickItems(pool.sents, 1)[0]; if (!it) return null; opts = distract(it, pool.sents, 'ar', 3); if (opts.length < 2) return null; return { type: type, it: it, opts: shuffle(opts.concat([it])) }; }
+  if (type === 'conj') {
+    it = pickItems(pool.conj, 1)[0]; if (!it) return null;
+    var other = shuffle(it.all.filter(function (f) { return plain(f.verb) !== plain(it.verb); })).slice(0, 3).map(function (f) { return { verb: f.verb }; });
+    if (other.length < 2) return null; var me = { verb: it.verb }; return { type: type, it: it, opts: shuffle(other.concat([me])), right: me };
+  }
+  if (type === 'build') {
+    it = pickItems(pool.build, 1)[0]; if (!it) return null;
+    var words = it.ru.split(/\s+/), endm = (words[words.length - 1].match(/[.!?…]+$/) || [''])[0];
+    words[words.length - 1] = words[words.length - 1].replace(/[.!?…]+$/, '');
+    if (BSTART.indexOf(plain(words[0]).toLowerCase().replace(/[,.!?…]/g, '')) >= 0) words[0] = words[0].charAt(0).toLowerCase() + words[0].slice(1);   // the capital would give the first word away
+    var tiles = words.map(function (w, i) { return { w: w, i: i }; });
+    var sh = shuffle(tiles.slice()), tries = 0; while (tries++ < 5 && sh.every(function (t, i) { return t.i === i; })) sh = shuffle(tiles.slice());
+    return { type: type, it: it, tiles: sh, words: words, got: [], endm: endm };
+  }
   if (type === 'reader') { it = pickItems(pool.pr, 1)[0]; if (!it) return null; opts = distract(it, pool.pr, 'pr', 3); if (opts.length < 2) return null; return { type: type, it: it, opts: shuffle(opts.concat([it])) }; }
   return null;
 }
 function gameAvail(pool) {
-  return { stress: pool.stress.length >= 4, ik: pool.ik.length >= 4, catch: pool.words.length >= 4, meaning: pool.sents.length >= 4, reader: pool.pr.length >= 4 };
+  return { stress: pool.stress.length >= 4, ik: pool.ik.length >= 4, catch: pool.words.length >= 4, meaning: pool.sents.length >= 4, reader: pool.pr.length >= 4, conj: pool.conj.length >= 6, build: pool.build.length >= 4, memory: pool.words.length >= 6 };
 }
 function vGames() {
   var h = '<div class="page pad"><div class="topbar" style="padding:0"><a class="back" href="#practice" aria-label="رجوع">' + ico('back') + '</a></div>' +
     '<div class="ph1"><h1 class="ar">ألعاب وتحديات</h1><span class="ru">Игра́ть</span></div>' +
     '<p class="ar" style="color:var(--dim);margin:6px 0 14px">' + G('من الدروس اللي فتحتها', 'من الدروس اللي فتحتيها') + ' في مستوى <span class="ru">' + LEVELS.filter(function (x) { return x.id === levelNow(); })[0].ru + '</span>. مفيش قلوب ولا طاقة: الغلطة بتقطع الكومبو بس، والكلمة اللي ' + G('تغلط', 'تغلطي') + ' فيها بترجعلك بكرة.</p>' +
     '<div class="games" id="glist"><p class="ar" style="color:var(--dim)">بيحمّل…</p></div>' +
+    '<a class="gcard album-link" href="#album" style="margin-top:10px"><span class="ni">' + ico('book') + '</span><span class="tx"><span class="ru">Альбо́м слов</span><b class="ar">ألبوم الكلمات</b><small class="ar">' + ad(Object.keys(S.album || {}).length) + ' كلمة ' + G('جمعتها', 'جمعتيها') + (S.albumNew ? ' · ' + ad(S.albumNew) + ' جديدة' : '') + '</small></span>' + ico('back', 'end') + '</a>' +
     '<button class="set" data-set="gTimed" style="margin-top:8px"><span class="tx">' + G('العب بالوقت', 'العبي بالوقت') + '<small>١٠ ثواني لكل سؤال، للي ' + G('عايز', 'عايزة') + ' تحدي أكبر</small></span><span class="tog' + (S.gTimed ? ' on' : '') + '"></span></button></div>';
   view.innerHTML = h;
   gamePool().then(function (pool) {
@@ -623,8 +650,9 @@ function vGame(id) {
   var g = GAMES.filter(function (x) { return x.id === id; })[0]; if (!g) { go('#games'); return; }
   view.innerHTML = '<div class="page pad"><p class="ar" style="color:var(--dim)">بيحمّل…</p></div>';
   gamePool().then(function (pool) {
-    var av = gameAvail(pool), types = g.id === 'mix' ? Object.keys(av).filter(function (k) { return av[k]; }) : [g.id];
+    var av = gameAvail(pool), types = g.id === 'mix' ? Object.keys(av).filter(function (k) { return av[k] && k !== 'memory'; }) : [g.id];
     if (!types.length || (g.id !== 'mix' && !av[g.id])) { go('#games'); return; }
+    if (g.id === 'memory') { memoryStart(g, pool); return; }
     GM = { g: g, pool: pool, types: types, i: 0, total: g.timed ? 999 : 10, combo: 0, best: 0, score: 0, right: 0, wrong: 0, hist: [], missed: [], end: g.timed ? Date.now() + g.timed * 1000 : 0, q: null, lock: false };
     view.innerHTML = '<div class="page pad game"><div class="gtop"><a class="back" href="#games" aria-label="رجوع">' + ico('back') + '</a><span class="gname"><span class="ru">' + g.ru + '</span></span>' +
       '<span class="gstat"><span class="combo" id="gcombo"></span><b id="gscore">' + ad(0) + '</b></span></div>' +
@@ -663,12 +691,18 @@ function gameNext() {
   } else if (q.type === 'meaning') {
     h = '<p class="gask ar">يعني إيه؟</p><div class="gru ru">' + esc(it.ru) + '</div><button class="gplay sm" data-gplay="1" aria-label="اسمع">' + ico('play') + '</button>' +
       '<div class="gopts">' + q.opts.map(function (o, i) { return '<button data-gop="' + i + '" class="ar">' + esc(o.ar) + '</button>'; }).join('') + '</div>';
+  } else if (q.type === 'conj') {
+    h = '<p class="gask ar">' + G('اختار', 'اختاري') + ' التصريف الصح</p><div class="gru ru"><span class="pron">' + esc(it.pron) + '</span> <span class="inf">(' + esc(it.inf) + ')</span></div><p class="gsub ar">' + esc(it.ar) + '</p>' +
+      '<div class="gopts">' + q.opts.map(function (o, i) { return '<button data-gop="' + i + '" class="ru">' + esc(o.verb) + '</button>'; }).join('') + '</div>';
+  } else if (q.type === 'build') {
+    h = '<p class="gask ar">' + G('اسمع ورتّب', 'اسمعي ورتّبي') + ' الجملة</p><button class="gplay sm" data-gplay="1" aria-label="اسمع">' + ico('play') + '</button><p class="gsub ar">' + esc(it.ar) + '</p>' +
+      '<div class="bline ru" id="bline"></div><div class="btiles ru">' + q.tiles.map(function (t, k) { return '<button data-bt="' + k + '">' + esc(t.w) + '</button>'; }).join('') + '</div>';
   } else if (q.type === 'reader') {
     h = '<p class="gask ar">بتتنطق إزاي؟</p><div class="gru ru big">' + esc(it.ru) + '</div>' +
       '<div class="gopts">' + q.opts.map(function (o, i) { return '<button data-gop="' + i + '" class="ar">' + esc(o.pr) + '</button>'; }).join('') + '</div>';
   }
   var box = document.getElementById('gq'); box.innerHTML = '<div class="gcardq">' + h + '<div class="gfb" id="gfb"></div></div>';
-  if (q.type === 'ik' || q.type === 'catch') gameSay();
+  if (q.type === 'ik' || q.type === 'catch' || q.type === 'build') gameSay();
   if (S.gTimed && !GM.end) { clearTimeout(GM.tt); GM.tt = setTimeout(function () { if (GM && GM.q === q && !GM.lock) gameAnswer(false, null); }, 10000); }
 }
 function gameSay() { if (GM && GM.q) { au.src = audioUrl(GM.q.it.n, GM.q.it.a); var p = au.play(); if (p && p.catch) p.catch(function () {}); } }
@@ -683,6 +717,7 @@ function gameAnswer(ok, btn) {
     if (btn) btn.classList.add('ok');
     chime(GM.combo % 5 === 0 ? [1046.5, 1318.5, 1568] : [1318.5]); buzz([10]);
     var g0 = gw[k]; if (g0) { g0.gap = Math.min(30, (g0.gap || 1) * 2); g0.due = addDays(g0.gap); }
+    if (q.type === 'catch' || q.type === 'stress' || q.type === 'reader') albumAdd(it);
   } else {
     GM.wrong++; GM.combo = 0; GM.missed.push(it);
     if (btn) btn.classList.add('no');
@@ -691,13 +726,88 @@ function gameAnswer(ok, btn) {
   var right = '';
   if (q.type === 'stress') { var v = view.querySelector('[data-gv="' + q.ans + '"]'); if (v) v.classList.add('ok'); right = '<span class="ru">' + esc(it.ru) + '</span>'; }
   else if (q.type === 'ik') { var r = view.querySelector('[data-gik="' + (it.q ? 1 : 0) + '"]'); if (r) r.classList.add('ok'); right = '<span class="ru">' + esc(it.ru) + '</span>'; }
+  else if (q.type === 'conj') { q.opts.forEach(function (o, i) { if (o === q.right) { var c = view.querySelector('[data-gop="' + i + '"]'); if (c) c.classList.add('ok'); } }); right = '<span class="ru">' + esc(it.ru) + '</span>'; }
+  else if (q.type === 'build') { right = '<span class="ru">' + esc(it.ru) + '</span><small class="ar">' + esc(it.ar || '') + '</small>'; }
   else { q.opts.forEach(function (o, i) { if (o === it) { var c = view.querySelector('[data-gop="' + i + '"]'); if (c) c.classList.add('ok'); } }); right = '<span class="ru">' + esc(it.ru) + '</span><small class="ar">' + esc(it.ar || '') + '</small>'; }
   if (fb) fb.innerHTML = '<div class="' + (ok ? 'good' : 'bad') + '"><b class="ar">' + (ok ? ['برافو!', 'تمام!', 'كده بالظبط', 'ممتاز'][GM.right % 4] : G('ولا يهمك، الصح:', 'ولا يهمك، الصح:')) + '</b>' + right + '</div>';
   var c2 = document.getElementById('gcombo'); if (c2) { c2.textContent = GM.combo >= 2 ? '×' + ad(GM.combo) : ''; c2.classList.remove('pop'); void c2.offsetWidth; if (GM.combo >= 2) c2.classList.add('pop'); }
   var sc = document.getElementById('gscore'); if (sc) sc.textContent = ad(GM.score);
-  if (q.type !== 'ik' && q.type !== 'catch') gameSay();
+  if (q.type !== 'ik' && q.type !== 'catch' && q.type !== 'build') gameSay(); else if (q.type === 'build' && !ok) gameSay();
   store();
   setTimeout(gameNext, ok ? 900 : 1900);
+}
+function buildTap(k) {
+  var q = GM && GM.q; if (!q || q.type !== 'build' || GM.lock) return;
+  var btn = view.querySelector('[data-bt="' + k + '"]'); if (!btn || btn.disabled) return;
+  btn.disabled = true; q.got.push(k);
+  var line = document.getElementById('bline'); var sp = document.createElement('button'); sp.textContent = q.tiles[k].w; sp.dataset.bb = k; line.appendChild(sp);
+  if (q.got.length === q.tiles.length) {
+    var said = q.got.map(function (j) { return plain(q.tiles[j].w).toLowerCase(); }).join(' '), want = q.words.map(function (w) { return plain(w).toLowerCase(); }).join(' ');
+    var ok = said === want; line.classList.add(ok ? 'ok' : 'no'); if (q.endm) line.insertAdjacentHTML('beforeend', '<span class="endm">' + esc(q.endm) + '</span>'); gameAnswer(ok, null);
+  }
+}
+function buildBack(k) {
+  var q = GM && GM.q; if (!q || q.type !== 'build' || GM.lock) return;
+  q.got = q.got.filter(function (j) { return j !== k; });
+  var b = view.querySelector('[data-bb="' + k + '"]'); if (b) b.remove();
+  var t = view.querySelector('[data-bt="' + k + '"]'); if (t) t.disabled = false;
+}
+/* memory: 6 pairs (Russian ↔ Arabic); a match plays the word. Score = fewer flips, combo for matches in a row */
+function memoryStart(g, pool) {
+  var ws = pickItems(pool.words, 6), cards = [];
+  ws.forEach(function (w, i) { cards.push({ p: i, side: 'ru', w: w }); cards.push({ p: i, side: 'ar', w: w }); });
+  GM = { g: g, pool: pool, mem: shuffle(cards), open: [], pairs: 0, flips: 0, combo: 0, best: 0, score: 0, right: 0, wrong: 0, hist: [], missed: [], t0: Date.now(), lock: false };
+  view.innerHTML = '<div class="page pad game"><div class="gtop"><a class="back" href="#games" aria-label="رجوع">' + ico('back') + '</a><span class="gname"><span class="ru">' + g.ru + '</span></span>' +
+    '<span class="gstat"><span class="combo" id="gcombo"></span><b id="gscore">' + ad(0) + '</b></span></div>' +
+    '<p class="gask ar" style="margin:4px 0 12px">' + G('اقلب كارتين: الكلمة الروسي ومعناها', 'اقلبي كارتين: الكلمة الروسي ومعناها') + '</p><div class="mem" id="gq">' +
+    GM.mem.map(function (c, i) { return '<button class="mc" data-mc="' + i + '" aria-label="كارت"><span class="mbk"></span><span class="face ' + c.side + '">' + esc(c.side === 'ru' ? c.w.ru : c.w.ar) + '</span></button>'; }).join('') + '</div></div>';
+}
+function memoryTap(i) {
+  if (!GM || !GM.mem || GM.lock) return;
+  var c = GM.mem[i], el = view.querySelector('[data-mc="' + i + '"]'); if (!el || c.done || GM.open.indexOf(i) >= 0) return;
+  el.classList.add('up'); GM.open.push(i); GM.flips++;
+  if (c.side === 'ru') { au.src = audioUrl(c.w.n, c.w.a); var pp = au.play(); if (pp && pp.catch) pp.catch(function () {}); }
+  if (GM.open.length < 2) return;
+  var a = GM.mem[GM.open[0]], b = GM.mem[GM.open[1]], pair = GM.open.slice(); GM.open = [];
+  if (a.p === b.p && a.side !== b.side) {
+    a.done = b.done = true; GM.pairs++; GM.right++; GM.combo++; GM.best = Math.max(GM.best, GM.combo); GM.score += 10 * GM.combo;
+    pair.forEach(function (j) { view.querySelector('[data-mc="' + j + '"]').classList.add('ok'); });
+    chime(GM.combo >= 3 ? [1046.5, 1318.5, 1568] : [1318.5]); buzz([10]); albumAdd(a.w);
+    if (GM.pairs === 6) setTimeout(memoryOver, 700);
+  } else {
+    GM.combo = 0; GM.wrong++; GM.lock = true;
+    setTimeout(function () { pair.forEach(function (j) { var e = view.querySelector('[data-mc="' + j + '"]'); if (e) e.classList.remove('up'); }); if (GM) GM.lock = false; }, 900);
+  }
+  var c2 = document.getElementById('gcombo'); if (c2) c2.textContent = GM.combo >= 2 ? '×' + ad(GM.combo) : '';
+  var sc = document.getElementById('gscore'); if (sc) sc.textContent = ad(GM.score);
+}
+function memoryOver() {
+  if (!GM) return; var secs = Math.round((Date.now() - GM.t0) / 1000), bonus = Math.max(0, 60 - GM.flips * 2);
+  GM.score += bonus; GM.right = 6; GM.wrong = Math.max(0, GM.flips / 2 - 6);
+  view.querySelector('.mem').outerHTML = '<div id="gq"></div>';
+  gameOver();
+  var st = view.querySelector('.gend .stats'); if (st) st.insertAdjacentHTML('afterend', '<p class="gsub ar">' + ad(GM.flips) + ' قلبة في ' + ad(secs) + ' ثانية</p>');
+}
+/* word album: every word answered right is collected; 3 times right = a gold frame */
+function albumAdd(it) {
+  var A = S.album = S.album || {}, k = plain(it.ru), x = A[k];
+  if (!x) { A[k] = { ru: it.ru, ar: it.ar, n: it.n, a: it.a, c: 1, at: today() }; S.albumNew = (S.albumNew || 0) + 1; }
+  else x.c = Math.min(99, (x.c || 0) + 1);
+}
+function vAlbum() {
+  var A = S.album || {}, keys = Object.keys(A), gold = keys.filter(function (k) { return A[k].c >= 3; }).length;
+  S.albumNew = 0; store();
+  var by = {}; keys.forEach(function (k) { var x = A[k]; (by[x.n] = by[x.n] || []).push(x); });
+  var ns = Object.keys(by).map(Number).sort(function (a, b) { return a - b; });
+  var h = '<div class="page pad"><div class="topbar" style="padding:0"><a class="back" href="#games" aria-label="رجوع">' + ico('back') + '</a></div>' +
+    '<div class="ph1"><h1 class="ar">ألبوم الكلمات</h1><span class="ru">Альбо́м слов</span></div>' +
+    '<p class="ar" style="color:var(--dim);margin:6px 0 12px">كل كلمة ' + G('بتجاوبها', 'بتجاوبيها') + ' صح في الألعاب بتدخل الألبوم. ٣ مرات صح = إطار دهبي.</p>' +
+    '<div class="stats"><div class="stat"><b>' + ad(keys.length) + '</b><small>كلمة</small></div><div class="stat"><b>' + ad(gold) + '</b><small>إطار دهبي</small></div><div class="stat"><b>' + ad(ns.length) + '</b><small>درس</small></div></div>';
+  h += keys.length ? ns.map(function (n) {
+    return '<section class="sec"><h2><span>' + (LES[n] ? lessonLabel(n) : '') + '</span><span class="ru">' + esc(LES[n] ? LES[n].ru : '') + '</span></h2><div class="album">' +
+      by[n].map(function (x) { return '<button class="acard' + (x.c >= 3 ? ' gold' : '') + '" data-url="' + audioUrl(x.n, x.a) + '" data-album="1"><span class="ru">' + esc(x.ru) + '</span><small class="ar">' + esc(x.ar) + '</small><i class="cnr a"></i><i class="cnr b"></i></button>'; }).join('') + '</div></section>';
+  }).join('') : '<div class="empty"><span class="ni big">' + ico('book') + '</span><p class="ar">الألبوم لسه فاضي. ' + G('العب', 'العبي') + ' أي لعبة وأول كلمة ' + G('تجاوبها', 'تجاوبيها') + ' صح هتدخل هنا.</p><a class="btn" href="#games">يلا نلعب</a></div>';
+  view.innerHTML = h + '</div>';
 }
 function gameOver() {
   if (!GM || GM.done) return; GM.done = true; clearTimeout(GM.tt);
@@ -1937,6 +2047,10 @@ document.addEventListener('click', function (e) {
   var gk = t.closest('[data-gik]'); if (gk && GM && GM.q) { gameAnswer((gk.dataset.gik === '1') === !!GM.q.it.q, gk); return; }
   var go2 = t.closest('[data-gop]'); if (go2 && GM && GM.q) { gameAnswer(GM.q.opts[+go2.dataset.gop] === GM.q.it, go2); return; }
   if (t.closest('[data-gplay]')) { gameSay(); return; }
+  var bt = t.closest('[data-bt]'); if (bt) { buildTap(+bt.dataset.bt); return; }
+  var bb = t.closest('[data-bb]'); if (bb) { buildBack(+bb.dataset.bb); return; }
+  var mc = t.closest('[data-mc]'); if (mc) { memoryTap(+mc.dataset.mc); return; }
+  var ac = t.closest('[data-album]'); if (ac) { playOne(ac, ac.dataset.url); return; }
   var nt = t.closest('[data-note]');
   if (nt) { var id = +nt.dataset.note, m = (S.inbox || []).filter(function (x) { return x.id === id; })[0]; if (m) { if (!m.read) { m.read = true; noteOpened(id); store(); } if (m.url && m.url !== './#inbox/' + id) { go(m.url.replace(/^\.\//, '')); return; } paintBell(); } return; }
   var seg = t.closest('[data-seg]'); if (seg) { LS.seg = +seg.dataset.seg; renderSeg(); return; }
