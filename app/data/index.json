@@ -4,6 +4,7 @@
    "ru": "Знако́мство",
    "ar": "التعارف",
    "photo": "u1",
+   "course": "a1",
    "lessons": [
     {
      "num": 1,
@@ -56,6 +57,7 @@
    "ru": "Обо мне́",
    "ar": "عني",
    "photo": "u2",
+   "course": "a1",
    "lessons": [
     {
      "num": 6,
@@ -108,6 +110,7 @@
    "ru": "Мир вокру́г",
    "ar": "العالم حوالينا",
    "photo": "u3",
+   "course": "a1",
    "lessons": [
     {
      "num": 11,
@@ -160,6 +163,7 @@
    "ru": "Мой день",
    "ar": "يومي",
    "photo": "u4",
+   "course": "a1",
    "lessons": [
     {
      "num": 16,
@@ -212,6 +216,7 @@
    "ru": "Поку́пки и вку́сы",
    "ar": "الشوبينج والأذواق",
    "photo": "u5",
+   "course": "a1",
    "lessons": [
     {
      "num": 21,
@@ -264,6 +269,7 @@
    "ru": "Го́род и дом",
    "ar": "المدينة والبيت",
    "photo": "u6",
+   "course": "a1",
    "lessons": [
     {
      "num": 26,
@@ -309,6 +315,140 @@
      "free": false,
      "dialogues": 2,
      "words": 16
+    }
+   ]
+  },
+  {
+   "ru": "Ча́сть 1",
+   "ar": "الجزء الأول: أنا وشغلي",
+   "photo": "u4",
+   "course": "b1",
+   "lessons": [
+    {
+     "num": 101,
+     "key": "l01",
+     "mission": false,
+     "ru": "Автопортре́т",
+     "pr": null,
+     "ar": "الدرس الأول: احكي عن نفسك",
+     "free": false,
+     "dialogues": 2,
+     "words": 29
+    },
+    {
+     "num": 102,
+     "key": "l02",
+     "mission": false,
+     "ru": "Рабо́та",
+     "pr": null,
+     "ar": "الدرس التاني: الشغل",
+     "free": false,
+     "dialogues": 2,
+     "words": 29
+    },
+    {
+     "num": 103,
+     "key": "l03",
+     "mission": false,
+     "ru": "Мой день. Вре́мя",
+     "pr": null,
+     "ar": "الدرس التالت: يومي والوقت",
+     "free": false,
+     "dialogues": 2,
+     "words": 30
+    },
+    {
+     "num": 201,
+     "key": "m01",
+     "mission": true,
+     "ru": "Рабо́та с тури́стами",
+     "pr": null,
+     "ar": "المهمة الأولى: الشغل مع السياح",
+     "free": false,
+     "dialogues": 2,
+     "words": 30
+    }
+   ]
+  },
+  {
+   "ru": "Ча́сть 2",
+   "ar": "الجزء التاني: يومي وحكاياتي",
+   "photo": "u5",
+   "course": "b1",
+   "lessons": [
+    {
+     "num": 104,
+     "key": "l04",
+     "mission": false,
+     "ru": "Стиль жи́зни",
+     "pr": null,
+     "ar": "الدرس الرابع: أسلوب الحياة",
+     "free": false,
+     "dialogues": 2,
+     "words": 30
+    },
+    {
+     "num": 202,
+     "key": "m02",
+     "mission": true,
+     "ru": "Расскажи́ исто́рию",
+     "pr": null,
+     "ar": "المهمة التانية: احكي حكاية",
+     "free": false,
+     "dialogues": 2,
+     "words": 30
+    },
+    {
+     "num": 105,
+     "key": "l05",
+     "mission": false,
+     "ru": "Свобо́дное вре́мя",
+     "pr": null,
+     "ar": "الدرس الخامس: وقت الفراغ",
+     "free": false,
+     "dialogues": 2,
+     "words": 30
+    }
+   ]
+  },
+  {
+   "ru": "Ча́сть 3",
+   "ar": "الجزء التالت: إجازة ومشاكل ومراجعة",
+   "photo": "u6",
+   "course": "b1",
+   "lessons": [
+    {
+     "num": 106,
+     "key": "l06",
+     "mission": false,
+     "ru": "О́тдых",
+     "pr": null,
+     "ar": "الدرس السادس: الإجازة والسفر",
+     "free": false,
+     "dialogues": 2,
+     "words": 30
+    },
+    {
+     "num": 203,
+     "key": "m03",
+     "mission": true,
+     "ru": "Пробле́ма!",
+     "pr": null,
+     "ar": "المهمة التالتة: عندي مشكلة!",
+     "free": false,
+     "dialogues": 2,
+     "words": 30
+    },
+    {
+     "num": 107,
+     "key": "l07",
+     "mission": false,
+     "ru": "Повторе́ние 1",
+     "pr": null,
+     "ar": "الدرس السابع: المراجعة الأولى",
+     "free": false,
+     "dialogues": 1,
+     "words": 30
     }
    ]
   }

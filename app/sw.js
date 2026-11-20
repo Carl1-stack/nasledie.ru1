@@ -1,6 +1,6 @@
 /* Наследие app service worker: the app shell works offline; a lesson saved with «حمّل الدرس» plays offline.
    Bump VERSION after changing app files so phones fetch the new shell. */
-var VERSION = 'nasl-shell-v8';
+var VERSION = 'nasl-shell-v9';
 var SHELL = ['./', 'index.html', 'app.css', 'app.js', 'config.js', 'manifest.webmanifest', 'data/index.json', 'data/credits.json',
   'img/logo.png', 'img/icon-192.png', 'img/u1.jpg', 'img/u2.jpg', 'img/u3.jpg', 'img/u4.jpg', 'img/u5.jpg', 'img/u6.jpg', 'img/l2.jpg', 'img/l3.jpg',
   'img/lera.jpg', 'img/omar.jpg', 'img/olga.jpg', 'img/learner_m.jpg', 'vendor/adhan.min.js', 'data/season.json'];
@@ -45,7 +45,13 @@ self.addEventListener('fetch', function (e) {
 /* daily reminder (sent by the gatekeeper's hourly cron when the student has not practised today) */
 self.addEventListener('push', function (e) {
   var d = {}; try { d = e.data ? e.data.json() : {}; } catch (x) { d = { body: e.data ? e.data.text() : '' }; }
-  e.waitUntil(self.registration.showNotification(d.title || 'Насле́дие', { body: d.body || '', icon: 'img/icon-192.png', badge: 'img/icon-192.png', dir: 'rtl', lang: 'ar', tag: 'daily', data: { url: d.url || './' } }));
+  /* sound (2026-11-20): every message gets its own tag + renotify, so the phone rings and vibrates instead of silently replacing the last one */
+  var opts = { body: d.body || '', icon: 'img/icon-192.png', badge: 'img/badge-96.png', dir: 'rtl', lang: 'ar', tag: d.tag || ('n' + Date.now()), renotify: true, silent: false,
+    vibrate: [180, 90, 180], requireInteraction: d.kind === 'reply' || d.kind === 'zoom', timestamp: Date.now(), data: { url: d.url || './', kind: d.kind || '' } };
+  e.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (cs) {
+    cs.forEach(function (c) { c.postMessage({ type: 'note', kind: d.kind || '', title: d.title || '', body: d.body || '' }); });
+    return self.registration.showNotification(d.title || 'Насле́дие', opts);
+  }));
 });
 self.addEventListener('notificationclick', function (e) {
   e.notification.close();
