@@ -850,47 +850,75 @@ html[data-nav=back]::view-transition-old(root){animation-name:vt-out-l}
 .fw-moon{width:54px;height:54px;border-radius:50%;box-shadow:inset -14px -6px 0 0 var(--gold-hi);transform:rotate(-20deg);animation:sp-logo .9s cubic-bezier(.16,1,.3,1) both}
 .fw-st{color:var(--dim);font-size:13px;animation:sp-hello .6s .5s both}
 
-/* Жа́ра the Firebird (mascot, 2026-11-21): perches on the active tab, flies to the next one */
-#cat{position:fixed;z-index:40;left:0;top:0;width:62px;height:50px;pointer-events:none;will-change:transform}
+/* Жа́ра the Firebird (mascot, 2026-11-21, cinematic version): perches on the active tab, flies with embers, lives a little */
+#cat{position:fixed;z-index:40;left:0;top:0;width:70px;height:54px;pointer-events:none;will-change:transform}
 #cat[hidden]{display:none}
-.cat-btn{pointer-events:auto;position:absolute;inset:0;border:0;background:none;padding:0;cursor:pointer;filter:drop-shadow(0 4px 10px rgba(0,0,0,.5)) drop-shadow(0 0 10px rgba(240,140,60,.25))}
+.cat-btn{pointer-events:auto;position:absolute;inset:0;border:0;background:none;padding:0;cursor:pointer;filter:drop-shadow(0 5px 10px rgba(0,0,0,.55)) drop-shadow(0 0 14px rgba(255,140,60,.35))}
 #cat[data-face=r] .birdsvg{transform:scaleX(-1)}
-.birdsvg{width:100%;height:100%;overflow:visible;transition:transform .2s}
-.birdsvg .f{stroke:#F6D78A;stroke-width:1.2}
-.birdsvg .f1{fill:#E8542F}.birdsvg .f2{fill:#F08A2C}.birdsvg .f3{fill:#C8302A}
-.birdsvg .fe{fill:#F6D78A}.birdsvg .fd{fill:#1B2A4A}
-.birdsvg .b-body{fill:#F07A2A;stroke:#F6D78A;stroke-width:1.6}
-.birdsvg .b-chest{fill:#FBC25A}
-.birdsvg .b-wing path:first-child{fill:#D9452C;stroke:#F6D78A;stroke-width:1.4}
-.birdsvg .wl{fill:none;stroke:#F6D78A;stroke-width:1}
-.birdsvg .hd{fill:#F28B2E;stroke:#F6D78A;stroke-width:1.4}
-.birdsvg .crest{fill:none;stroke:#F6D78A;stroke-width:1.6;stroke-linecap:round}
-.birdsvg .cd{fill:#E8542F;stroke:#F6D78A;stroke-width:.8}
-.birdsvg .beak{fill:#F6D78A}
-.birdsvg .eye circle:first-child{fill:#14213B}.birdsvg .gl{fill:#fff}
-.birdsvg .legs{fill:none;stroke:#F6D78A;stroke-width:1.6;stroke-linecap:round}
-.birdsvg .b-tail{transform-origin:57px 52px;animation:b-tail 3s ease-in-out infinite}
-@keyframes b-tail{50%{transform:rotate(-6deg)}}
-.birdsvg .b-head{transform-origin:33px 38px;animation:b-head 4.5s ease-in-out infinite}
-@keyframes b-head{0%,100%{transform:none}20%{transform:rotate(-6deg)}24%{transform:none}60%{transform:translateY(1px) rotate(4deg)}}
-.birdsvg .eye{transform-origin:26px 29px;animation:c-blink 5s infinite}
-@keyframes c-blink{0%,93%,100%{transform:none}95%{transform:scaleY(.1)}}
-.birdsvg .b-wing{transform-origin:46px 42px}
-.birdsvg .b-body,.birdsvg .b-chest{transform-origin:45px 46px;animation:b-breathe 2.6s ease-in-out infinite}
-@keyframes b-breathe{50%{transform:scale(1.03)}}
-#cat.fly .b-wing{animation:b-flap .2s ease-in-out infinite alternate}
-@keyframes b-flap{from{transform:rotate(25deg)}to{transform:rotate(-55deg)}}
+.birdsvg{width:100%;height:100%;overflow:visible;transition:transform .35s cubic-bezier(.4,0,.2,1)}
+.birdsvg .aura{transform-origin:56px 50px;animation:b-aura 3.6s ease-in-out infinite}
+@keyframes b-aura{50%{opacity:.55;transform:scale(1.08)}}
+.birdsvg .pl{fill:url(#fbT);stroke:#FBE2A6;stroke-width:.7}
+.birdsvg .rc{fill:none;stroke:#FBE2A6;stroke-width:.6;opacity:.7}
+.birdsvg .oc circle{fill:#FBE2A6}.birdsvg .oi circle{fill:#5A1022}
+.birdsvg .b-body,.birdsvg .hd,.birdsvg .nk{fill:url(#fbB);stroke:#FBE2A6;stroke-width:.9}
+.birdsvg .sc{fill:none;stroke:#FFE7A8;stroke-width:.8;opacity:.75}
+.birdsvg .wg{fill:url(#fbW);stroke:#FBE2A6;stroke-width:.9}
+.birdsvg .wl{fill:none;stroke:#FFD9A0;stroke-width:.7;opacity:.8}
+.birdsvg .crest{fill:none;stroke:#FBE2A6;stroke-width:1.5;stroke-linecap:round}
+.birdsvg .cd{fill:#E8542F;stroke:#FFE29A;stroke-width:.8;animation:b-glow 2.4s ease-in-out infinite}
+.birdsvg .cd:nth-of-type(2){animation-delay:.6s}.birdsvg .cd:nth-of-type(3){animation-delay:1.2s}
+@keyframes b-glow{50%{fill:#FFD27A}}
+.birdsvg .ck{fill:none;stroke:#B8282A;stroke-width:1.3;stroke-linecap:round}
+.birdsvg .beak{fill:#F6D78A}.birdsvg .bl{stroke:#9A6A20;stroke-width:.6}
+.birdsvg .er{fill:#1B0E18;stroke:#FFE29A;stroke-width:.8}.birdsvg .gl{fill:#fff}
+.birdsvg .lid{fill:#F7A33A;transform-origin:31px 25px;transform:scaleY(0);animation:b-blink 5.2s infinite}
+@keyframes b-blink{0%,92%,100%{transform:scaleY(0)}95%{transform:scaleY(1)}}
+.birdsvg .legs{fill:none;stroke:#F6D78A;stroke-width:1.5;stroke-linecap:round}
+.birdsvg .b-tail{transform-origin:63px 53px;animation:b-tail 3.4s ease-in-out infinite}
+@keyframes b-tail{50%{transform:rotate(-5deg)}}
+.birdsvg .b-head{transform-origin:42px 38px;animation:b-head 5s ease-in-out infinite}
+@keyframes b-head{0%,100%{transform:none}22%{transform:rotate(-5deg)}26%{transform:none}64%{transform:translateY(.8px) rotate(3deg)}}
+.birdsvg .b-wing{transform-origin:50px 41px}
+.birdsvg .b-body{transform-origin:50px 50px;animation:b-breathe 2.8s ease-in-out infinite}
+@keyframes b-breathe{50%{transform:scale(1.025)}}
+/* acts (birdAct) */
+#cat[data-st=look] .b-head{animation:st-look 1.7s cubic-bezier(.4,0,.2,1)}
+@keyframes st-look{20%,45%{transform:rotate(-14deg) translateY(-1px)}60%,85%{transform:rotate(8deg)}}
+#cat[data-st=preen] .b-head{animation:st-preen 1.6s ease-in-out}
+@keyframes st-preen{25%,40%{transform:rotate(38deg) translate(7px,5px)}48%{transform:rotate(32deg) translate(8px,6px)}56%{transform:rotate(38deg) translate(7px,5px)}}
+#cat[data-st=preen] .b-wing{animation:st-wingup 1.6s ease-in-out}
+@keyframes st-wingup{25%,56%{transform:rotate(-12deg)}}
+#cat[data-st=stretch] .b-wing{animation:st-stretch 1.1s cubic-bezier(.3,0,.2,1)}
+@keyframes st-stretch{35%,60%{transform:rotate(-78deg) scale(1.15)}}
+#cat[data-st=stretch] .b-tail{animation:st-fan 1.1s ease-in-out}
+@keyframes st-fan{35%,60%{transform:rotate(-12deg) scaleY(1.12)}}
+#cat[data-st=peck] .b-head{animation:st-peck .9s ease-in-out}
+@keyframes st-peck{20%{transform:rotate(30deg) translate(-2px,8px)}35%{transform:none}55%{transform:rotate(30deg) translate(-2px,8px)}70%{transform:none}}
+#cat[data-st=sleep] .lid{animation:none;transform:scaleY(1)}
+#cat[data-st=sleep] .b-head{animation:none;transform:rotate(26deg) translate(6px,5px);transition:transform .8s}
+#cat[data-st=sleep] .b-tail{animation-duration:6s}
+#cat[data-st=sleep] .aura{animation-duration:6s;opacity:.4}
+#cat[data-st=sleep] .cat-btn::after{content:'z';position:absolute;top:-10px;left:6px;font:700 13px var(--ru);color:var(--gold-hi);animation:st-z 2.6s ease-in-out infinite}
+@keyframes st-z{0%{opacity:0;transform:translate(0,6px)}40%{opacity:1}100%{opacity:0;transform:translate(-8px,-14px)}}
+/* flying */
+#cat.fly .b-wing{animation:b-flap .19s ease-in-out infinite alternate}
+@keyframes b-flap{from{transform:rotate(28deg)}to{transform:rotate(-62deg) scaleY(1.08)}}
 #cat.fly .legs{opacity:0}
-#cat.fly .b-tail{animation:b-trail .4s ease-in-out infinite alternate}
-@keyframes b-trail{from{transform:rotate(-8deg)}to{transform:rotate(6deg)}}
-#cat.fly .birdsvg{transform:rotate(-8deg)}#cat.fly[data-face=r] .birdsvg{transform:scaleX(-1) rotate(-8deg)}
-#cat.land .cat-btn{animation:b-land .45s cubic-bezier(.2,1.5,.4,1)}
-@keyframes b-land{0%{transform:scaleY(.82) translateY(4px)}100%{transform:none}}
-#cat.hop .cat-btn{animation:b-hop .5s cubic-bezier(.2,1.6,.4,1)}
-@keyframes b-hop{40%{transform:translateY(-14px)}}
-#cat.joy .cat-btn{animation:b-joy .9s cubic-bezier(.3,1.3,.4,1)}
-@keyframes b-joy{40%{transform:translateY(-30px) rotate(-180deg)}80%{transform:translateY(-6px) rotate(-360deg)}100%{transform:rotate(-360deg)}}
-.cat-bub{position:absolute;bottom:48px;left:0;width:max-content;max-width:min(260px,calc(100vw - 32px));pointer-events:auto;padding:10px 12px;border-radius:16px 16px 16px 4px;background:#F4EDE0;color:#14213B;box-shadow:0 10px 30px rgba(0,0,0,.4);display:grid;gap:2px;opacity:0;transform:translateY(8px) scale(.96);transform-origin:left bottom;transition:opacity .25s ease,transform .3s cubic-bezier(.16,1,.3,1);visibility:hidden}
+#cat.fly .b-tail{animation:b-trail .38s ease-in-out infinite alternate}
+@keyframes b-trail{from{transform:rotate(-9deg) scaleX(1.05)}to{transform:rotate(6deg)}}
+#cat.fly .b-head{animation:none}
+#cat.fly .birdsvg{transform:rotate(-10deg)}#cat.fly[data-face=r] .birdsvg{transform:scaleX(-1) rotate(-10deg)}
+#cat.land .cat-btn{animation:b-land .5s cubic-bezier(.2,1.5,.4,1)}
+@keyframes b-land{0%{transform:scaleY(.8) translateY(5px)}100%{transform:none}}
+#cat.hop .cat-btn{animation:b-hop .55s cubic-bezier(.2,1.6,.4,1)}
+@keyframes b-hop{40%{transform:translateY(-16px) scale(1.04)}}
+#cat.joy .cat-btn{animation:b-joy 1s cubic-bezier(.3,1.3,.4,1)}
+@keyframes b-joy{40%{transform:translateY(-34px) rotate(-180deg)}80%{transform:translateY(-6px) rotate(-360deg)}100%{transform:rotate(-360deg)}}
+#embers{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:41}
+.fbfeather{position:fixed;z-index:41;width:12px;height:24px;pointer-events:none;margin-left:-6px}
+.fbfeather svg{width:100%;height:100%}
+.cat-bub{position:absolute;bottom:58px;left:0;width:max-content;max-width:min(260px,calc(100vw - 32px));pointer-events:auto;padding:10px 12px;border-radius:16px 16px 16px 4px;background:#F4EDE0;color:#14213B;box-shadow:0 10px 30px rgba(0,0,0,.4);display:grid;gap:2px;opacity:0;transform:translateY(8px) scale(.96);transform-origin:left bottom;transition:opacity .25s ease,transform .3s cubic-bezier(.16,1,.3,1);visibility:hidden}
 #cat[data-face=l] .cat-bub{left:auto;right:0;border-radius:16px 16px 4px 16px;transform-origin:right bottom}
 #cat.talk .cat-bub{opacity:1;transform:none;visibility:visible}
 .cat-bub b{font:700 11px var(--ru);color:#B7791F}
@@ -909,3 +937,4 @@ html[data-nav=back]::view-transition-old(root){animation-name:vt-out-l}
 .sp-go::after{content:'';position:absolute}
 @media (prefers-reduced-motion:reduce){.sp-go{animation:none}}
 .sp-hello .ar .ru,#farewell .ar .ru{font:inherit;color:inherit}
+.birdsvg .pl.sm{opacity:.85}

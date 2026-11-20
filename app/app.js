@@ -2549,16 +2549,28 @@ if (STANDALONE && history.pushState) {
 
 /* ---------- the mascot sample: «Кот Баю́н», Pushkin's learned cat on his gold chain (an Egyptian favourite animal, a Russian tale);
    tap him for a tip about this screen; he helps in games when the student is stuck or misses twice ---------- */
-var CAT_SVG = '<svg viewBox="0 0 100 80" class="birdsvg" aria-hidden="true">' +
-  '<g class="b-tail"><path class="f f1" d="M57 49 C74 46 87 33 96 18 C91 38 80 51 61 55Z"/><path class="f f2" d="M57 52 C78 55 90 50 99 41 C93 57 78 63 59 58Z"/><path class="f f3" d="M55 54 C71 64 81 72 93 75 C80 78 65 71 55 59Z"/>' +
-  '<circle class="fe" cx="91" cy="27" r="3.2"/><circle class="fe" cx="93" cy="48" r="3.2"/><circle class="fe" cx="85" cy="72" r="3.2"/><circle class="fd" cx="91" cy="27" r="1.3"/><circle class="fd" cx="93" cy="48" r="1.3"/><circle class="fd" cx="85" cy="72" r="1.3"/></g>' +
-  '<path class="b-body" d="M29 45 C29 33 40 27 50 31 C61 35 65 48 60 56 C54 64 35 62 29 45Z"/>' +
-  '<path class="b-chest" d="M32 46 C33 39 39 36 45 39 C42 47 40 53 37 56 C34 53 32 50 32 46Z"/>' +
-  '<g class="b-wing"><path d="M43 40 C54 35 65 40 67 49 C59 46 52 48 46 53 C43 49 42 44 43 40Z"/><path class="wl" d="M48 43 q7 -1 12 4 M47 47 q6 -1 10 3"/></g>' +
-  '<g class="b-head"><path class="crest" d="M27 22 q-3 -10 2 -14 q-1 7 1 13 M30 21 q1 -9 8 -11 q-4 5 -5 11 M25 23 q-6 -6 -4 -12 q1 6 5 10"/>' +
-  '<circle class="cd" cx="29" cy="8" r="2"/><circle class="cd" cx="38" cy="10" r="2"/><circle class="cd" cx="21" cy="11" r="2"/>' +
-  '<circle class="hd" cx="29" cy="30" r="9"/><path class="beak" d="M21 29 L13 32 L21 35Z"/><g class="eye"><circle cx="26" cy="29" r="2.3"/><circle class="gl" cx="25.3" cy="28.2" r=".8"/></g></g>' +
-  '<path class="legs" d="M41 60 l-1 7 M47 61 l0 7 M37 67 h6 M44 68 h6"/></svg>';
+var CAT_SVG = '<svg viewBox="0 0 120 92" class="birdsvg" aria-hidden="true"><defs>' +
+  '<linearGradient id="fbB" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFE29A"/><stop offset=".45" stop-color="#F59B2F"/><stop offset="1" stop-color="#D23F28"/></linearGradient>' +
+  '<linearGradient id="fbT" x1="0" y1="0" x2="1" y2=".3"><stop offset="0" stop-color="#F7B640"/><stop offset=".55" stop-color="#E8522E"/><stop offset="1" stop-color="#8E1B2B"/></linearGradient>' +
+  '<linearGradient id="fbW" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F06A2E"/><stop offset="1" stop-color="#A9242A"/></linearGradient>' +
+  '<radialGradient id="fbA"><stop offset="0" stop-color="#FFB955" stop-opacity=".55"/><stop offset="1" stop-color="#FF8A3D" stop-opacity="0"/></radialGradient></defs>' +
+  '<ellipse class="aura" cx="56" cy="50" rx="44" ry="32" fill="url(#fbA)"/>' +
+  '<g class="b-tail">' +
+    '<path class="pl" d="M63 47 C75 34 93 22 113 14 C110 26 100 38 87 45 C79 49 71 52 66 54Z"/><path class="pl" d="M64 50 C82 44 101 39 119 37 C114 48 101 54 85 56 C77 57 71 57 66 56Z"/>' +
+    '<path class="pl" d="M64 54 C80 59 100 65 117 72 C108 79 93 77 81 71 C74 67 68 62 64 58Z"/><path class="pl" d="M61 56 C70 68 82 80 98 89 C86 92 74 85 68 77 C64 71 62 64 60 60Z"/>' +
+    '<path class="pl sm" d="M59 58 C60 69 63 80 69 91 C61 90 57 78 57 63Z"/>' +
+    '<path class="rc" d="M66 52 C80 41 96 28 111 17 M67 54 C84 49 102 43 117 39 M66 57 C82 62 100 68 115 72 M62 59 C72 70 84 81 96 88"/>' +
+    '<g class="oc"><circle cx="110" cy="19" r="4.2"/><circle cx="115" cy="41" r="4.2"/><circle cx="112" cy="72" r="4.2"/><circle cx="94" cy="86" r="4.2"/></g>' +
+    '<g class="oi"><circle cx="110" cy="19" r="1.9"/><circle cx="115" cy="41" r="1.9"/><circle cx="112" cy="72" r="1.9"/><circle cx="94" cy="86" r="1.9"/></g></g>' +
+  '<path class="b-body" d="M35 47 C34 34 46 27 58 31 C70 35 74 50 67 59 C60 67 39 65 35 47Z"/>' +
+  '<path class="sc" d="M40 44 q3 3 6 0 M39 49 q3 3 6 0 M45 52 q3 3 6 0 M42 56 q3 3 6 0"/>' +
+  '<g class="b-wing"><path class="wg" d="M48 39 C60 33 72 37 75 48 C72 47 70 49 68 51 C66 49 63 50 61 53 C59 51 56 52 55 55 C51 50 48 45 48 39Z"/><path class="wl" d="M53 41 q9 -2 15 4 M52 45 q8 -1 12 4"/></g>' +
+  '<g class="b-head"><path class="crest" d="M33 21 q-4 -11 2 -16 M36 21 q2 -10 10 -12 M30 22 q-7 -6 -6 -14"/><circle class="cd" cx="35" cy="5" r="2.3"/><circle class="cd" cx="46" cy="9" r="2.3"/><circle class="cd" cx="24" cy="8" r="2.3"/>' +
+    '<path class="nk" d="M36 36 C38 31 44 30 47 34 L44 40Z"/><circle class="hd" cx="34" cy="29" r="9"/><path class="ck" d="M30 33 q3 3 7 1"/>' +
+    '<path class="beak" d="M26 27 L16 30.5 L26 33Z"/><path class="bl" d="M26 30.3 L19 30.6"/>' +
+    '<g class="eye"><circle class="er" cx="31" cy="27.5" r="2.7"/><circle class="gl" cx="30.2" cy="26.6" r=".9"/></g><ellipse class="lid" cx="31" cy="27.5" rx="3.1" ry="3.1"/></g>' +
+  '<path class="legs" d="M45 61 l-1 7 M51 62 l0 7 M41 68 h6 M48 69 h6"/></svg>';
+var FEATHER_SVG = '<svg viewBox="0 0 20 40" aria-hidden="true"><path d="M10 2 C17 10 17 26 10 38 C3 26 3 10 10 2Z" fill="#F07A2A" stroke="#FBE2A6" stroke-width="1"/><path d="M10 6 V36" stroke="#FBE2A6" stroke-width=".8"/><circle cx="10" cy="11" r="3" fill="#FBE2A6"/><circle cx="10" cy="11" r="1.3" fill="#8E1B2B"/></svg>';
 var CAT_TIPS = {
   home: [G('ابدأ بالدرس اللي عليه الدور. ١٠ دقايق بس النهارده كفاية.', 'ابدئي بالدرس اللي عليه الدور. ١٠ دقايق بس النهارده كفاية.'), 'كل يوم ' + G('بتذاكر', 'بتذاكري') + ' فيه طائر النار بيفرد ريشة. الريشة فوق جنب الجرس.', G('زهقت؟ جرّب', 'زهقتي؟ جرّبي') + ' «تحدي الدقيقة» من «اتكلم».'],
   library: ['كل وحدة فيها ٥ دروس. الدروس المفتوحة صورتها منورة.', G('اختار', 'اختاري') + ' المستوى من الزرار اللي فوق في الرئيسية.'],
@@ -2600,19 +2612,86 @@ function birdSpot() {   // the top of the active tab's icon (or above the mini p
   var a = tabs.querySelector('a.on') || tabs.querySelector('a'); if (!a) return null;
   var ic = (a.querySelector('.ico') || a).getBoundingClientRect(), mini = document.getElementById('mini');
   var top = !mini.hidden ? mini.getBoundingClientRect().top : tabs.getBoundingClientRect().top;
-  return { x: ic.left + ic.width / 2 - 31, y: top - 45, tab: a.dataset.tab };
+  return { x: ic.left + ic.width / 2 - 35, y: top - 47, tab: a.dataset.tab };
 }
 function birdMove(c, to) {
   var from = birdAt; birdAt = to;
   if (!from || RM || (Math.abs(from.x - to.x) < 2 && Math.abs(from.y - to.y) < 2)) { c.style.transform = 'translate(' + to.x + 'px,' + to.y + 'px)'; c.dataset.face = to.x > innerWidth / 2 ? 'l' : 'r'; return; }
   var dx = to.x - from.x, mid = { x: from.x + dx / 2, y: Math.min(from.y, to.y) - 70 - Math.min(60, Math.abs(dx) / 4) };
-  c.dataset.face = dx > 0 ? 'r' : 'l'; c.classList.add('fly'); c.classList.remove('talk');
+  c.dataset.face = dx > 0 ? 'r' : 'l'; c.classList.add('fly'); c.classList.remove('talk'); delete c.dataset.st; BIRD.sleep = false;
+  var b0 = c.querySelector('.cat-btn'); if (BIRD.dx) { b0.style.translate = '0px 0px'; BIRD.dx = 0; }
+  (function trail() { if (!c.classList.contains('fly')) return; var r = c.getBoundingClientRect(); embers(dx > 0 ? r.left + 6 : r.right - 6, r.top + r.height * .62, 2, 1.2, .2); requestAnimationFrame(trail); })();
   var an = c.animate([{ transform: 'translate(' + from.x + 'px,' + from.y + 'px)' }, { transform: 'translate(' + (from.x + dx * .25) + 'px,' + (mid.y + 20) + 'px)', offset: .3 },
     { transform: 'translate(' + mid.x + 'px,' + mid.y + 'px)', offset: .5 }, { transform: 'translate(' + (to.x - dx * .1) + 'px,' + (to.y - 18) + 'px)', offset: .85 },
     { transform: 'translate(' + to.x + 'px,' + to.y + 'px)' }], { duration: 720 + Math.min(300, Math.abs(dx)), easing: 'cubic-bezier(.45,0,.25,1)', fill: 'forwards' });
-  an.onfinish = function () { c.style.transform = 'translate(' + to.x + 'px,' + to.y + 'px)'; an.cancel(); c.classList.remove('fly'); c.classList.remove('land'); void c.offsetWidth; c.classList.add('land'); c.dataset.face = to.x > innerWidth / 2 ? 'l' : 'r'; };
+  an.onfinish = function () { c.style.transform = 'translate(' + to.x + 'px,' + to.y + 'px)'; an.cancel(); c.classList.remove('fly'); c.classList.remove('land'); void c.offsetWidth; c.classList.add('land'); c.dataset.face = to.x > innerWidth / 2 ? 'l' : 'r';
+    var r = c.getBoundingClientRect(); embers(r.left + r.width / 2, r.bottom - 6, 14, 2.4, .6); if (Math.random() < .3) dropFeather(r.left + r.width / 2, r.top + 10); };
 }
 window.addEventListener('resize', function () { var c = document.getElementById('cat'); if (c && !c.hidden) { birdAt = null; var sp = birdSpot(); if (sp) birdMove(c, sp); } });
+/* Жа́ра's life: small natural acts while she sits, sleep at night or when nobody touches the phone, embers when she flies */
+var BIRD = { t: 0, sto: 0, sleep: false, lastTouch: Date.now(), dx: 0 };
+function birdEl() { var c = document.getElementById('cat'); return c && !c.hidden && !RM ? c : null; }
+function birdAct(st, ms) {
+  var c = birdEl(); if (!c || c.classList.contains('fly')) return;
+  c.dataset.st = st; clearTimeout(BIRD.sto); BIRD.sto = setTimeout(function () { if (c.dataset.st === st) delete c.dataset.st; }, ms);
+}
+function birdHop(dx) {
+  var c = birdEl(); if (!c || c.classList.contains('fly')) return; var b = c.querySelector('.cat-btn'), to = Math.max(-24, Math.min(24, BIRD.dx + dx));
+  c.dataset.face = to < BIRD.dx ? 'l' : 'r';
+  b.animate([{ translate: BIRD.dx + 'px 0px' }, { translate: (BIRD.dx + to) / 2 + 'px -12px', offset: .45 }, { translate: to + 'px 0px' }], { duration: 420, easing: 'cubic-bezier(.3,0,.3,1)' });
+  b.style.translate = to + 'px 0px';
+  BIRD.dx = to;
+}
+function birdWake() { var c = birdEl(); if (!c || !BIRD.sleep) return; BIRD.sleep = false; delete c.dataset.st; birdAct('stretch', 1100); }
+function birdLife() {
+  clearTimeout(BIRD.t);
+  BIRD.t = setTimeout(function () {
+    var c = birdEl();
+    if (c && !c.classList.contains('talk') && !c.classList.contains('fly') && document.visibilityState === 'visible') {
+      var h = new Date().getHours(), idle = Date.now() - BIRD.lastTouch;
+      if ((h >= 23 || h < 6) && idle > 20000 || idle > 90000) { if (!BIRD.sleep) { BIRD.sleep = true; clearTimeout(BIRD.sto); c.dataset.st = 'sleep'; } }
+      else if (!BIRD.sleep) {
+        var r = Math.random();
+        if (r < .26) birdAct('look', 1700);
+        else if (r < .40) birdAct('preen', 1600);
+        else if (r < .52) birdAct('stretch', 1100);
+        else if (r < .64) birdAct('peck', 900);
+        else if (r < .82) birdHop(Math.random() < .5 ? -14 : 14);
+        else { c.dataset.face = c.dataset.face === 'l' ? 'r' : 'l'; birdAct('look', 1400); }
+      }
+    }
+    birdLife();
+  }, 3200 + Math.random() * 4800);
+}
+['pointerdown', 'keydown'].forEach(function (ev) { document.addEventListener(ev, function () { BIRD.lastTouch = Date.now(); birdWake(); }, { passive: true, capture: true }); });
+var scrollT = 0; window.addEventListener('scroll', function () { BIRD.lastTouch = Date.now(); if (Date.now() - scrollT > 4000 && Math.random() < .35) { scrollT = Date.now(); birdAct('look', 1200); } }, { passive: true });
+/* embers: a small canvas engine that runs only while there are sparks */
+var EMB = { cv: null, cx: null, ps: [], raf: 0 };
+function emberLoop() {
+  var cv = EMB.cv, cx = EMB.cx, d = Math.min(2, devicePixelRatio || 1);
+  if (cv.width !== innerWidth * d) { cv.width = innerWidth * d; cv.height = innerHeight * d; }
+  cx.setTransform(d, 0, 0, d, 0, 0); cx.clearRect(0, 0, innerWidth, innerHeight); cx.globalCompositeOperation = 'lighter';
+  EMB.ps = EMB.ps.filter(function (p) { return p.life > 0; });
+  EMB.ps.forEach(function (p) {
+    p.life--; p.x += p.vx; p.y += p.vy; p.vy -= .025; p.vx *= .98;
+    var a = p.life / p.max, g = cx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 3);
+    g.addColorStop(0, 'hsla(' + p.h + ',100%,72%,' + a + ')'); g.addColorStop(.4, 'hsla(' + (p.h - 12) + ',100%,55%,' + a * .5 + ')'); g.addColorStop(1, 'hsla(10,100%,50%,0)');
+    cx.fillStyle = g; cx.beginPath(); cx.arc(p.x, p.y, p.r * 3, 0, 6.283); cx.fill();
+  });
+  if (EMB.ps.length) EMB.raf = requestAnimationFrame(emberLoop); else { EMB.raf = 0; cx.clearRect(0, 0, innerWidth, innerHeight); }
+}
+function embers(x, y, n, spread, up) {
+  if (RM) return;
+  if (!EMB.cv) { EMB.cv = document.createElement('canvas'); EMB.cv.id = 'embers'; EMB.cv.setAttribute('aria-hidden', 'true'); document.body.appendChild(EMB.cv); EMB.cx = EMB.cv.getContext('2d'); }
+  for (var k = 0; k < n; k++) { var life = 26 + Math.random() * 30; EMB.ps.push({ x: x + (Math.random() - .5) * 6, y: y + (Math.random() - .5) * 6, vx: (Math.random() - .5) * spread, vy: (Math.random() - .5) * spread - (up || 0), life: life, max: life, r: 1 + Math.random() * 1.8, h: 28 + Math.random() * 22 }); }
+  if (EMB.ps.length > 260) EMB.ps.splice(0, EMB.ps.length - 260);
+  if (!EMB.raf) EMB.raf = requestAnimationFrame(emberLoop);
+}
+function dropFeather(x, y) {
+  if (RM) return; var f = document.createElement('div'); f.className = 'fbfeather'; f.innerHTML = FEATHER_SVG; f.style.left = x + 'px'; f.style.top = y + 'px'; document.body.appendChild(f);
+  var dx = (Math.random() - .5) * 60;
+  f.animate([{ transform: 'translate(0,0) rotate(0)', opacity: 1 }, { transform: 'translate(' + dx * .5 + 'px,40px) rotate(40deg)', opacity: 1, offset: .4 }, { transform: 'translate(' + dx + 'px,90px) rotate(-30deg)', opacity: 0 }], { duration: 2200, easing: 'ease-in-out' }).onfinish = function () { f.remove(); };
+}
 function catPlace() {
   var c = document.getElementById('cat'); if (!c) return;
   var hide = S.noCat || !S.onboarded || ['welcome', 'chat', 'call', 'view', 'watch', 'quiz'].indexOf(route.name) >= 0;
@@ -2627,6 +2706,7 @@ function catPlace() {
   }
 }
 function catIntro() {
+  birdLife();
   if (S.noCat || S.catMet || !S.onboarded) { catEl(); catPlace(); return; }
   catEl(); catPlace(); S.catMet = 1; store();
   setTimeout(function () { catSay(G('أهلًا! أنا ژارا، طائر النار. ريشي ضاع في السكة من روسيا لمصر، وكل يوم بتذاكر فيه بترجعلي ريشة. دوس عليّ في أي وقت وأديك نصيحة.', 'أهلًا! أنا ژارا، طائر النار. ريشي ضاع في السكة من روسيا لمصر، وكل يوم بتذاكري فيه بترجعلي ريشة. دوسي عليّ في أي وقت وأديكي نصيحة.'), 9000); }, 700);
@@ -2645,10 +2725,11 @@ function birdStory() {
     '<span class="ru">Жар-пти́ца прилете́ла!</span><button class="btn" data-close>' + G('يلا نكمّل', 'يلا نكمّل') + '</button>', 'm-story');
   return o;
 }
-function catGameAnswer(ok) { if (ok) { catMiss = 0; if (GM && GM.combo && GM.combo % 5 === 0) { var c = document.getElementById('cat'); if (c) { c.classList.remove('joy'); void c.offsetWidth; c.classList.add('joy'); } } return; } catMiss++; if (catMiss === 2 && GM && GM.q && CAT_GAME[GM.q.type]) { catSay(CAT_CHEER[Math.floor(Math.random() * CAT_CHEER.length)] + ' ' + CAT_GAME[GM.q.type], 7000); catMiss = 0; } }
+function catGameAnswer(ok) { if (ok) { catMiss = 0; if (GM && GM.combo && GM.combo % 5 === 0) { var c = document.getElementById('cat'); if (c) { c.classList.remove('joy'); void c.offsetWidth; c.classList.add('joy'); var rj = c.getBoundingClientRect(); embers(rj.left + rj.width / 2, rj.top, 24, 3, 1); } } return; } catMiss++; if (catMiss === 2 && GM && GM.q && CAT_GAME[GM.q.type]) { catSay(CAT_CHEER[Math.floor(Math.random() * CAT_CHEER.length)] + ' ' + CAT_GAME[GM.q.type], 7000); catMiss = 0; } }
 document.addEventListener('click', function (e) {
   if (!e.target.closest('#cat .cat-btn')) return;
-  var c = document.getElementById('cat'); c.classList.remove('hop'); void c.offsetWidth; c.classList.add('hop');
+  var c = document.getElementById('cat'); c.classList.remove('hop'); void c.offsetWidth; c.classList.add('hop'); BIRD.lastTouch = Date.now();
+  var rr = c.getBoundingClientRect(); embers(rr.left + rr.width / 2, rr.top + rr.height / 2, 10, 2, .4);
   if (c.classList.contains('talk')) { c.classList.remove('talk'); return; }
   var tips = (route.name === 'game' && GM && GM.q && CAT_GAME[GM.q.type]) ? [CAT_GAME[GM.q.type]] : (CAT_TIPS[route.name] || CAT_TIPS[{ unit: 'unit', game: 'games', duel: 'games', boss: 'games' }[route.name]] || CAT_TIPS.home);
   S.catI = ((S.catI || 0) + 1) % 997; catSay(tips[S.catI % tips.length]);
