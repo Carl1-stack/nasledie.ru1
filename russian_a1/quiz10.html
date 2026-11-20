@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Уро́к 10 — Виктори́на: Притяжа́тельные местоиме́ния и семья́</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; background: linear-gradient(135deg, #DCE6F1 0%, #E2EFDA 100%); margin: 0; padding: 20px; min-height: 100vh; }
+  .container { max-width: 640px; margin: 0 auto; background: white; border-radius: 16px; box-shadow: 0 8px 30px rgba(31,78,121,0.15); overflow: hidden; }
+  .header { background: #1F4E79; color: white; padding: 24px; text-align: center; }
+  .header h1 { margin: 0 0 6px; font-size: 22px; }
+  .header p { margin: 0; opacity: 0.85; font-size: 14px; }
+  .progress-bar { height: 6px; background: #DCE6F1; }
+  .progress-fill { height: 100%; background: #B8860B; width: 0%; transition: width 0.3s; }
+  .quiz-body { padding: 28px; }
+  .question.active { display: block; animation: fadeIn 0.3s; }
+  @keyframes fadeIn { from {opacity:0; transform: translateY(6px);} to {opacity:1; transform: translateY(0);} }
+  .qnum { color: #B8860B; font-weight: bold; font-size: 13px; margin-bottom: 6px; }
+  .qtext { font-size: 19px; color: #1F4E79; margin-bottom: 18px; font-weight: 600; }
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .option { padding: 13px 16px; border: 2px solid #DCE6F1; border-radius: 10px; cursor: pointer; font-size: 16px; transition: all 0.15s; background: white; }
+  .option:hover { border-color: #1F4E79; background: #F5F8FC; }
+  .option.correct { border-color: #1B5E20; background: #E2EFDA; color: #1B5E20; font-weight: bold; }
+  .option.incorrect { border-color: #8B3A3A; background: #F8D7DA; color: #8B3A3A; }
+  .feedback { margin-top: 14px; padding: 12px; border-radius: 8px; font-size: 14px; display: none; }
+  .feedback.show { display: block; }
+  .feedback.correct-fb { background: #E2EFDA; color: #1B5E20; }
+  .feedback.incorrect-fb { background: #F8D7DA; color: #8B3A3A; }
+  .nav-btns { display: flex; justify-content: space-between; margin-top: 24px; }
+  button.nav { background: #1F4E79; color: white; border: none; padding: 11px 22px; border-radius: 8px; cursor: pointer; font-size: 15px; }
+  button.nav:disabled { background: #ccc; cursor: not-allowed; }
+  .results { text-align: center; padding: 20px 0; }
+  .results h2 { color: #1F4E79; }
+  .score-circle { width: 120px; height: 120px; border-radius: 50%; border: 8px solid #B8860B; display: flex; align-items: center; justify-content: center; margin: 20px auto; font-size: 32px; font-weight: bold; color: #1F4E79; }
+  .restart-btn { background: #1B5E20; color: white; border: none; padding: 12px 26px; border-radius: 8px; cursor: pointer; font-size: 15px; margin-top: 10px; }
+  .arabic { direction: rtl; font-size: 14px; color: #1B5E20; margin-top: 4px; }
+  .hint-toggle { font-size: 12.5px; color: #1F4E79; background: none; border: none; text-decoration: underline; cursor: pointer; padding: 8px 0 0; display: inline-block; }
+  .hint { font-size: 12.5px; color: #7a5c00; background: #FFF2CC; padding: 6px 10px; border-radius: 6px; margin-top: 8px; display: none; }
+  .hint.show { display: inline-block; }
+  .tag { display: inline-block; font-size: 11px; font-weight: bold; padding: 3px 9px; border-radius: 20px; margin-bottom: 10px; }
+  .tag.topic-have { background: #DCE6F1; color: #1F4E79; }
+  .tag.topic-toje { background: #FDE9EC; color: #8B3A3A; }
+  .tag.topic-why { background: #E8DEF8; color: #5b3a8a; }
+  .tag.topic-phon { background: #E2EFDA; color: #1B5E20; }
+  .tag.topic-vocab { background: #FFF2CC; color: #7a5c00; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header"><h1>🎯 Виктори́на: Уро́к 10</h1><p>мо́й / тво́й / на́ш / ва́ш • его́ / её / и́х • че́й? • семья́</p></div>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  <div class="quiz-body" id="quizBody"></div>
+</div>
+<script>
+const questions = [{"tag": "Мо́й / моя́ / моё / мои́", "cls": "topic-have", "q": "Э́то ___ бра́т. (я́ — же́нщина)", "ar": "هذا أخي (المتكلمة امرأة)", "hint": "Фо́рма зави́сит не от того́, кто́ говори́т, а от ро́да сло́ва «бра́т».", "options": ["мо́й", "моя́", "моё", "мои́"], "correct": 0}, {"tag": "Мо́й / моя́ / моё / мои́", "cls": "topic-have", "q": "Э́то ___ су́мка? (ты́)", "ar": "هل هذه حقيبتك؟", "hint": "«Су́мка» конча́ется на -а.", "options": ["тво́й", "твоя́", "твоё", "твои́"], "correct": 1}, {"tag": "Мо́й / моя́ / моё / мои́", "cls": "topic-have", "q": "Э́то ___ до́м. (мы́)", "ar": "هذا بيتنا", "hint": "«До́м» конча́ется на согла́сную.", "options": ["на́ш", "на́ша", "на́ше", "на́ши"], "correct": 0}, {"tag": "Мо́й / моя́ / моё / мои́", "cls": "topic-have", "q": "Э́то ___ ме́сто. (вы́)", "ar": "هذا مكانكم", "hint": "«Ме́сто» конча́ется на -о — сре́дний ро́д.", "options": ["ва́ш", "ва́ша", "ва́ше", "ва́ши"], "correct": 2}, {"tag": "Мо́й / моя́ / моё / мои́", "cls": "topic-have", "q": "Э́то ___ де́ти. (я́)", "ar": "هؤلاء أطفالي", "hint": "«Де́ти» — мно́жественное число́.", "options": ["мо́й", "моя́", "моё", "мои́"], "correct": 3}, {"tag": "Мо́й / моя́ / моё / мои́", "cls": "topic-have", "q": "Э́то ___ па́па. (я́)", "ar": "هذا أبي", "hint": "Сло́во конча́ется на -а, но кто́ тако́й па́па — мужчи́на и́ли же́нщина?", "options": ["мо́й", "моя́", "моё", "мои́"], "correct": 0}, {"tag": "Мо́й / моя́ / моё / мои́", "cls": "topic-have", "q": "Э́то ___ фо́то. (ты́)", "ar": "هذه صورتك", "hint": "Сло́во «фо́то» не меня́ется, но его́ ро́д — сре́дний.", "options": ["тво́й", "твоя́", "твоё", "твои́"], "correct": 2}, {"tag": "Его́ / её / и́х", "cls": "topic-toje", "q": "Э́то ___ де́ти. (они́)", "ar": "هؤلاء أطفالهم", "hint": "Фо́рма тре́тьего лица́ мно́жественного числа́.", "options": ["его́", "её", "и́х", "на́ши"], "correct": 2}, {"tag": "Его́ / её / и́х", "cls": "topic-toje", "q": "Чья́ э́то кни́га? (она́)", "ar": "لمن هذا الكتاب؟ (هي)", "hint": "Владе́лец — же́нщина.", "options": ["его́", "её", "и́х", "на́ша"], "correct": 1}, {"tag": "Его́ / её / и́х", "cls": "topic-toje", "q": "Како́е сло́во НИКОГДА́ не меня́ется по рода́м?", "ar": "أي كلمة لا تتغير أبدًا حسب الجنس؟", "hint": "Кака́я фо́рма пока́зывает владе́льца, а не ро́д ве́щи?", "options": ["мо́й", "тво́й", "его́", "на́ш"], "correct": 2}, {"tag": "Его́ / её / и́х", "cls": "topic-toje", "q": "Ка́к пра́вильно: «Э́то ___ до́м.» (о́н)", "ar": "«هذا بيته»", "hint": "Без предло́га бу́ква Н не нужна́.", "options": ["него́", "его́", "ему́", "о́н"], "correct": 1}, {"tag": "Че́й? Чья́?", "cls": "topic-why", "q": "___ э́то маши́на? — Не моя́!", "ar": "لمن هذه السيارة؟", "hint": "«Маши́на» — же́нский ро́д.", "options": ["Че́й", "Чья́", "Чьё", "Чьи́"], "correct": 1}, {"tag": "Че́й? Чья́?", "cls": "topic-why", "q": "___ э́то бага́ж? — Мо́й!", "ar": "لمن هذه الأمتعة؟", "hint": "Посмотри́ на отве́т «Мо́й».", "options": ["Че́й", "Чья́", "Чьё", "Чьи́"], "correct": 0}, {"tag": "Че́й? Чья́?", "cls": "topic-why", "q": "___ э́то ключи́?", "ar": "لمن هذه المفاتيح؟", "hint": "«Ключи́» — мно́жественное число́.", "options": ["Че́й", "Чья́", "Чьё", "Чьи́"], "correct": 3}, {"tag": "Че́й? Чья́?", "cls": "topic-why", "q": "___ э́то ме́сто?", "ar": "لمن هذا المكان؟", "hint": "Сре́дний ро́д: ка́к «моё».", "options": ["Че́й", "Чья́", "Чьё", "Чьи́"], "correct": 2}, {"tag": "Семья́", "cls": "topic-vocab", "q": "«Бра́т» во мно́жественном числе́:", "ar": "جمع كلمة «أخ»", "hint": "Оконча́ние -ья, ка́к у «сту́л».", "options": ["бра́ты", "бра́тья", "бра́тов", "бра́тьи"], "correct": 1}, {"tag": "Семья́", "cls": "topic-vocab", "q": "«До́чь» во мно́жественном числе́:", "ar": "جمع كلمة «ابنة»", "hint": "В середи́не появля́ется -ер-.", "options": ["до́чи", "до́чки", "до́чери", "до́чьи"], "correct": 2}, {"tag": "Семья́", "cls": "topic-vocab", "q": "«Сы́н» во мно́жественном числе́:", "ar": "جمع كلمة «ابن»", "hint": "Зде́сь добавля́ется -овья.", "options": ["сыны́", "сыновья́", "сы́нья", "сы́ни"], "correct": 1}, {"tag": "Семья́", "cls": "topic-vocab", "q": "Ма́ма + па́па = ?", "ar": "أم + أب = ؟", "hint": "Одно́ сло́во для обо́их.", "options": ["де́ти", "роди́тели", "бра́тья", "сёстры"], "correct": 1}, {"tag": "Семья́", "cls": "topic-vocab", "q": "Бра́т ма́мы и́ли па́пы — э́то:", "ar": "أخو الأم أو الأب هو:", "hint": "Э́то сло́во конча́ется на -я, но э́то мужчи́на.", "options": ["де́душка", "дя́дя", "тётя", "вну́к"], "correct": 1}, {"tag": "Произноше́ние", "cls": "topic-phon", "q": "В вопро́се «Э́то тво́й бра́т?» го́лос поднима́ется на сло́ве:", "ar": "في سؤال «هل هذا أخوك؟» يرتفع الصوت على كلمة:", "hint": "Спра́шиваем, че́й э́то бра́т.", "options": ["э́то", "тво́й", "бра́т", "?"], "correct": 1}];
+let current = 0, score = 0, answered = new Array(questions.length).fill(false);
+function render() {
+  const body = document.getElementById('quizBody');
+  document.getElementById('progressFill').style.width = ((current) / questions.length * 100) + '%';
+  if (current >= questions.length) {
+    const pct = Math.round((score / questions.length) * 100);
+    let msg = pct >= 80 ? "Отли́чно! 🌟" : pct >= 50 ? "Хорошо́, но повтори́те материа́л 👍" : "Сто́ит повтори́ть уро́к ещё ра́з 📚";
+    body.innerHTML = `<div class="results"><h2>Виктори́на завершена́!</h2><div class="score-circle">${score}/${questions.length}</div><p style="font-size:18px; color:#1F4E79; font-weight:600;">${msg}</p><button class="restart-btn" onclick="restart()">Пройти́ сно́ва / أعد المحاولة</button></div>`;
+    return;
+  }
+  const item = questions[current];
+  body.innerHTML = `<div class="question active"><div class="qnum">Вопро́с ${current + 1} из ${questions.length}</div><span class="tag ${item.cls}">${item.tag}</span><div class="qtext">${item.q}</div><div class="arabic">${item.ar}</div>${item.hint ? `<button class="hint-toggle" id="hintBtn" onclick="toggleHint()">💡 Показа́ть подска́зку</button><div class="hint" id="hintBox">${item.hint}</div>` : ''}<div class="options" id="optionsBox" style="margin-top:16px;"></div><div class="feedback" id="feedback"></div><div class="nav-btns"><button class="nav" onclick="prevQ()" ${current===0 ? 'disabled' : ''}>← Наза́д</button><button class="nav" id="nextBtn" onclick="nextQ()" disabled>Да́лее →</button></div></div>`;
+  const optionsBox = document.getElementById('optionsBox');
+  item.options.forEach((opt, i) => {
+    const div = document.createElement('div'); div.className = 'option'; div.textContent = opt;
+    div.onclick = () => selectOption(i); optionsBox.appendChild(div);
+  });
+  if (answered[current] !== false) showAnswerState(answered[current]);
+}
+function toggleHint() {
+  document.getElementById('hintBox').classList.toggle('show');
+}
+function selectOption(i) {
+  if (answered[current] !== false) return;
+  const item = questions[current]; const isCorrect = i === item.correct;
+  answered[current] = i; if (isCorrect) score++; showAnswerState(i);
+}
+function showAnswerState(selectedIndex) {
+  const item = questions[current]; const opts = document.querySelectorAll('.option');
+  opts.forEach((o, idx) => { o.style.pointerEvents = 'none'; if (idx === item.correct) o.classList.add('correct'); else if (idx === selectedIndex) o.classList.add('incorrect'); });
+  const fb = document.getElementById('feedback'); const isCorrect = selectedIndex === item.correct;
+  fb.className = 'feedback show ' + (isCorrect ? 'correct-fb' : 'incorrect-fb');
+  fb.textContent = isCorrect ? "✅ Пра́вильно! / صحيح!" : "❌ Пра́вильный отве́т: " + item.options[item.correct];
+  document.getElementById('nextBtn').disabled = false;
+}
+function nextQ() { current++; render(); }
+function prevQ() { if (current > 0) { current--; render(); } }
+function restart() { current = 0; score = 0; answered = new Array(questions.length).fill(false); render(); }
+render();
+</script>
+</body>
+</html>

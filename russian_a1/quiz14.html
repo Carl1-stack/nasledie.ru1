@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Урок 14 — Викторина</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; background: linear-gradient(135deg, #DCE6F1 0%, #E2EFDA 100%); margin: 0; padding: 20px; min-height: 100vh; }
+  .container { max-width: 640px; margin: 0 auto; background: white; border-radius: 16px; box-shadow: 0 8px 30px rgba(31,78,121,0.15); overflow: hidden; }
+  .header { background: #1F4E79; color: white; padding: 24px; text-align: center; }
+  .header h1 { margin: 0 0 6px; font-size: 22px; }
+  .header p { margin: 0; opacity: 0.85; font-size: 14px; }
+  .progress-bar { height: 6px; background: #DCE6F1; }
+  .progress-fill { height: 100%; background: #B8860B; width: 0%; transition: width 0.3s; }
+  .quiz-body { padding: 28px; }
+  .question.active { display: block; animation: fadeIn 0.3s; }
+  @keyframes fadeIn { from {opacity:0; transform: translateY(6px);} to {opacity:1; transform: translateY(0);} }
+  .qnum { color: #B8860B; font-weight: bold; font-size: 13px; margin-bottom: 6px; }
+  .qtext { font-size: 19px; color: #1F4E79; margin-bottom: 18px; font-weight: 600; }
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .option { padding: 13px 16px; border: 2px solid #DCE6F1; border-radius: 10px; cursor: pointer; font-size: 16px; transition: all 0.15s; background: white; }
+  .option:hover { border-color: #1F4E79; background: #F5F8FC; }
+  .option.correct { border-color: #1B5E20; background: #E2EFDA; color: #1B5E20; font-weight: bold; }
+  .option.incorrect { border-color: #8B3A3A; background: #F8D7DA; color: #8B3A3A; }
+  .feedback { margin-top: 14px; padding: 12px; border-radius: 8px; font-size: 14px; display: none; }
+  .feedback.show { display: block; }
+  .feedback.correct-fb { background: #E2EFDA; color: #1B5E20; }
+  .feedback.incorrect-fb { background: #F8D7DA; color: #8B3A3A; }
+  .nav-btns { display: flex; justify-content: space-between; margin-top: 24px; }
+  button.nav { background: #1F4E79; color: white; border: none; padding: 11px 22px; border-radius: 8px; cursor: pointer; font-size: 15px; }
+  button.nav:disabled { background: #ccc; cursor: not-allowed; }
+  .results { text-align: center; padding: 20px 0; }
+  .results h2 { color: #1F4E79; }
+  .score-circle { width: 120px; height: 120px; border-radius: 50%; border: 8px solid #B8860B; display: flex; align-items: center; justify-content: center; margin: 20px auto; font-size: 32px; font-weight: bold; color: #1F4E79; }
+  .restart-btn { background: #1B5E20; color: white; border: none; padding: 12px 26px; border-radius: 8px; cursor: pointer; font-size: 15px; margin-top: 10px; }
+  .arabic { direction: rtl; font-size: 14px; color: #1B5E20; margin-top: 4px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header"><h1>🎯 Викторина: Урок 14</h1><p>хотеть, можно, дни недели</p></div>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  <div class="quiz-body" id="quizBody"></div>
+</div>
+<script>
+const questions = [
+  { q: "Я ___ пиццу (хотеть).", ar: "أريد بيتزا", options: ["хочу", "хочешь", "хочет", "хотим"], correct: 0 },
+  { q: "Ты ___ кофе?", ar: "هل تريد قهوة؟", options: ["хочу", "хочешь", "хочет", "хотят"], correct: 1 },
+  { q: "Можно ___ (вода), пожалуйста?", ar: "هل يمكن ماء؟", options: ["вода", "воду", "воды", "водой"], correct: 1 },
+  { q: "«Можно» + Accusative используется для:", ar: "«можно» + النصب تستخدم لـ", options: ["приказа", "вежливой просьбы", "вопроса о времени", "отрицания"], correct: 1 },
+  { q: "День после вторника:", ar: "اليوم بعد الثلاثاء", options: ["понедельник", "среда", "четверг", "пятница"], correct: 1 },
+  { q: "Они ___ путешествовать.", ar: "يريدون السفر", options: ["хочу", "хочешь", "хотят", "хотим"], correct: 2 },
+  { q: "«Хотеть» в единственном числе спрягается как глагол группы:", ar: "«хотеть» بالمفرد يُصرَّف كمجموعة", options: ["1", "2", "смешанная", "нет группы"], correct: 0 },
+  { q: "Выходные дни обычно:", ar: "أيام العطلة عادة", options: ["понедельник-вторник", "суббота-воскресенье", "среда-четверг", "нет выходных"], correct: 1 },
+];
+let current = 0, score = 0, answered = new Array(questions.length).fill(false);
+function render() {
+  const body = document.getElementById('quizBody');
+  document.getElementById('progressFill').style.width = ((current) / questions.length * 100) + '%';
+  if (current >= questions.length) {
+    const pct = Math.round((score / questions.length) * 100);
+    let msg = pct >= 80 ? "Отлично! 🌟" : pct >= 50 ? "Хорошо, но повторите материал 👍" : "Стоит повторить урок ещё раз 📚";
+    body.innerHTML = `<div class="results"><h2>Викторина завершена!</h2><div class="score-circle">${score}/${questions.length}</div><p style="font-size:18px; color:#1F4E79; font-weight:600;">${msg}</p><button class="restart-btn" onclick="restart()">Пройти снова / أعد المحاولة</button></div>`;
+    return;
+  }
+  const item = questions[current];
+  body.innerHTML = `<div class="question active"><div class="qnum">Вопрос ${current + 1} из ${questions.length}</div><div class="qtext">${item.q}</div><div class="arabic">${item.ar}</div><div class="options" id="optionsBox" style="margin-top:16px;"></div><div class="feedback" id="feedback"></div><div class="nav-btns"><button class="nav" onclick="prevQ()" ${current===0 ? 'disabled' : ''}>← Назад</button><button class="nav" id="nextBtn" onclick="nextQ()" disabled>Далее →</button></div></div>`;
+  const optionsBox = document.getElementById('optionsBox');
+  item.options.forEach((opt, i) => {
+    const div = document.createElement('div'); div.className = 'option'; div.textContent = opt;
+    div.onclick = () => selectOption(i); optionsBox.appendChild(div);
+  });
+  if (answered[current] !== false) showAnswerState(answered[current]);
+}
+function selectOption(i) {
+  if (answered[current] !== false) return;
+  const item = questions[current]; const isCorrect = i === item.correct;
+  answered[current] = i; if (isCorrect) score++; showAnswerState(i);
+}
+function showAnswerState(selectedIndex) {
+  const item = questions[current]; const opts = document.querySelectorAll('.option');
+  opts.forEach((o, idx) => { o.style.pointerEvents = 'none'; if (idx === item.correct) o.classList.add('correct'); else if (idx === selectedIndex) o.classList.add('incorrect'); });
+  const fb = document.getElementById('feedback'); const isCorrect = selectedIndex === item.correct;
+  fb.className = 'feedback show ' + (isCorrect ? 'correct-fb' : 'incorrect-fb');
+  fb.textContent = isCorrect ? "✅ Правильно! / صحيح!" : "❌ Правильный ответ: " + item.options[item.correct];
+  document.getElementById('nextBtn').disabled = false;
+}
+function nextQ() { current++; render(); }
+function prevQ() { if (current > 0) { current--; render(); } }
+function restart() { current = 0; score = 0; answered = new Array(questions.length).fill(false); render(); }
+render();
+</script>
+</body>
+</html>

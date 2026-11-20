@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Уро́к 9 — Виктори́на: У кого́ е́сть, то́же / ещё</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; background: linear-gradient(135deg, #DCE6F1 0%, #E2EFDA 100%); margin: 0; padding: 20px; min-height: 100vh; }
+  .container { max-width: 640px; margin: 0 auto; background: white; border-radius: 16px; box-shadow: 0 8px 30px rgba(31,78,121,0.15); overflow: hidden; }
+  .header { background: #1F4E79; color: white; padding: 24px; text-align: center; }
+  .header h1 { margin: 0 0 6px; font-size: 22px; }
+  .header p { margin: 0; opacity: 0.85; font-size: 14px; }
+  .progress-bar { height: 6px; background: #DCE6F1; }
+  .progress-fill { height: 100%; background: #B8860B; width: 0%; transition: width 0.3s; }
+  .quiz-body { padding: 28px; }
+  .question.active { display: block; animation: fadeIn 0.3s; }
+  @keyframes fadeIn { from {opacity:0; transform: translateY(6px);} to {opacity:1; transform: translateY(0);} }
+  .qnum { color: #B8860B; font-weight: bold; font-size: 13px; margin-bottom: 6px; }
+  .qtext { font-size: 19px; color: #1F4E79; margin-bottom: 18px; font-weight: 600; }
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .option { padding: 13px 16px; border: 2px solid #DCE6F1; border-radius: 10px; cursor: pointer; font-size: 16px; transition: all 0.15s; background: white; }
+  .option:hover { border-color: #1F4E79; background: #F5F8FC; }
+  .option.correct { border-color: #1B5E20; background: #E2EFDA; color: #1B5E20; font-weight: bold; }
+  .option.incorrect { border-color: #8B3A3A; background: #F8D7DA; color: #8B3A3A; }
+  .feedback { margin-top: 14px; padding: 12px; border-radius: 8px; font-size: 14px; display: none; }
+  .feedback.show { display: block; }
+  .feedback.correct-fb { background: #E2EFDA; color: #1B5E20; }
+  .feedback.incorrect-fb { background: #F8D7DA; color: #8B3A3A; }
+  .nav-btns { display: flex; justify-content: space-between; margin-top: 24px; }
+  button.nav { background: #1F4E79; color: white; border: none; padding: 11px 22px; border-radius: 8px; cursor: pointer; font-size: 15px; }
+  button.nav:disabled { background: #ccc; cursor: not-allowed; }
+  .results { text-align: center; padding: 20px 0; }
+  .results h2 { color: #1F4E79; }
+  .score-circle { width: 120px; height: 120px; border-radius: 50%; border: 8px solid #B8860B; display: flex; align-items: center; justify-content: center; margin: 20px auto; font-size: 32px; font-weight: bold; color: #1F4E79; }
+  .restart-btn { background: #1B5E20; color: white; border: none; padding: 12px 26px; border-radius: 8px; cursor: pointer; font-size: 15px; margin-top: 10px; }
+  .arabic { direction: rtl; font-size: 14px; color: #1B5E20; margin-top: 4px; }
+  .hint-toggle { font-size: 12.5px; color: #1F4E79; background: none; border: none; text-decoration: underline; cursor: pointer; padding: 8px 0 0; display: inline-block; }
+  .hint { font-size: 12.5px; color: #7a5c00; background: #FFF2CC; padding: 6px 10px; border-radius: 6px; margin-top: 8px; display: none; }
+  .hint.show { display: inline-block; }
+  .tag { display: inline-block; font-size: 11px; font-weight: bold; padding: 3px 9px; border-radius: 20px; margin-bottom: 10px; }
+  .tag.topic-have { background: #DCE6F1; color: #1F4E79; }
+  .tag.topic-toje { background: #FDE9EC; color: #8B3A3A; }
+  .tag.topic-why { background: #E8DEF8; color: #5b3a8a; }
+  .tag.topic-phon { background: #E2EFDA; color: #1B5E20; }
+  .tag.topic-vocab { background: #FFF2CC; color: #7a5c00; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header"><h1>🎯 Виктори́на: Уро́к 9</h1><p>у кого́ е́сть • то́же / ещё • потому́ что / поэ́тому • шипя́щие</p></div>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  <div class="quiz-body" id="quizBody"></div>
+</div>
+<script>
+const questions = [{"tag": "То́же / ещё", "cls": "topic-toje", "q": "«У меня́ е́сть соба́ка. А ___ у меня́ е́сть ко́шка.» (добавле́ние)", "ar": "«لدي كلب. ولدي ___ قطة» (إضافة)", "hint": "То́т же челове́к добавля́ет что́-то но́вое — э́то зна́к «+».", "options": ["то́же", "ещё", "уже́", "поэ́тому"], "correct": 1}, {"tag": "То́же / ещё", "cls": "topic-toje", "q": "«Я́ студе́нт. — Я́ ___ студе́нтка.»", "ar": "«أنا طالب. — وأنا ___ طالبة»", "hint": "Друго́й челове́к — то́ же са́мое. Э́то зна́к «=».", "options": ["то́же", "ещё", "уже́", "поэ́тому"], "correct": 0}, {"tag": "То́же / ещё", "cls": "topic-toje", "q": "«Меня́ зову́т Мари́я. — Пра́вда?! А меня́ ___!»", "ar": "«اسمي ماريا. — حقًا؟! وأنا ___!»", "hint": "Совпаде́ние у дву́х ра́зных люде́й.", "options": ["ещё", "то́же", "уже́", "не́т"], "correct": 1}, {"tag": "То́же / ещё", "cls": "topic-toje", "q": "«У ва́с е́сть миллио́н? — ___ не́т.» (пока́ не́т, но бу́дет)", "ar": "«هل لديك مليون؟ — ليس ___.»", "hint": "Э́то зна́чит «пока́ не́т».", "options": ["То́же", "Ещё", "Уже́", "Поэ́тому"], "correct": 1}, {"tag": "У кого́ е́сть", "cls": "topic-have", "q": "«У ___ е́сть гита́ра.» (о́н)", "ar": "«لديه غيتار» (هو)", "hint": "По́сле предло́га у к фо́рме «его́» добавля́ется одна́ бу́ква.", "options": ["его́", "него́", "него́ е́сть", "о́н"], "correct": 1}, {"tag": "У кого́ е́сть", "cls": "topic-have", "q": "«У ___ е́сть меда́ли.» (она́)", "ar": "«لديها ميداليات» (هي)", "hint": "Та́ же бу́ква появля́ется и зде́сь.", "options": ["её", "неё", "она́", "не́я"], "correct": 1}, {"tag": "У кого́ е́сть", "cls": "topic-have", "q": "«У ___ е́сть всё!» (они́)", "ar": "«لديهم كل شيء!» (هم)", "hint": "Фо́рма от «и́х», но по́сле предло́га.", "options": ["и́х", "ни́х", "они́", "ни́ми"], "correct": 1}, {"tag": "У кого́ е́сть", "cls": "topic-have", "q": "«У на́с е́сть ___.» (биле́т, мн. ч.)", "ar": "«لدينا تذاكر»", "hint": "По́сле «е́сть» — нача́льная фо́рма, а число́ — мно́жественное (У́рок 8).", "options": ["биле́та", "биле́ты", "биле́тов", "биле́т"], "correct": 1}, {"tag": "У кого́ е́сть", "cls": "topic-have", "q": "Ка́к сказа́ть «أنا طالب» по-ру́сски?", "ar": "كيف نقول «أنا طالب»؟", "hint": "Сло́во «е́сть» ну́жно то́лько когда́ что́-то у кого́-то име́ется.", "options": ["Я́ е́сть студе́нт.", "Я́ студе́нт.", "У меня́ студе́нт.", "У меня́ е́сть студе́нт."], "correct": 1}, {"tag": "У кого́ е́сть", "cls": "topic-have", "q": "В вопро́се «У тебя́ е́сть вре́мя?» го́лос поднима́ется на сло́ве:", "ar": "في سؤال «هل لديك وقت؟» يرتفع الصوت على كلمة:", "hint": "Э́то гла́вное сло́во вопро́са о нали́чии.", "options": ["у", "тебя́", "е́сть", "вре́мя"], "correct": 2}, {"tag": "У кого́ е́сть", "cls": "topic-have", "q": "«Что́ у тебя́ в су́мке?» — пра́вильный отве́т:", "ar": "«ماذا في حقيبتك؟» — الجواب الصحيح:", "hint": "Ве́щи по́сле «е́сть» стоя́т в нача́льной фо́рме.", "options": ["У меня́ в су́мке ключи́ и телефо́н.", "Я́ в су́мке ключи́.", "У меня́ в су́мке ключе́й.", "Меня́ в су́мке ключи́."], "correct": 0}, {"tag": "Потому́ что / поэ́тому", "cls": "topic-why", "q": "«У него́ е́сть соба́ка, ___ о́н мно́го гуля́ет.»", "ar": "«لديه كلب، ___ يتمشى كثيرًا»", "hint": "По́сле э́того сло́ва идёт результа́т.", "options": ["потому́ что", "поэ́тому", "то́же", "ещё"], "correct": 1}, {"tag": "Потому́ что / поэ́тому", "cls": "topic-why", "q": "«О́н мно́го гуля́ет, ___ у него́ е́сть соба́ка.»", "ar": "«يتمشى كثيرًا ___ لديه كلب»", "hint": "По́сле э́того сло́ва идёт причи́на.", "options": ["поэ́тому", "потому́ что", "то́же", "ещё"], "correct": 1}, {"tag": "Произноше́ние", "cls": "topic-phon", "q": "Бу́ква Ж звучи́т ка́к:", "ar": "حرف Ж يُنطق مثل:", "hint": "Вспо́мни францу́зское сло́во «jour».", "options": ["الجيم المصرية [g]", "الجيم الشامية (j الفرنسية)", "الزاي", "الشين"], "correct": 1}, {"tag": "Произноше́ние", "cls": "topic-phon", "q": "Сочета́ние «жи́» в сло́ве «жи́ть» звучи́т ка́к:", "ar": "كيف يُنطق «жи́» في كلمة «жи́ть»؟", "hint": "Ж всегда́ твёрдая.", "options": ["[жи́] мя́гко", "[жы́] твёрдо", "[жа́]", "[шы́]"], "correct": 1}, {"tag": "Произноше́ние", "cls": "topic-phon", "q": "Ка́к чита́ется «сч» в сло́ве «сча́стье»?", "ar": "كيف يُقرأ «сч» في كلمة «сча́стье»؟", "hint": "Ш + Ч = …", "options": ["[сч]", "[щ]", "[ш]", "[ч]"], "correct": 1}, {"tag": "Произноше́ние", "cls": "topic-phon", "q": "Ка́к звучи́т коне́ц сло́ва «му́ж»?", "ar": "كيف يُنطق آخر كلمة «му́ж»؟", "hint": "Зво́нкая согла́сная на конце́ сло́ва оглуша́ется.", "options": ["[ж]", "[ш]", "[з]", "[щ]"], "correct": 1}, {"tag": "Слова́рь", "cls": "topic-vocab", "q": "Игра́ «Нало́говый инспе́ктор» спра́шивает о:", "ar": "لعبة «مفتش الضرائب» تسأل عن", "hint": "Поду́май, че́м интересу́ется нало́говая слу́жба.", "options": ["имена́х", "профе́ссиях", "иму́ществе", "пого́де"], "correct": 2}, {"tag": "Слова́рь", "cls": "topic-vocab", "q": "«У меня́ е́сть пингви́н.» — э́то, скоре́е всего́:", "ar": "«لدي بطريق» — على الأرجح", "hint": "Где́ обы́чно живу́т пингви́ны?", "options": ["пра́вда", "непра́вда", "норма́льно", "обы́чно"], "correct": 1}, {"tag": "Слова́рь", "cls": "topic-vocab", "q": "«Что́ у тебя́ в су́мке?» спра́шивает про:", "ar": "«ماذا في حقيبتك؟» تسأل عن", "hint": "В су́мке лежа́т не лю́ди.", "options": ["люде́й", "предме́ты", "пого́ду", "вре́мя"], "correct": 1}, {"tag": "Слова́рь", "cls": "topic-vocab", "q": "Где́ спра́шивают «У ва́с е́сть аспири́н?»", "ar": "أين نسأل «هل عندكم أسبرين؟»", "hint": "Та́м продаю́т лека́рства.", "options": ["в апте́ке", "в ко́нсульстве", "в авиака́ссе", "в рестора́не"], "correct": 0}];
+let current = 0, score = 0, answered = new Array(questions.length).fill(false);
+function render() {
+  const body = document.getElementById('quizBody');
+  document.getElementById('progressFill').style.width = ((current) / questions.length * 100) + '%';
+  if (current >= questions.length) {
+    const pct = Math.round((score / questions.length) * 100);
+    let msg = pct >= 80 ? "Отли́чно! 🌟" : pct >= 50 ? "Хорошо́, но повтори́те материа́л 👍" : "Сто́ит повтори́ть уро́к ещё ра́з 📚";
+    body.innerHTML = `<div class="results"><h2>Виктори́на завершена́!</h2><div class="score-circle">${score}/${questions.length}</div><p style="font-size:18px; color:#1F4E79; font-weight:600;">${msg}</p><button class="restart-btn" onclick="restart()">Пройти́ сно́ва / أعد المحاولة</button></div>`;
+    return;
+  }
+  const item = questions[current];
+  body.innerHTML = `<div class="question active"><div class="qnum">Вопро́с ${current + 1} из ${questions.length}</div><span class="tag ${item.cls}">${item.tag}</span><div class="qtext">${item.q}</div><div class="arabic">${item.ar}</div>${item.hint ? `<button class="hint-toggle" id="hintBtn" onclick="toggleHint()">💡 Показа́ть подска́зку</button><div class="hint" id="hintBox">${item.hint}</div>` : ''}<div class="options" id="optionsBox" style="margin-top:16px;"></div><div class="feedback" id="feedback"></div><div class="nav-btns"><button class="nav" onclick="prevQ()" ${current===0 ? 'disabled' : ''}>← Наза́д</button><button class="nav" id="nextBtn" onclick="nextQ()" disabled>Да́лее →</button></div></div>`;
+  const optionsBox = document.getElementById('optionsBox');
+  item.options.forEach((opt, i) => {
+    const div = document.createElement('div'); div.className = 'option'; div.textContent = opt;
+    div.onclick = () => selectOption(i); optionsBox.appendChild(div);
+  });
+  if (answered[current] !== false) showAnswerState(answered[current]);
+}
+function toggleHint() {
+  document.getElementById('hintBox').classList.toggle('show');
+}
+function selectOption(i) {
+  if (answered[current] !== false) return;
+  const item = questions[current]; const isCorrect = i === item.correct;
+  answered[current] = i; if (isCorrect) score++; showAnswerState(i);
+}
+function showAnswerState(selectedIndex) {
+  const item = questions[current]; const opts = document.querySelectorAll('.option');
+  opts.forEach((o, idx) => { o.style.pointerEvents = 'none'; if (idx === item.correct) o.classList.add('correct'); else if (idx === selectedIndex) o.classList.add('incorrect'); });
+  const fb = document.getElementById('feedback'); const isCorrect = selectedIndex === item.correct;
+  fb.className = 'feedback show ' + (isCorrect ? 'correct-fb' : 'incorrect-fb');
+  fb.textContent = isCorrect ? "✅ Пра́вильно! / صحيح!" : "❌ Пра́вильный отве́т: " + item.options[item.correct];
+  document.getElementById('nextBtn').disabled = false;
+}
+function nextQ() { current++; render(); }
+function prevQ() { if (current > 0) { current--; render(); } }
+function restart() { current = 0; score = 0; answered = new Array(questions.length).fill(false); render(); }
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,316 @@
+{
+ "units": [
+  {
+   "ru": "Знако́мство",
+   "ar": "التعارف",
+   "photo": "u1",
+   "lessons": [
+    {
+     "num": 1,
+     "ru": "Ру́сский алфави́т",
+     "pr": null,
+     "ar": "الحروف الروسية",
+     "free": true,
+     "dialogues": 2,
+     "words": 18
+    },
+    {
+     "num": 2,
+     "ru": "Здра́вствуйте! Пе́рвый день в Москве́",
+     "pr": null,
+     "ar": "أهلًا! أول يوم في موسكو",
+     "free": true,
+     "dialogues": 2,
+     "words": 18
+    },
+    {
+     "num": 3,
+     "ru": "Профе́ссии",
+     "pr": null,
+     "ar": "الوظايف — إنت بتشتغل إيه؟",
+     "free": false,
+     "dialogues": 2,
+     "words": 18
+    },
+    {
+     "num": 4,
+     "ru": "Хо́бби",
+     "pr": null,
+     "ar": "الهوايات — بتعمل إيه؟",
+     "free": false,
+     "dialogues": 2,
+     "words": 17
+    },
+    {
+     "num": 5,
+     "ru": "Говори́шь по-ру́сски?",
+     "pr": null,
+     "ar": "بتتكلم روسي؟ ويومك عامل إزاي؟",
+     "free": false,
+     "dialogues": 2,
+     "words": 18
+    }
+   ]
+  },
+  {
+   "ru": "Обо мне́",
+   "ar": "عني",
+   "photo": "u2",
+   "lessons": [
+    {
+     "num": 6,
+     "ru": "Как тебя́ зову́т?",
+     "pr": null,
+     "ar": "اسمك إيه؟",
+     "free": false,
+     "dialogues": 2,
+     "words": 16
+    },
+    {
+     "num": 7,
+     "ru": "Что ты лю́бишь?",
+     "pr": null,
+     "ar": "بتحب تعمل إيه؟",
+     "free": false,
+     "dialogues": 2,
+     "words": 12
+    },
+    {
+     "num": 8,
+     "ru": "Как учи́ть языки́?",
+     "pr": null,
+     "ar": "إزاي تذاكر لغات؟",
+     "free": false,
+     "dialogues": 2,
+     "words": 18
+    },
+    {
+     "num": 9,
+     "ru": "Ли́чные ве́щи",
+     "pr": null,
+     "ar": "حاجاتي الشخصية",
+     "free": false,
+     "dialogues": 2,
+     "words": 18
+    },
+    {
+     "num": 10,
+     "ru": "Семья́",
+     "pr": null,
+     "ar": "العيلة",
+     "free": false,
+     "dialogues": 2,
+     "words": 16
+    }
+   ]
+  },
+  {
+   "ru": "Мир вокру́г",
+   "ar": "العالم حوالينا",
+   "photo": "u3",
+   "lessons": [
+    {
+     "num": 11,
+     "ru": "Стра́ны и города́",
+     "pr": null,
+     "ar": "بلاد ومدن",
+     "free": false,
+     "dialogues": 2,
+     "words": 10
+    },
+    {
+     "num": 12,
+     "ru": "Как дела́?",
+     "pr": null,
+     "ar": "العيشة في بلاد مختلفة",
+     "free": false,
+     "dialogues": 2,
+     "words": 18
+    },
+    {
+     "num": 13,
+     "ru": "Свобо́дное вре́мя",
+     "pr": null,
+     "ar": "وقت الفراغ",
+     "free": false,
+     "dialogues": 2,
+     "words": 13
+    },
+    {
+     "num": 14,
+     "ru": "Интере́сы, пла́ны",
+     "pr": null,
+     "ar": "اهتمامات وخطط",
+     "free": false,
+     "dialogues": 2,
+     "words": 17
+    },
+    {
+     "num": 15,
+     "ru": "Кли́мат и пого́да",
+     "pr": null,
+     "ar": "المناخ والجو",
+     "free": false,
+     "dialogues": 2,
+     "words": 18
+    }
+   ]
+  },
+  {
+   "ru": "Мой день",
+   "ar": "يومي",
+   "photo": "u4",
+   "lessons": [
+    {
+     "num": 16,
+     "ru": "Стиль жи́зни",
+     "pr": null,
+     "ar": "أسلوب الحياة",
+     "free": false,
+     "dialogues": 2,
+     "words": 15
+    },
+    {
+     "num": 17,
+     "ru": "Мой день",
+     "pr": null,
+     "ar": "يومي",
+     "free": false,
+     "dialogues": 2,
+     "words": 18
+    },
+    {
+     "num": 18,
+     "ru": "Ка́чества",
+     "pr": null,
+     "ar": "الصفات",
+     "free": false,
+     "dialogues": 2,
+     "words": 18
+    },
+    {
+     "num": 19,
+     "ru": "Москва́ и Петербу́рг",
+     "pr": null,
+     "ar": "موسكو وبطرسبورج",
+     "free": false,
+     "dialogues": 2,
+     "words": 18
+    },
+    {
+     "num": 20,
+     "ru": "О́тдых, путеше́ствия",
+     "pr": null,
+     "ar": "الأجازة والسفر",
+     "free": false,
+     "dialogues": 2,
+     "words": 18
+    }
+   ]
+  },
+  {
+   "ru": "Поку́пки и вку́сы",
+   "ar": "الشوبينج والأذواق",
+   "photo": "u5",
+   "lessons": [
+    {
+     "num": 21,
+     "ru": "Прогре́сс",
+     "pr": null,
+     "ar": "أقدر وأعرف",
+     "free": false,
+     "dialogues": 2,
+     "words": 18
+    },
+    {
+     "num": 22,
+     "ru": "С днём рожде́ния!",
+     "pr": null,
+     "ar": "السن وأعياد الميلاد والمناسبات",
+     "free": false,
+     "dialogues": 2,
+     "words": 24
+    },
+    {
+     "num": 23,
+     "ru": "У врача́",
+     "pr": null,
+     "ar": "عند الدكتور",
+     "free": false,
+     "dialogues": 2,
+     "words": 23
+    },
+    {
+     "num": 24,
+     "ru": "Проду́кты и напи́тки",
+     "pr": null,
+     "ar": "أكل وشرب ودايت",
+     "free": false,
+     "dialogues": 2,
+     "words": 24
+    },
+    {
+     "num": 25,
+     "ru": "Вне́шность и цвета́",
+     "pr": null,
+     "ar": "الشكل والألوان",
+     "free": false,
+     "dialogues": 2,
+     "words": 24
+    }
+   ]
+  },
+  {
+   "ru": "Го́род и дом",
+   "ar": "المدينة والبيت",
+   "photo": "u6",
+   "lessons": [
+    {
+     "num": 26,
+     "ru": "Оде́жда, о́бувь",
+     "pr": null,
+     "ar": "اللبس والجزم",
+     "free": false,
+     "dialogues": 2,
+     "words": 24
+    },
+    {
+     "num": 27,
+     "ru": "Се́рвис",
+     "pr": null,
+     "ar": "الشريحة والبنك والبوسطة والدليفري",
+     "free": false,
+     "dialogues": 2,
+     "words": 24
+    },
+    {
+     "num": 28,
+     "ru": "Дом, кварти́ра",
+     "pr": null,
+     "ar": "البيت والشقة",
+     "free": false,
+     "dialogues": 2,
+     "words": 21
+    },
+    {
+     "num": 29,
+     "ru": "Тра́нспорт",
+     "pr": null,
+     "ar": "المواصلات",
+     "free": false,
+     "dialogues": 2,
+     "words": 17
+    },
+    {
+     "num": 30,
+     "ru": "Путеше́ствия",
+     "pr": null,
+     "ar": "السفر",
+     "free": false,
+     "dialogues": 2,
+     "words": 16
+    }
+   ]
+  }
+ ]
+}
