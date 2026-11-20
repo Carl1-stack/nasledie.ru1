@@ -751,3 +751,55 @@ body.rmd .hero>img{filter:saturate(.75) brightness(.8) hue-rotate(-8deg)}
 .gcard.boss .ni{background:rgba(209,73,91,.15);color:#F09AA6}
 .gcard.boss.won .ni{background:rgba(214,168,90,.2);color:var(--gold-hi)}
 @media (prefers-reduced-motion:reduce){.dtyped .cur{animation:none}}
+
+/* extra lesson videos inside the lesson (2026-11-20) */
+.xstep{margin:14px 0 6px}
+.xsh{display:flex;align-items:center;gap:10px}
+.xsn{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--gold);color:var(--ink);font:700 14px var(--ar);flex:0 0 auto}
+.xsh b{font:700 17px var(--ar)}
+.xhint{margin:4px 0 10px;color:var(--dim);font-size:13px}
+.xv{border-radius:18px;overflow:hidden;background:var(--card);border:1px solid var(--line);margin-bottom:12px}
+.xth{position:relative;display:block;width:100%;padding:0;border:0;background:#000;cursor:pointer}
+.xth img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;opacity:.92}
+.xpl{position:absolute;inset:0;margin:auto;width:62px;height:62px;border-radius:50%;display:grid;place-items:center;background:rgba(214,168,90,.92);color:var(--ink)}
+.xpl .ico{width:28px;height:28px}
+.xfr{position:relative;width:100%;aspect-ratio:16/9;background:#000}
+.xfr iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.xb{padding:12px 14px;display:grid;gap:6px}
+.xk{color:var(--gold-hi);font-weight:600}
+.xt{font:600 17px var(--ru);direction:ltr;text-align:left}
+.xb p{margin:0;font-size:13.5px;line-height:1.7}
+.xph{display:grid;gap:4px;padding:10px;border-radius:14px;background:rgba(214,168,90,.08);border:1px solid rgba(214,168,90,.25)}
+.xph>b{font:700 13px var(--ar);color:var(--gold-hi)}
+.xr{display:flex;align-items:center;gap:10px;padding:5px 0;border-top:1px dashed rgba(255,255,255,.08)}
+.xr:first-of-type{border-top:0}
+.xru{display:grid;justify-items:end;min-width:0}
+.xru .ru{font:600 15px var(--ru)}
+.xru .pr{font-size:12px;color:var(--pr)}
+.xr>.ar{flex:1;font-size:12.5px;color:var(--dim)}
+.xat{display:flex;align-items:center;gap:4px;border:0;border-radius:999px;padding:4px 10px;background:#1E2C47;color:var(--gold-hi);font:600 12.5px var(--ru);cursor:pointer;flex:0 0 auto}
+.xat .ico{width:12px;height:12px}
+.xtask{display:flex;gap:6px;align-items:flex-start;color:#F09AA6}
+.xtask .ico{width:16px;height:16px;flex:0 0 auto;margin-top:3px}
+.xen{margin:16px 0;padding:10px 14px;border-radius:16px;border:1px dashed rgba(127,167,216,.6);background:rgba(127,167,216,.07)}
+.xen summary{font:700 14px var(--ar);cursor:pointer}
+.xen .xv{margin-top:10px}
+
+/* games wave 4 (2026-11-20): chat stories, duels, contests */
+.chat{display:grid;gap:8px;min-height:160px;max-height:52vh;overflow:auto;padding:12px;border-radius:18px;background:#0E1626;border:1px solid var(--line);direction:ltr;margin-bottom:12px}
+.cbm{max-width:82%;justify-self:start;display:grid;gap:2px;padding:8px 12px;border-radius:16px 16px 16px 4px;background:#1E2C47;animation:fadein .25s ease both}
+.cbm.me{justify-self:end;border-radius:16px 16px 4px 16px;background:#2B5D49}
+.cbm.me.fix{background:#5A3A1E;border:1px solid var(--gold)}
+.cbm small.ru{font:600 10.5px var(--ru);color:var(--gold)}
+.cbm span.ru{font:500 15px var(--ru)}
+.cbm small.ar{font:500 11.5px var(--ar);color:var(--dim);direction:rtl;text-align:right}
+.cbm.typing{display:flex;gap:4px;padding:12px 14px}
+.cbm.typing i{width:7px;height:7px;border-radius:50%;background:var(--dim);animation:tdot 1s infinite}
+.cbm.typing i:nth-child(2){animation-delay:.15s}.cbm.typing i:nth-child(3){animation-delay:.3s}
+@keyframes tdot{0%,60%,100%{opacity:.3;transform:none}30%{opacity:1;transform:translateY(-3px)}}
+#chatopts .gopts button{justify-content:flex-start;text-align:left}
+.gcard.contest{border-color:rgba(214,168,90,.55);background:radial-gradient(120% 120% at 90% 0%,rgba(214,168,90,.2),transparent 60%),var(--card)}
+.gcard.duel .ni{background:rgba(63,163,107,.15);color:#7FD3A2}
+.gcard.duel.hot{border-color:var(--green)}
+.gcard.duel.done{opacity:.85}
+@media (prefers-reduced-motion:reduce){.cbm,.cbm.typing i{animation:none}}

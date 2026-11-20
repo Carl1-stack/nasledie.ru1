@@ -6,7 +6,7 @@
 var CONF = window.NCONF || { codes: [], whatsapp: '' };
 /* paid pages (quizzes 3-30, reviews, B1 lessons, Падежи) live in the private storage: #open/<path> opens them with the code */
 var LINKS = { quiz: function (n) { return n <= 2 ? '../quiz_site/quiz' + pad(n) + '.html' : '#open/a1/quiz' + pad(n) + '.html'; }, review: function (n) { return '#quiz/r' + n; },
-  videos: function (n) { return '#view/videos/' + (n || 0); }, level: '#view/level',
+  videos: function (n) { return n ? '#lesson/' + n + '/videos' : '#library'; }, level: '#view/level',
   b1: function () { return '#course/b1'; }, cases: function (n) { return hasCourse('cases') ? '#view/p/cases/cases' + n + '.html' : '#course/cases'; } };
 function hasCourse(c) { return !!(S.acc && S.token && String(S.acc.scope || '').split('+').some(function (x) { return x.split(':')[0] === c; })); }
 var UNIT_PHOTO = ['u1', 'u2', 'u3', 'u4', 'u5', 'u6'];
@@ -186,7 +186,10 @@ var route = { name: 'home', arg: null };
 function go(h) { location.hash = h; }
 function parse() {
   var h = (location.hash || '').replace(/^#/, '');
-  var m = h.match(/^(unit|lesson|unlock)\/(\d+)$/);
+  var m = h.match(/^lesson\/(\d+)\/videos$/) || h.match(/^view\/videos\/([1-9]\d*)$/);
+  if (m) return { name: 'lesson', arg: +m[1], xv: true };
+  if (/^view\/videos(\/0)?$/.test(h)) return { name: 'library', arg: null };
+  m = h.match(/^(unit|lesson|unlock)\/(\d+)$/);
   if (m) return { name: m[1], arg: +m[2] };
   m = h.match(/^(chat|call)\/(\d+)\/(f|\d+)$/);
   if (m) return { name: m[1], arg: { n: +m[2], mi: m[3] === 'f' ? -1 : +m[3] } };
@@ -200,6 +203,7 @@ function parse() {
   }
   if (h === 'album') return { name: 'album', arg: null };
   m = h.match(/^boss\/(\d+)$/); if (m) return { name: 'boss', arg: +m[1] };
+  m = h.match(/^duel\/(new|\d+)$/); if (m) return { name: 'duel', arg: m[1] };
   m = h.match(/^game\/(\w+)$/);
   if (m) return { name: 'game', arg: m[1] };
   m = h.match(/^inbox(?:\/(\d+))?$/);
@@ -215,10 +219,12 @@ function render() {
   route = parse();
   if (!S.onboarded && route.name !== 'welcome' && route.name !== 'open') { route = { name: 'welcome', arg: null }; }
   if (route.name !== 'chat' && route.name !== 'call') stopVoice();
-  if (route.name !== 'game' && GM) { clearTimeout(GM.tt); GM = null; }
+  if (route.name !== 'game' && route.name !== 'boss' && route.name !== 'duel' && GM) { clearTimeout(GM.tt); GM = null; }
+  if (route.name !== 'game' && route.name !== 'duel') RNG = Math.random;
   var R = { home: vHome, library: vLibrary, unit: vUnit, lesson: vLesson, practice: vPractice, profile: vProfile, welcome: vWelcome, unlock: vUnlock,
-    open: vOpen, chat: vChat, call: vCall, view: vView, course: vCourse, quiz: vQuiz, mistakes: vMistakes, certs: vCerts, watch: vWatch, inbox: vInbox, games: vGames, game: vGame, album: vAlbum, boss: vBoss }[route.name] || vHome;
-  if (route.quiz) LS = { n: route.arg, seg: -1 };   // an old quiz link opens the lesson on its quiz tab
+    open: vOpen, chat: vChat, call: vCall, view: vView, course: vCourse, quiz: vQuiz, mistakes: vMistakes, certs: vCerts, watch: vWatch, inbox: vInbox, games: vGames, game: vGame, album: vAlbum, boss: vBoss, duel: vDuel }[route.name] || vHome;
+  if (route.quiz) LS = { n: route.arg, seg: -1 };
+  if (route.xv) LS = { n: route.arg, seg: -2 };   // an old quiz link opens the lesson on its quiz tab
   view.innerHTML = '';
   R(route.arg);
   if (route.name !== 'open') lastHash = location.hash || '#home';
@@ -231,7 +237,7 @@ function refreshChrome() {
   var tabs = document.getElementById('tabs'), mini = document.getElementById('mini');
   var noTabs = route.name === 'welcome' || route.name === 'chat' || route.name === 'call' || route.name === 'view';
   tabs.hidden = noTabs;
-  var tab = { home: 'home', library: 'library', unit: 'library', lesson: 'library', practice: 'practice', profile: 'profile', unlock: 'library', course: 'library', quiz: 'library', view: 'library', mistakes: 'home', inbox: 'home', games: 'practice', game: 'practice', album: 'practice', boss: 'practice', certs: 'profile', chat: 'practice', call: 'practice', watch: 'library' }[route.name];
+  var tab = { home: 'home', library: 'library', unit: 'library', lesson: 'library', practice: 'practice', profile: 'profile', unlock: 'library', course: 'library', quiz: 'library', view: 'library', mistakes: 'home', inbox: 'home', games: 'practice', game: 'practice', album: 'practice', boss: 'practice', duel: 'practice', certs: 'profile', chat: 'practice', call: 'practice', watch: 'library' }[route.name];
   tabs.querySelectorAll('a').forEach(function (a) { a.classList.toggle('on', a.dataset.tab === tab); });
   mini.hidden = noTabs || !P.meta || route.name === 'lesson';
   view.className = noTabs ? 'notabs' : (mini.hidden ? 'noplayer' : '');
@@ -285,7 +291,6 @@ function vLibrary() {
     [1, 2, 3].map(function (r) { var a = (r - 1) * 10 + 1; return lrow(LINKS.review(r), 'review', 'مراجعة ' + ad(r), 'كويز على الدروس من ' + ad(a) + ' لـ ' + ad(a + 9)); }).join('') + '</div></section>';
   h += '<section class="sec"><h2><span>كمان في المكتبة</span></h2><div class="links">' +
     lrow(LINKS.level, 'test', 'اختبار المستوى', 'زي الامتحان الروسي الرسمي، بالخمس مهارات') +
-    lrow(LINKS.videos(0), 'film', 'فيديوهات الدروس', 'رسوم متحركة ومشاهد حقيقية لكل درس') +
 
     [1, 2, 3].map(function (c) { return lrow(LINKS.cases(c), 'book', 'الحالات الإعرابية ' + ad(c), ['الرفع والنصب', 'الجر بحروف وبالإضافة', 'المفعول لأجله والآلة'][c - 1]); }).join('') +
     '</div></section>';
@@ -341,9 +346,10 @@ function vLesson(n) {
     if (L.detail && L.detail.slides) segs.push({ k: 'e', t: 'بالتفصيل' });
     if (L.culture || L.funny) segs.push({ k: 'c', t: 'ثقافة وضحك' });
     if (L.quiz) segs.push({ k: 'q', t: 'الكويز' });
+    if (L.xvideos) segs.push({ k: 'y', t: 'فيديوهات إضافية' });
     segs.push({ k: 'x', t: 'الواجب والمزيد' });
     LS.segs = segs;
-    if (LS.seg < 0 || LS.seg >= segs.length) { var qi = segs.map(function (x) { return x.k; }).indexOf('q'); LS.seg = LS.seg === -1 && qi >= 0 ? qi : 0; }
+    if (LS.seg < 0 || LS.seg >= segs.length) { var ks = segs.map(function (x) { return x.k; }), qi = ks.indexOf('q'), yi = ks.indexOf('y'); LS.seg = LS.seg === -1 && qi >= 0 ? qi : LS.seg === -2 && yi >= 0 ? yi : 0; }
     var h = '<section class="hero" style="height:260px"><img src="' + photoFor(n) + '" alt="">' +
       '<div class="topbar pad"><a class="back" href="#unit/' + ((LES[n] && LES[n].unit) + 1) + '" aria-label="رجوع">' + ico('back') + '</a><span class="chip">' + starsHtml(n) + '</span></div>' +
       '<div class="in pad"><span class="d-ru ru t-ru" style="font-size:34px">' + esc(L.ru) + '</span>' + (L.pr ? '<div class="pr">' + esc(L.pr) + '</div>' : '') +
@@ -378,6 +384,8 @@ function renderSeg() {
         (L.funny.note ? '<div class="box gold"><p class="ar">' + mix(L.funny.note) + '</p></div>' : '') : '') + '</div>';
   } else if (s.k === 'q') {
     h = '<div class="pad">' + quizStartHtml(n, L) + '</div>';
+  } else if (s.k === 'y') {
+    h = '<div class="pad">' + xvHtml(L.xvideos, n) + '</div>';
   } else if (s.k === 'v') {
     h = '<div class="pad">' + L.vocab.map(function (blk, bi) { return '<div class="vhead"><span class="ar">' + esc(blk.ar) + '</span><span class="ru">' + esc(blk.ru) + '</span></div><div class="words">' +
       blk.rows.map(function (r) { return wrow(r, n); }).join('') + '</div>'; }).join('') +
@@ -411,7 +419,7 @@ function renderSeg() {
       (L.next ? '<div class="box gold"><h3 class="ar">' + esc(L.next.title_ar || 'الدرس الجاي') + '</h3><p class="ru">' + esc(L.next.title_ru || '') + '</p>' +
         (L.next.words || []).map(function (w) { return '<div class="nx"><span class="ru">' + esc(w[0]) + '</span><span class="ar">' + esc(w[1]) + '</span></div>'; }).join('') + '</div>' : '') +
       '<div class="links">' + (L.quiz ? '' : lrow(LINKS.quiz(n), 'test', 'كويز الدرس', '٣٠ سؤال، والنتيجة بتوصل للمدرس')) +
-      (n > 100 ? '' : '<a class="lrow" href="#view/videos/' + n + '">' + ico('film') + '<span class="tx"><b>فيديوهات الدرس</b><small>روسي حقيقي عن نفس الموضوع</small></span>' + ico('back', 'end') + '</a>' +
+      (n > 100 || !L.xvideos ? '' : '<a class="lrow" href="#lesson/' + n + '/videos" data-act="segy">' + ico('film') + '<span class="tx"><b>فيديوهات الدرس</b><small>روسي حقيقي عن نفس الموضوع</small></span>' + ico('back', 'end') + '</a>' +
       '<a class="lrow" href="#chat/' + n + '/f">' + ico('spark') + '<span class="tx"><b>' + G('اتكلم مع ليرا', 'اتكلمي مع ليرا') + '</b><small>شات على الدرس ده بتصحيح لطيف</small></span>' + ico('back', 'end') + '</a>') +
       '<button class="lrow" data-act="offline">' + ico('down') + '<span class="tx"><b>' + G('حمّل الدرس', 'حمّلي الدرس') + '</b><small>عشان تسمعه من غير نت</small></span></button></div>' +
       recHtml(n, 'hw', 'فويس للمدرس: ' + G('قول', 'قولي') + ' اللي ' + G('اتعلمته', 'اتعلمتيه') + ' في الدرس') + '</div>';
@@ -419,6 +427,38 @@ function renderSeg() {
   b.innerHTML = h;
   if (s.k === 'm') bindVideo(n);
   if ((s.k[0] === 'd' || s.k === 'c') && P.meta && P.meta.key === n + s.k) highlight(P.i);
+}
+/* ---------- extra lesson videos INSIDE the lesson (2026-11-20; tools/app_videos.py): steps, YouTube in the app, minute buttons ---------- */
+function durAr(sec) { if (!sec) return ''; var m = Math.round(sec / 60); return sec < 60 ? 'أقل من دقيقة' : m === 1 ? 'دقيقة' : m === 2 ? 'دقيقتين' : ad(m) + (m <= 10 ? ' دقايق' : ' دقيقة'); }
+function mmss(s) { s = Math.max(0, s | 0); return Math.floor(s / 60) + ':' + ('0' + s % 60).slice(-2); }
+function xvCard(v, n) {
+  return '<div class="xv" data-yt="' + v.id + '"><button class="xth" data-ytplay="' + (v.start || 0) + '" aria-label="شغّل"><img src="https://i.ytimg.com/vi/' + v.id + '/hqdefault.jpg" alt="" loading="lazy"><span class="xpl">' + ico('play') + '</span></button>' +
+    '<div class="xb"><small class="ar xk">' + esc(v.kname || '') + (v.dur ? ' · ' + durAr(v.dur) : '') + (v.subs === 'ru' ? ' · ترجمة روسية' : v.subs === 'auto' ? ' · ترجمة أوتوماتيك' : '') + '</small>' +
+    '<div class="ru xt">' + esc(v.ru) + '</div><p class="ar">' + mix(v.what || '') + '</p>' +
+    (v.ph && v.ph.length ? '<div class="xph"><b class="ar">' + (v.ph[0].s !== undefined ? G('اصطاد الجمل دي (دوس على الدقيقة)', 'اصطادي الجمل دي (دوسي على الدقيقة)') : G('ركّز على الجمل دي وإنت بتتفرج', 'ركّزي على الجمل دي وإنتي بتتفرجي')) + '</b>' +
+      v.ph.map(function (p) { return '<div class="xr"><span class="xru"><span class="ru">' + esc(p.ru) + '</span>' + (p.pr && !S.hidePr ? '<small class="pr">' + esc(p.pr) + '</small>' : '') + '</span><span class="ar">' + esc(p.ar) + '</span>' +
+        (p.s !== undefined ? '<button class="xat" data-ytat="' + p.s + '">' + ico('play') + '<span class="ru">' + mmss(p.s) + '</span></button>' : '') + '</div>'; }).join('') + '</div>' : '') +
+    (v.task ? '<p class="ar xtask">' + ico('mic') + '<span>فويس نوت: ' + mix(v.task) + '</span></p>' : '') + '</div></div>';
+}
+function xvHtml(X, n) {
+  var h = '<p class="ar" style="color:var(--dim);margin:0 0 6px">' + G('امشي بالخطوات بالترتيب. شغّل الترجمة الروسية من زرار CC، ولو الكلام سريع خلي السرعة ٠٫٧٥.', 'امشي بالخطوات بالترتيب. شغّلي الترجمة الروسية من زرار CC، ولو الكلام سريع خلي السرعة ٠٫٧٥.').replace('CC', '«CC»') + '</p>';
+  var k = 0;
+  (X.steps || []).forEach(function (st) { k++;
+    h += '<section class="xstep"><div class="xsh"><span class="xsn">' + ad(k) + '</span><b class="ar">' + esc(st.title) + '</b></div><p class="ar xhint">' + esc(st.hint) + '</p>' + st.videos.map(function (v) { return xvCard(v, n); }).join('') + '</section>';
+  });
+  (X.social || []).forEach(function (so) { h += '<div class="xv"><div class="xb"><small class="ar xk">من السوشيال ميديا</small><div class="ru xt">' + esc(so.ru) + '</div><p class="ar">' + mix(so.what) + '</p><a class="btn ghost" href="' + esc(so.url) + '" target="_blank" rel="noopener">افتح الفيديو</a>' + (so.task ? '<p class="ar xtask">' + ico('mic') + '<span>فويس نوت: ' + mix(so.task) + '</span></p>' : '') + '</div></div>'; });
+  if (X.voice) { k++; h += '<section class="xstep"><div class="xsh"><span class="xsn">' + ad(k) + '</span><b class="ar">' + G('سجّل وابعت', 'سجّلي وابعتي') + '</b></div>' + recHtml(n, 'xvid', mix(X.voice)) + '</section>'; }
+  if (X.en && X.en.length) h += '<details class="xen"><summary class="ar">إضافي: شرح بالإنجليزي (للي إنجليزيه كويس)</summary><p class="ar xhint">قنوات بتشرح الروسي بالإنجليزي. ' + G('اتفرج', 'اتفرجي') + ' عليها بعد الخطوات لو ' + G('عايز', 'عايزة') + ' شرح من زاوية تانية.</p>' +
+    X.en.map(function (e) { return '<div class="xv" data-yt="' + e.id + '"><button class="xth" data-ytplay="0" aria-label="شغّل"><img src="https://i.ytimg.com/vi/' + e.id + '/mqdefault.jpg" alt="" loading="lazy"><span class="xpl">' + ico('play') + '</span></button><div class="xb"><small class="ar xk">' + (e.dur ? durAr(e.dur) : '') + '</small><p class="ar">' + mix(e.what) + '</p></div></div>'; }).join('') + '</details>';
+  return h;
+}
+function ytPlay(card, start) {
+  var id = card.dataset.yt, th = card.querySelector('.xth, .xfr');
+  var src = 'https://www.youtube-nocookie.com/embed/' + id + '?autoplay=1&playsinline=1&rel=0&cc_load_policy=1&cc_lang_pref=ru&hl=ru' + (start ? '&start=' + start : '');
+  au.pause();
+  var fr = card.querySelector('iframe');
+  if (fr) { fr.src = src; } else { var w = document.createElement('div'); w.className = 'xfr'; w.innerHTML = '<iframe src="' + src + '" title="فيديو" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>'; th.replaceWith(w); }
+  card.scrollIntoView({ block: 'start', behavior: 'smooth' }); touchStreak();
 }
 /* ---------- lesson videos with chapters (2026-11-20) ---------- */
 var VIDS = (function () { try { return JSON.parse(localStorage.getItem('nasledie.vids')) || null; } catch (e) { return null; } })();
@@ -538,6 +578,7 @@ var GAMES = [
   { id: 'build', ic: 'talk', ru: 'Собери́ фра́зу', ar: 'رتّب الجملة', d: 'اسمع الجملة ورتّب كلماتها', need: 'build' },
   { id: 'dict', ic: 'test', ru: 'Дикта́нт', ar: 'إملاء', d: 'اسمع الكلمة واكتبها بالحروف الروسي (فيه كيبورد روسي)', need: 'dict' },
   { id: 'ending', ic: 'spark', ru: 'Ку́зница оконча́ний', ar: 'ورشة النهايات', d: 'كمّل آخر الكلمة في الجملة صح', need: 'ending' },
+  { id: 'chat', ic: 'send', ru: 'Исто́рии в ча́те', ar: 'حكايات شات', d: 'الحوار كشات: اختار ردّك إنت في كل مرة', need: 'chat' },
   { id: 'memory', ic: 'star', ru: 'Па́мять', ar: 'الذاكرة', d: 'اقلب كارتين: الروسي ومعناه', need: 'words' },
   { id: 'reader', ic: 'test', ru: 'Скорочте́ние', ar: 'قراية سريعة', d: 'اقرا الكلمة الروسي واختار نطقها بالعربي', need: 'pr' }
 ];
@@ -551,7 +592,9 @@ function editDist(a, b) {
   for (i = 1; i <= m; i++) for (j = 1; j <= n; j++) d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
   return d[m][n];
 }
-function shuffle(a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+var RNG = Math.random;
+function seeded(seed) { var a = seed >>> 0; return function () { a = (a + 0x6D2B79F5) >>> 0; var t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+function shuffle(a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(RNG() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
 function gameLessons() {
   var lv = levelNow(), out = [];
   unitsOf(lv).forEach(function (u) { u.lessons.forEach(function (l) { if (canOpen(l.num)) out.push(l.num); }); });
@@ -566,7 +609,7 @@ function gamePool(only) {
   if (GPOOL && GPOOL.key === key) return Promise.resolve(GPOOL);
   return Promise.all(ns.map(function (n) { return lesson(n).then(function (L) { return { n: n, L: L }; }, function () { return null; }); }).concat([loadEndings()])).then(function (rs) {
     var EN = rs.pop() || [];
-    var P2 = { key: key, words: [], stress: [], ik: [], sents: [], pr: [], conj: [], build: [], dict: [], ending: [] }, seen = {};
+    var P2 = { key: key, words: [], stress: [], ik: [], sents: [], pr: [], conj: [], build: [], dict: [], ending: [], dlgs: [], lines: [] }, seen = {};
     var maxN = Math.max.apply(null, ns.filter(function (n) { return n <= 30; }).concat([0]));
     EN.forEach(function (e) { if (e.n <= maxN && (!only || ns.indexOf(e.n) >= 0 || e.n <= maxN)) P2.ending.push({ n: e.n, ru: e.ru, ar: e.ar, a: e.a, url: 'audio/endings/' + e.a + '.mp3', pre: e.pre, ans: e.ans, post: e.post, wrong: e.wrong, hint: e.hint }); });
     rs.forEach(function (r) {
@@ -588,6 +631,11 @@ function gamePool(only) {
         var fs = (v.forms || []).map(function (f) { var w = String(f.ru).trim().split(/\s+/); return { pron: w[0], verb: w.slice(1).join(' '), ru: f.ru, a: f.a }; }).filter(function (f) { return f.verb; });
         fs.forEach(function (f) { P2.conj.push({ n: n, ru: f.ru, ar: v.ar, a: f.a, inf: v.ru, pron: f.pron, verb: f.verb, all: fs }); });
       });
+      (L.dialogues || []).forEach(function (d, di) {
+        var ls = (d.lines || []).filter(function (l) { return l.a && l.ru; }), who = {}; ls.forEach(function (l) { who[l.who] = 1; });
+        if (ls.length >= 4 && Object.keys(who).length === 2) P2.dlgs.push({ n: n, id: n + ':' + di, ru: d.ru, ar: d.ar, scene: d.scene, lines: ls.map(function (l) { return { n: n, who: l.who, ru: l.ru, ar: l.ar, a: l.a }; }) });
+        ls.forEach(function (l) { if (String(l.ru).split(/\s+/).length >= 3) P2.lines.push({ n: n, d: n + ':' + di, ru: l.ru, ar: l.ar, a: l.a }); });
+      });
       (L.dialogues || []).forEach(function (d) { (d.lines || []).forEach(function (l) {
         var t = String(l.ru || '').trim(); if (!l.a || t.length > 70) return;
         if (/\?$/.test(t)) P2.ik.push({ n: n, ru: t, ar: l.ar, a: l.a, q: true }); else if (/\.$/.test(t)) P2.ik.push({ n: n, ru: t, ar: l.ar, a: l.a, q: false });
@@ -598,12 +646,13 @@ function gamePool(only) {
 }
 function gwKey(it) { return plain(it.ru); }
 function pickItems(list, k) {   // due (missed) words first, then fresh ones
+  if (GM && GM.seed) return shuffle(list.slice()).slice(0, k);   // duel: no personal order, same for both
   var t = dayNum(today()), gw = S.gw || {};
   var due = list.filter(function (it) { var g = gw[gwKey(it)]; return g && dayNum(g.due) <= t; });
   var rest = shuffle(list.filter(function (it) { return due.indexOf(it) < 0; }));
   return shuffle(due).concat(rest).slice(0, k);
 }
-function gameLevel() { var h = GM.hist.slice(-5); if (h.length < 4) return 1; var r = h.filter(Boolean).length / h.length; return r >= .9 ? 2 : r <= .7 ? 0 : 1; }
+function gameLevel() { if (GM.seed) return 1; var h = GM.hist.slice(-5); if (h.length < 4) return 1; var r = h.filter(Boolean).length / h.length; return r >= .9 ? 2 : r <= .7 ? 0 : 1; }
 function distract(it, list, field, k) {   // wrong options: close ones when the student is doing well
   var cand = list.filter(function (x) { return x[field] && x[field] !== it[field] && plain(x[field]) !== plain(it[field]); });
   var lvl = gameLevel();
@@ -620,7 +669,7 @@ function makeQ(type, pool) {
   if (type === 'catch') { it = pickItems(pool.words, 1)[0]; if (!it) return null; opts = distract(it, pool.words, 'ru', 3); if (opts.length < 2) return null; return { type: type, it: it, opts: shuffle(opts.concat([it])) }; }
   if (type === 'meaning') { it = pickItems(pool.sents, 1)[0]; if (!it) return null; opts = distract(it, pool.sents, 'ar', 3); if (opts.length < 2) return null; return { type: type, it: it, opts: shuffle(opts.concat([it])) }; }
   if (type === 'dict') {
-    var useS = gameLevel() === 2 && pool.build.length && Math.random() < .35;   // doing well → short sentences too
+    var useS = gameLevel() === 2 && pool.build.length && RNG() < .35;   // doing well → short sentences too
     it = useS ? pickItems(pool.build.filter(function (x) { return x.ru.split(/\s+/).length <= 4; }), 1)[0] : null;
     if (!it) it = pickItems(pool.dict, 1)[0]; if (!it) return null;
     return { type: type, it: it, typed: '' };
@@ -647,12 +696,13 @@ function makeQ(type, pool) {
   return null;
 }
 function gameAvail(pool) {
-  return { stress: pool.stress.length >= 4, ik: pool.ik.length >= 4, catch: pool.words.length >= 4, meaning: pool.sents.length >= 4, reader: pool.pr.length >= 4, conj: pool.conj.length >= 6, build: pool.build.length >= 4, memory: pool.words.length >= 6, dict: pool.dict.length >= 4, ending: pool.ending.length >= 4 };
+  return { stress: pool.stress.length >= 4, ik: pool.ik.length >= 4, catch: pool.words.length >= 4, meaning: pool.sents.length >= 4, reader: pool.pr.length >= 4, conj: pool.conj.length >= 6, build: pool.build.length >= 4, memory: pool.words.length >= 6, dict: pool.dict.length >= 4, ending: pool.ending.length >= 4, chat: pool.dlgs.length >= 1 && pool.lines.length >= 8 };
 }
 function vGames() {
   var h = '<div class="page pad"><div class="topbar" style="padding:0"><a class="back" href="#practice" aria-label="رجوع">' + ico('back') + '</a></div>' +
     '<div class="ph1"><h1 class="ar">ألعاب وتحديات</h1><span class="ru">Игра́ть</span></div>' +
     '<p class="ar" style="color:var(--dim);margin:6px 0 14px">' + G('من الدروس اللي فتحتها', 'من الدروس اللي فتحتيها') + ' في مستوى <span class="ru">' + LEVELS.filter(function (x) { return x.id === levelNow(); })[0].ru + '</span>. مفيش قلوب ولا طاقة: الغلطة بتقطع الكومبو بس، والكلمة اللي ' + G('تغلط', 'تغلطي') + ' فيها بترجعلك بكرة.</p>' +
+    '<div id="gsocial">' + socialGamesHtml() + '</div>' +
     '<div class="games" id="glist"><p class="ar" style="color:var(--dim)">بيحمّل…</p></div>' +
     '<section class="sec"><h2><span>زعيم الوحدة</span><span class="ru">Босс</span></h2><div class="games">' + bossUnits().map(function (b) {
       var won = (S.boss || {})[b.i];
@@ -661,6 +711,7 @@ function vGames() {
     '<a class="gcard album-link" href="#album" style="margin-top:10px"><span class="ni">' + ico('book') + '</span><span class="tx"><span class="ru">Альбо́м слов</span><b class="ar">ألبوم الكلمات</b><small class="ar">' + ad(Object.keys(S.album || {}).length) + ' كلمة ' + G('جمعتها', 'جمعتيها') + (S.albumNew ? ' · ' + ad(S.albumNew) + ' جديدة' : '') + '</small></span>' + ico('back', 'end') + '</a>' +
     '<button class="set" data-set="gTimed" style="margin-top:8px"><span class="tx">' + G('العب بالوقت', 'العبي بالوقت') + '<small>١٠ ثواني لكل سؤال، للي ' + G('عايز', 'عايزة') + ' تحدي أكبر</small></span><span class="tog' + (S.gTimed ? ' on' : '') + '"></span></button></div>';
   view.innerHTML = h;
+  Promise.all([loadContests(), loadDuels()]).then(function () { var gs = document.getElementById('gsocial'); if (gs) gs.innerHTML = socialGamesHtml(); });
   gamePool().then(function (pool) {
     var av = gameAvail(pool), el = document.getElementById('glist'); if (!el) return;
     el.innerHTML = GAMES.map(function (g) {
@@ -674,9 +725,10 @@ function vGame(id) {
   var g = GAMES.filter(function (x) { return x.id === id; })[0]; if (!g) { go('#games'); return; }
   view.innerHTML = '<div class="page pad"><p class="ar" style="color:var(--dim)">بيحمّل…</p></div>';
   gamePool().then(function (pool) {
-    var av = gameAvail(pool), types = g.id === 'mix' ? Object.keys(av).filter(function (k) { return av[k] && k !== 'memory' && k !== 'dict'; }) : [g.id];
+    var av = gameAvail(pool), types = g.id === 'mix' ? Object.keys(av).filter(function (k) { return av[k] && k !== 'memory' && k !== 'dict' && k !== 'chat'; }) : [g.id];
     if (!types.length || (g.id !== 'mix' && !av[g.id])) { go('#games'); return; }
     if (g.id === 'memory') { memoryStart(g, pool); return; }
+    if (g.id === 'chat') { chatStart(g, pool); return; }
     GM = { g: g, pool: pool, types: types, i: 0, total: g.timed ? 999 : 10, combo: 0, best: 0, score: 0, right: 0, wrong: 0, hist: [], missed: [], end: g.timed ? Date.now() + g.timed * 1000 : 0, q: null, lock: false };
     view.innerHTML = '<div class="page pad game"><div class="gtop"><a class="back" href="#games" aria-label="رجوع">' + ico('back') + '</a><span class="gname"><span class="ru">' + g.ru + '</span></span>' +
       '<span class="gstat"><span class="combo" id="gcombo"></span><b id="gscore">' + ad(0) + '</b></span></div>' +
@@ -696,7 +748,7 @@ function gameNext() {
   if (!GM) return;
   if (!GM.end && GM.i >= GM.total) { gameOver(); return; }
   var q = null, tries = 0;
-  while (!q && tries++ < 12) q = makeQ(GM.types[Math.floor(Math.random() * GM.types.length)], GM.pool);
+  while (!q && tries++ < 12) q = makeQ(GM.types[Math.floor(RNG() * GM.types.length)], GM.pool);
   if (!q) { gameOver(); return; }
   GM.q = q; GM.lock = false; GM.i++; GM.qStart = Date.now();
   if (!GM.end) { var b = document.getElementById('gbar'); if (b) b.style.transform = 'scaleX(' + ((GM.i - 1) / GM.total).toFixed(3) + ')'; }
@@ -869,6 +921,121 @@ function buildBack(k) {
   var t = view.querySelector('[data-bt="' + k + '"]'); if (t) t.disabled = false;
 }
 /* memory: 6 pairs (Russian ↔ Arabic); a match plays the word. Score = fewer flips, combo for matches in a row */
+/* chat stories: the lesson dialogue as a messenger chat; the student is one of the two people and picks their own next line */
+function chatStart(g, pool) {
+  var D = shuffle(pool.dlgs.slice())[0], who = D.lines[1].who;
+  GM = { g: g, pool: pool, dlg: D, me: who, idx: 0, combo: 0, best: 0, score: 0, right: 0, wrong: 0, hist: [], missed: [], lock: false };
+  view.innerHTML = '<div class="page pad game"><div class="gtop"><a class="back" href="#games" aria-label="رجوع">' + ico('back') + '</a><span class="gname"><span class="ru">' + esc(D.ru || g.ru) + '</span></span>' +
+    '<span class="gstat"><span class="combo" id="gcombo"></span><b id="gscore">' + ad(0) + '</b></span></div>' +
+    '<p class="ar gsub" style="margin:0 0 8px">' + G('إنت', 'إنتي') + ' <span class="ru">' + esc(who) + '</span>. ' + esc(D.scene || '') + '</p>' +
+    '<div id="gq"><div class="chat" id="chatlog"></div><div id="chatopts"></div></div></div>';
+  chatStep();
+}
+function chatBubble(l, mine, extra) {
+  var log = document.getElementById('chatlog'); if (!log) return;
+  var b = document.createElement('div'); b.className = 'cbm' + (mine ? ' me' : '') + (extra ? ' ' + extra : '');
+  b.innerHTML = '<small class="ru">' + esc(l.who) + '</small><span class="ru">' + esc(l.ru) + '</span>' + (S.hideTr ? '' : '<small class="ar">' + esc(l.ar || '') + '</small>');
+  log.appendChild(b); b.scrollIntoView({ block: 'end', behavior: 'smooth' });
+}
+function chatSay(l, then) {
+  var done = false, fin = function () { if (done) return; done = true; au.onended = null; clearTimeout(t); if (GM && GM.dlg) then(); };
+  au.onended = fin; var t = setTimeout(fin, 7000);
+  au.src = audioUrl(l.n, l.a); var pp = au.play(); if (pp && pp.catch) pp.catch(function () { setTimeout(fin, 900); });
+}
+function chatStep() {
+  if (!GM || !GM.dlg) return;
+  var L = GM.dlg.lines; if (GM.idx >= L.length) { document.getElementById('chatopts').innerHTML = ''; GM.done = false; setTimeout(function () { var log = document.getElementById('gq'); if (log) log.innerHTML = ''; gameOver(); }, 900); return; }
+  var l = L[GM.idx];
+  if (l.who !== GM.me) {
+    var log = document.getElementById('chatlog'), ty = document.createElement('div'); ty.className = 'cbm typing'; ty.innerHTML = '<i></i><i></i><i></i>'; log.appendChild(ty);
+    setTimeout(function () { ty.remove(); chatBubble(l, false); chatSay(l, function () { GM.idx++; chatStep(); }); }, 700);
+    return;
+  }
+  var wrong = shuffle(GM.pool.lines.filter(function (x) { return x.d !== GM.dlg.id && plain(x.ru) !== plain(l.ru); })).slice(0, 2);
+  GM.copts = shuffle(wrong.concat([l])); GM.lock = false;
+  document.getElementById('chatopts').innerHTML = '<p class="gask ar">' + G('ردّك إيه؟', 'ردّك إيه؟') + '</p><div class="gopts">' + GM.copts.map(function (o, i) { return '<button class="ru" data-copt="' + i + '">' + esc(o.ru) + '</button>'; }).join('') + '</div>';
+}
+function chatPick(i) {
+  if (!GM || !GM.dlg || GM.lock) return; GM.lock = true;
+  var l = GM.dlg.lines[GM.idx], o = GM.copts[i], ok = o === l;
+  GM.hist.push(ok);
+  if (ok) { GM.right++; GM.combo++; GM.best = Math.max(GM.best, GM.combo); GM.score += 10 * (1 + Math.floor(GM.combo / 3)); chime([1318.5]); buzz([10]); }
+  else { GM.wrong++; GM.combo = 0; GM.missed.push(l); }
+  document.getElementById('chatopts').innerHTML = ok ? '' : '<p class="ar gsub" style="color:#F09AA6">' + G('الرد ده مش مناسب هنا. الأنسب:', 'الرد ده مش مناسب هنا. الأنسب:') + '</p>';
+  chatBubble(l, true, ok ? 'ok' : 'fix');
+  var c2 = document.getElementById('gcombo'); if (c2) c2.textContent = GM.combo >= 2 ? '×' + ad(GM.combo) : '';
+  var sc = document.getElementById('gscore'); if (sc) sc.textContent = ad(GM.score);
+  chatSay(l, function () { var co = document.getElementById('chatopts'); if (co) co.innerHTML = ''; GM.idx++; chatStep(); });
+}
+/* buddy duel: 10 questions from a seed; the friend gets the same 10 (their lessons permitting) */
+var DUELS = null;
+function loadDuels() { if (!S.token || !API) return Promise.resolve(); return fetch(API + '/api/duel?t=' + encodeURIComponent(S.token)).then(function (r) { return r.json(); }).then(function (j) { if (j.ok) DUELS = j.duels; }).catch(function () {}); }
+function vDuel(arg) {
+  var start = function (seed, ns, duel) {
+    view.innerHTML = '<div class="page pad"><p class="ar" style="color:var(--dim)">بيحمّل…</p></div>';
+    RNG = seeded(seed);
+    gamePool(ns).then(function (pool) {
+      RNG = seeded(seed);
+      var av = gameAvail(pool), types = ['stress', 'ik', 'catch', 'meaning', 'conj', 'ending', 'reader'].filter(function (k) { return av[k]; });
+      if (!types.length) { go('#games'); return; }
+      var g = { id: 'duel', ru: 'Дуэ́ль', ar: 'تحدي صاحبك' };
+      GM = { g: g, pool: pool, types: types, i: 0, total: 10, combo: 0, best: 0, score: 0, right: 0, wrong: 0, hist: [], missed: [], end: 0, q: null, lock: false, seed: seed, duel: duel || { seed: seed, lessons: ns.join(',') } };
+      view.innerHTML = '<div class="page pad game"><div class="gtop"><a class="back" href="#games" aria-label="رجوع">' + ico('back') + '</a><span class="gname"><span class="ru">Дуэ́ль</span></span>' +
+        '<span class="gstat"><span class="combo" id="gcombo"></span><b id="gscore">' + ad(0) + '</b></span></div>' +
+        (duel ? '<p class="ar gsub" style="margin:0 0 8px">' + esc(duel.other) + ' عمل ' + ad(duel.their) + ' نقطة. نفس الـ ١٠ أسئلة، ' + G('تقدر تغلبه؟', 'تقدري تغلبيه؟') + '</p>' : '') +
+        '<div class="gbar"><i id="gbar"></i></div><div id="gq"></div></div>';
+      gameNext();
+    });
+  };
+  if (arg === 'new') { start(Math.floor(Math.random() * 2147483647), gameLessons(), null); return; }
+  loadDuels().then(function () {
+    var d = (DUELS || []).filter(function (x) { return x.id === +arg && !x.mine && x.my < 0; })[0]; if (!d) { go('#games'); return; }
+    var ns = String(d.lessons || '').split(',').map(Number).filter(function (n) { return n && canOpen(n); });
+    start(d.seed, ns.length ? ns : gameLessons(), d);
+  });
+}
+function duelDone() {
+  var d = GM.duel, body = d.id ? { id: d.id, score: GM.score, right: GM.right } : { seed: d.seed, lessons: d.lessons, score: GM.score, right: GM.right };
+  var box = document.getElementById('gq');
+  fetch(API + '/api/duel?t=' + encodeURIComponent(S.token), { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }).then(function (r) { return r.json(); }).then(function (j) {
+    var msg = d.id ? (GM.score > d.their ? G('كسبت!', 'كسبتي!') : GM.score === d.their ? 'تعادل!' : G('المرة الجاية هتغلبه', 'المرة الجاية هتغلبيه')) : (j.ok ? 'التحدي اتبعت لصاحبك. هيوصلك إشعار لما يلعب.' : j.reason === 'no_buddy' ? 'لسه مفيش صاحب مربوط بيك. اطلب من المدرس يربطك بصاحبك.' : 'التحدي ماتبعتش، جرّب تاني بعد شوية.');
+    var st = box && box.querySelector('.gend h2'); if (st) st.textContent = msg;
+    if (d.id && box) { var sc = box.querySelector('.gend .stats'); if (sc) sc.insertAdjacentHTML('afterend', '<p class="ar gsub">' + G('إنت', 'إنتي') + ' ' + ad(GM.score) + ' · ' + esc(d.other) + ' ' + ad(d.their) + '</p>'); }
+    DUELS = null;
+  }).catch(function () {});
+}
+/* class contests (the teacher starts them in the panel): every finished game adds its score; students see the class total, never a ranking */
+var CONTESTS = null;
+function loadContests() { if (!S.token || !API) return Promise.resolve(); return fetch(API + '/api/contest?t=' + encodeURIComponent(S.token)).then(function (r) { return r.json(); }).then(function (j) { if (j.ok) CONTESTS = j.contests; }).catch(function () {}); }
+function contestAdd(gid, score) {
+  if (!S.token || !API || !CONTESTS || !score) return '';
+  var now = Date.now(), out = [];
+  CONTESTS.forEach(function (c) {
+    if (now < c.starts || now > c.ends || !(c.game === 'any' || c.game === gid || (c.game === 'mix' && gid === 'mix'))) return;
+    out.push(c.name); c.mine.total += score; c.mine.best = Math.max(c.mine.best, score); c.total += score;
+    fetch(API + '/api/contest?t=' + encodeURIComponent(S.token), { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id: c.id, score: score }) }).catch(function () {});
+  });
+  return out.length ? '<p class="rec ar">+' + ad(score) + ' نقطة لمسابقة «' + esc(out.join('، ')) + '»</p>' : '';
+}
+function socialGamesHtml() {
+  var h = '', now = Date.now();
+  (CONTESTS || []).forEach(function (c) {
+    var on = now >= c.starts && now <= c.ends, gn = c.game === 'any' ? 'أي لعبة' : ((GAMES.filter(function (x) { return x.id === c.game; })[0] || {}).ar || c.game);
+    h += '<a class="gcard contest" href="' + (on ? '#game/' + (c.game === 'any' ? 'mix' : c.game) : '#games') + '"><span class="ni">' + ico('star') + '</span><span class="tx"><span class="ru">Ко́нкурс</span><b class="ar">مسابقة: ' + esc(c.name) + '</b><small class="ar">' +
+      (on ? gn + ' · لحد ' + ad(new Date(c.ends).getDate() + '/' + (new Date(c.ends).getMonth() + 1)) : 'بتبدأ يوم ' + ad(new Date(c.starts).getDate() + '/' + (new Date(c.starts).getMonth() + 1))) + (c.prize ? ' · الجايزة: ' + esc(c.prize) : '') + '</small>' +
+      '<small class="ar">نقطك ' + ad(c.mine.total) + ' · الفصل كله ' + ad(c.total) + ' نقطة من ' + ad(c.players) + ' طالب</small></span></a>';
+  });
+  var so = S.social || {};
+  if (so.buddy) {
+    h += '<a class="gcard duel" href="#duel/new"><span class="ni">' + ico('send') + '</span><span class="tx"><span class="ru">Дуэ́ль</span><b class="ar">' + G('اتحدى', 'اتحدي') + ' ' + esc(so.buddy.name || 'صاحبك') + '</b><small class="ar">١٠ أسئلة، وهو هيلعب نفس الأسئلة</small></span></a>';
+    (DUELS || []).forEach(function (d) {
+      if (!d.mine && d.my < 0) h += '<a class="gcard duel hot" href="#duel/' + d.id + '"><span class="ni">' + ico('star') + '</span><span class="tx"><b class="ar">' + esc(d.other) + ' ' + G('بيتحداك', 'بيتحداكي') + '!</b><small class="ar">عمل ' + ad(d.their) + ' نقطة. ' + G('العب نفس الأسئلة', 'العبي نفس الأسئلة') + '</small></span></a>';
+      else if (d.their >= 0 && d.my >= 0) h += '<div class="gcard duel done"><span class="ni">' + ico(d.my > d.their ? 'star' : 'feather') + '</span><span class="tx"><b class="ar">' + (d.my > d.their ? G('كسبت', 'كسبتي') : d.my === d.their ? 'تعادل' : 'المرة الجاية') + ' · ' + esc(d.other) + '</b><small class="ar">' + G('إنت', 'إنتي') + ' ' + ad(d.my) + ' · ' + esc(d.other) + ' ' + ad(d.their) + '</small></span></div>';
+      else if (d.mine && d.their < 0) h += '<div class="gcard duel done"><span class="ni">' + ico('send') + '</span><span class="tx"><b class="ar">مستني ' + esc(d.other) + ' يلعب</b><small class="ar">' + G('إنت', 'إنتي') + ' ' + ad(d.my) + ' نقطة</small></span></div>';
+    });
+  }
+  return h ? '<section class="sec"><h2><span>مع صحابك والفصل</span></h2><div class="games">' + h + '</div></section>' : '';
+}
 function memoryStart(g, pool) {
   var ws = pickItems(pool.words, 6), cards = [];
   ws.forEach(function (w, i) { cards.push({ p: i, side: 'ru', w: w }); cards.push({ p: i, side: 'ar', w: w }); });
@@ -928,6 +1095,7 @@ function vAlbum() {
 function gameOver() {
   if (!GM || GM.done) return; GM.done = true; clearTimeout(GM.tt);
   if (GM.boss && bossRoundDone()) return;
+  RNG = Math.random;
   var g = GM.g, acc = GM.right + GM.wrong ? Math.round(GM.right / (GM.right + GM.wrong) * 100) : 0;
   S.gbest = S.gbest || {}; var rec = GM.score > (S.gbest[g.id] || 0); if (rec) S.gbest[g.id] = GM.score;
   S.gplays = (S.gplays || 0) + 1; if (g.id === 'dict' && GM.wrong === 0 && GM.right >= 10) S.dictPerfect = 1; touchStreak(); save();
@@ -940,6 +1108,8 @@ function gameOver() {
     (miss.length ? '<div class="box"><h3 class="ar">هيرجعولك بكرة</h3><div class="words">' + miss.slice(0, 8).map(function (it) { return wrow({ ru: it.ru, ar: it.ar, a: it.a }, it.n); }).join('') + '</div></div>' : '') +
     '<div class="row2"><a class="btn" href="#game/' + g.id + '" data-act="greplay">' + ico('play') + G('العب تاني', 'العبي تاني') + '</a><a class="btn ghost" href="#games">ألعاب تانية</a></div></div>';
   var b = document.getElementById('gbar'); if (b) b.style.transform = 'scaleX(1)';
+  if (GM.duel) { duelDone(); return; }
+  var ca = contestAdd(g.id, GM.score); if (ca) { var st2 = view.querySelector('.gend .stats'); if (st2) st2.insertAdjacentHTML('afterend', ca); }
 }
 
 /* ---------- inbox: the teacher's messages + automatic ones (2026-11-20) ---------- */
@@ -2171,9 +2341,12 @@ document.addEventListener('click', function (e) {
   var bt = t.closest('[data-bt]'); if (bt) { buildTap(+bt.dataset.bt); return; }
   var bb = t.closest('[data-bb]'); if (bb) { buildBack(+bb.dataset.bb); return; }
   var mc = t.closest('[data-mc]'); if (mc) { memoryTap(+mc.dataset.mc); return; }
+  var co = t.closest('[data-copt]'); if (co) { chatPick(+co.dataset.copt); return; }
   var ac = t.closest('[data-album]'); if (ac) { playOne(ac, ac.dataset.url); return; }
   var nt = t.closest('[data-note]');
   if (nt) { var id = +nt.dataset.note, m = (S.inbox || []).filter(function (x) { return x.id === id; })[0]; if (m) { if (!m.read) { m.read = true; noteOpened(id); store(); } if (m.url && m.url !== './#inbox/' + id) { go(m.url.replace(/^\.\//, '')); return; } paintBell(); } return; }
+  var yp = t.closest('[data-ytplay]'); if (yp) { ytPlay(yp.closest('[data-yt]'), +yp.dataset.ytplay); return; }
+  var ya = t.closest('[data-ytat]'); if (ya) { ytPlay(ya.closest('[data-yt]'), +ya.dataset.ytat); return; }
   var seg = t.closest('[data-seg]'); if (seg) { LS.seg = +seg.dataset.seg; renderSeg(); return; }
   var line = t.closest('[data-line]'); if (line) { startDialogue(+line.dataset.line); return; }
   var pb = t.closest('.pb[data-url]'); if (pb) { playOne(pb, pb.dataset.url); return; }
@@ -2203,6 +2376,7 @@ document.addEventListener('click', function (e) {
   else if (a === 'goal') { goalTick(+act.dataset.i, act); }
   else if (a === 'levels') { levelSheet(); }
   else if (a === 'greplay') { setTimeout(render, 0); }
+  else if (a === 'segy') { e.preventDefault(); var yi = LS.segs.map(function (x) { return x.k; }).indexOf('y'); if (yi >= 0) { LS.seg = yi; renderSeg(); window.scrollTo(0, 0); } }
   else if (a === 'bossgo') { if (GM) { GM.done = false; gameNext(); } }
   else if (a === 'bosswin') { bossWin(); }
   else if (a === 'readall') { (S.inbox || []).forEach(function (m) { m.read = true; }); store(); paintBell(); }
