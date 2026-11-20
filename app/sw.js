@@ -1,6 +1,6 @@
 /* Наследие app service worker: the app shell works offline; a lesson saved with «حمّل الدرس» plays offline.
    Bump VERSION after changing app files so phones fetch the new shell. */
-var VERSION = 'nasl-shell-v13';
+var VERSION = 'nasl-shell-v14';
 var SHELL = ['./', 'index.html', 'app.css', 'app.js', 'config.js', 'manifest.webmanifest', 'data/index.json', 'data/credits.json',
   'img/logo.png', 'img/icon-192.png', 'img/u1.jpg', 'img/u2.jpg', 'img/u3.jpg', 'img/u4.jpg', 'img/u5.jpg', 'img/u6.jpg', 'img/l2.jpg', 'img/l3.jpg',
   'img/lera.jpg', 'img/omar.jpg', 'img/olga.jpg', 'img/learner_m.jpg', 'vendor/adhan.min.js', 'data/season.json'];
@@ -26,7 +26,9 @@ self.addEventListener('fetch', function (e) {
     }));
     return;
   }
-  if (isApi) { e.respondWith(caches.match(req, { ignoreVary: true }).then(function (hit) { return hit || fetch(req); })); return; }
+  if (isApi) {   // lessons: the fresh copy first (new videos, fixes); the saved copy only when offline
+    e.respondWith(fetch(req).then(function (r) { return r.ok || r.status === 401 || r.status === 403 ? r : caches.match(req, { ignoreVary: true }).then(function (hit) { return hit || r; }); })
+      .catch(function () { return caches.match(req, { ignoreVary: true }); })); return; }
   if (url.origin !== location.origin && !isFont) return;
   if (req.headers.get('range')) return;   // let the browser stream audio ranges itself
   var shellFile = url.origin === location.origin && (/\/(index\.html|app\.css|app\.js|config\.js)?$/.test(url.pathname) || /\/data\/[^/]+\.json$/.test(url.pathname));

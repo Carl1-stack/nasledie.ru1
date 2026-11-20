@@ -850,40 +850,62 @@ html[data-nav=back]::view-transition-old(root){animation-name:vt-out-l}
 .fw-moon{width:54px;height:54px;border-radius:50%;box-shadow:inset -14px -6px 0 0 var(--gold-hi);transform:rotate(-20deg);animation:sp-logo .9s cubic-bezier(.16,1,.3,1) both}
 .fw-st{color:var(--dim);font-size:13px;animation:sp-hello .6s .5s both}
 
-/* Кот Баю́н (mascot sample) */
-#cat{position:fixed;z-index:40;left:max(10px,calc(50vw - 230px));bottom:calc(var(--tabs) + var(--safe-b) + 8px);display:flex;align-items:flex-end;gap:6px;pointer-events:none;direction:ltr}
-#cat.high{bottom:calc(var(--tabs) + var(--safe-b) + 70px)}
+/* Жа́ра the Firebird (mascot, 2026-11-21): perches on the active tab, flies to the next one */
+#cat{position:fixed;z-index:40;left:0;top:0;width:62px;height:50px;pointer-events:none;will-change:transform}
 #cat[hidden]{display:none}
-.cat-btn{pointer-events:auto;width:62px;height:68px;border:0;background:none;padding:0;cursor:pointer;filter:drop-shadow(0 6px 14px rgba(0,0,0,.45));animation:cat-in .8s cubic-bezier(.2,1.4,.4,1) both}
-@keyframes cat-in{from{opacity:0;transform:translateY(30px) scale(.8)}}
-#cat.hop .cat-btn{animation:cat-hop .45s cubic-bezier(.2,1.6,.4,1)}
-@keyframes cat-hop{40%{transform:translateY(-8px) rotate(-4deg)}}
-.catsvg{width:100%;height:100%;overflow:visible}
-.catsvg .c-body,.catsvg .c-face,.catsvg .c-ear,.catsvg .c-tail path:first-child{fill:#2C4778;stroke:#E8C77E;stroke-width:2;stroke-linejoin:round}
-.catsvg .c-in{fill:#C8402F;opacity:.75}
-.catsvg .c-chest{fill:#3A5A92;stroke:#E8C77E;stroke-width:1.2}
-.catsvg .c-leaf{fill:#E8C77E;opacity:.85}
-.catsvg .c-paw{fill:#2C4778;stroke:#E8C77E;stroke-width:1.6}
-.catsvg .c-curl{fill:none;stroke:#E8C77E;stroke-width:1.4}
-.catsvg .c-eyes ellipse:not(.c-pupil){fill:#7ED6A4}
-.catsvg .c-pupil{fill:#0B1424}.catsvg .c-glint{fill:#fff}
-.catsvg .c-nose{fill:#E89A8E}.catsvg .c-mouth,.catsvg .c-wh{fill:none;stroke:#F2E3C2;stroke-width:1.2;stroke-linecap:round}
-.catsvg .c-chain circle{fill:none;stroke:#F0D49B;stroke-width:1.6}.catsvg .c-chain .c-medal{fill:#D6A85A;stroke:#F0D49B}
-.catsvg .c-tail{transform-origin:82px 110px;animation:c-tail 3.4s ease-in-out infinite}
-@keyframes c-tail{50%{transform:rotate(-9deg)}}
-.catsvg .c-eyes{transform-origin:61px 45px;animation:c-blink 5.5s infinite}
+.cat-btn{pointer-events:auto;position:absolute;inset:0;border:0;background:none;padding:0;cursor:pointer;filter:drop-shadow(0 4px 10px rgba(0,0,0,.5)) drop-shadow(0 0 10px rgba(240,140,60,.25))}
+#cat[data-face=r] .birdsvg{transform:scaleX(-1)}
+.birdsvg{width:100%;height:100%;overflow:visible;transition:transform .2s}
+.birdsvg .f{stroke:#F6D78A;stroke-width:1.2}
+.birdsvg .f1{fill:#E8542F}.birdsvg .f2{fill:#F08A2C}.birdsvg .f3{fill:#C8302A}
+.birdsvg .fe{fill:#F6D78A}.birdsvg .fd{fill:#1B2A4A}
+.birdsvg .b-body{fill:#F07A2A;stroke:#F6D78A;stroke-width:1.6}
+.birdsvg .b-chest{fill:#FBC25A}
+.birdsvg .b-wing path:first-child{fill:#D9452C;stroke:#F6D78A;stroke-width:1.4}
+.birdsvg .wl{fill:none;stroke:#F6D78A;stroke-width:1}
+.birdsvg .hd{fill:#F28B2E;stroke:#F6D78A;stroke-width:1.4}
+.birdsvg .crest{fill:none;stroke:#F6D78A;stroke-width:1.6;stroke-linecap:round}
+.birdsvg .cd{fill:#E8542F;stroke:#F6D78A;stroke-width:.8}
+.birdsvg .beak{fill:#F6D78A}
+.birdsvg .eye circle:first-child{fill:#14213B}.birdsvg .gl{fill:#fff}
+.birdsvg .legs{fill:none;stroke:#F6D78A;stroke-width:1.6;stroke-linecap:round}
+.birdsvg .b-tail{transform-origin:57px 52px;animation:b-tail 3s ease-in-out infinite}
+@keyframes b-tail{50%{transform:rotate(-6deg)}}
+.birdsvg .b-head{transform-origin:33px 38px;animation:b-head 4.5s ease-in-out infinite}
+@keyframes b-head{0%,100%{transform:none}20%{transform:rotate(-6deg)}24%{transform:none}60%{transform:translateY(1px) rotate(4deg)}}
+.birdsvg .eye{transform-origin:26px 29px;animation:c-blink 5s infinite}
 @keyframes c-blink{0%,93%,100%{transform:none}95%{transform:scaleY(.1)}}
-.catsvg .c-ear.r{transform-origin:80px 36px;animation:c-ear 7s infinite}
-@keyframes c-ear{0%,88%,100%{transform:none}90%{transform:rotate(9deg)}92%{transform:none}}
-.catsvg .c-head{transform-origin:61px 66px;animation:c-head 6s ease-in-out infinite}
-@keyframes c-head{50%{transform:rotate(-2.5deg)}}
-.cat-bub{pointer-events:auto;max-width:min(260px,calc(100vw - 100px));margin-bottom:44px;padding:10px 12px;border-radius:16px 16px 16px 4px;background:#F4EDE0;color:#14213B;box-shadow:0 10px 30px rgba(0,0,0,.4);display:grid;gap:2px;opacity:0;transform:translateY(8px) scale(.96);transform-origin:left bottom;transition:opacity .25s ease,transform .3s cubic-bezier(.16,1,.3,1);visibility:hidden}
+.birdsvg .b-wing{transform-origin:46px 42px}
+.birdsvg .b-body,.birdsvg .b-chest{transform-origin:45px 46px;animation:b-breathe 2.6s ease-in-out infinite}
+@keyframes b-breathe{50%{transform:scale(1.03)}}
+#cat.fly .b-wing{animation:b-flap .2s ease-in-out infinite alternate}
+@keyframes b-flap{from{transform:rotate(25deg)}to{transform:rotate(-55deg)}}
+#cat.fly .legs{opacity:0}
+#cat.fly .b-tail{animation:b-trail .4s ease-in-out infinite alternate}
+@keyframes b-trail{from{transform:rotate(-8deg)}to{transform:rotate(6deg)}}
+#cat.fly .birdsvg{transform:rotate(-8deg)}#cat.fly[data-face=r] .birdsvg{transform:scaleX(-1) rotate(-8deg)}
+#cat.land .cat-btn{animation:b-land .45s cubic-bezier(.2,1.5,.4,1)}
+@keyframes b-land{0%{transform:scaleY(.82) translateY(4px)}100%{transform:none}}
+#cat.hop .cat-btn{animation:b-hop .5s cubic-bezier(.2,1.6,.4,1)}
+@keyframes b-hop{40%{transform:translateY(-14px)}}
+#cat.joy .cat-btn{animation:b-joy .9s cubic-bezier(.3,1.3,.4,1)}
+@keyframes b-joy{40%{transform:translateY(-30px) rotate(-180deg)}80%{transform:translateY(-6px) rotate(-360deg)}100%{transform:rotate(-360deg)}}
+.cat-bub{position:absolute;bottom:48px;left:0;width:max-content;max-width:min(260px,calc(100vw - 32px));pointer-events:auto;padding:10px 12px;border-radius:16px 16px 16px 4px;background:#F4EDE0;color:#14213B;box-shadow:0 10px 30px rgba(0,0,0,.4);display:grid;gap:2px;opacity:0;transform:translateY(8px) scale(.96);transform-origin:left bottom;transition:opacity .25s ease,transform .3s cubic-bezier(.16,1,.3,1);visibility:hidden}
+#cat[data-face=l] .cat-bub{left:auto;right:0;border-radius:16px 16px 4px 16px;transform-origin:right bottom}
 #cat.talk .cat-bub{opacity:1;transform:none;visibility:visible}
 .cat-bub b{font:700 11px var(--ru);color:#B7791F}
 .cat-bub span.ar{font:600 13.5px/1.7 var(--ar);direction:rtl;text-align:right}
 .cat-bub .ru{direction:ltr;unicode-bidi:isolate}
+.m-story .bstory{width:150px;height:120px;margin:0 auto}
+.m-story .bstory .b-wing{animation:b-flap .35s ease-in-out infinite alternate}
+.m-story p{margin:6px 0;line-height:1.85}
 @media (prefers-reduced-motion:reduce){
  ::view-transition-old(root),::view-transition-new(root){animation:none}
- #view.vin,#segbody.segin,.sp-logo,.sp-word span,.sp-hello,.sp-sweep,#splash.out,#farewell,.fw-moon,.fw-st,.cat-btn,.catsvg *{animation:none!important}
+ #view.vin,#segbody.segin,.sp-logo,.sp-word span,.sp-hello,.sp-sweep,#splash.out,#farewell,.fw-moon,.fw-st,.cat-btn,.birdsvg *,.m-story *{animation:none!important}
  .sp-vine path{stroke-dashoffset:0;animation:none}.sp-vine circle{opacity:1;animation:none}
 }
+.sp-go{margin-top:6px;display:inline-flex;align-items:center;gap:10px;padding:12px 28px;border-radius:999px;border:1px solid rgba(240,212,155,.6);background:linear-gradient(180deg,rgba(214,168,90,.28),rgba(214,168,90,.12));color:var(--gold-hi);cursor:pointer;animation:sp-hello .8s 1.9s cubic-bezier(.16,1,.3,1) both;box-shadow:0 0 30px rgba(214,168,90,.18)}
+.sp-go .ru{font:600 18px var(--ru)}.sp-go .ar{font:600 15px var(--ar);opacity:.85}
+.sp-go::after{content:'';position:absolute}
+@media (prefers-reduced-motion:reduce){.sp-go{animation:none}}
+.sp-hello .ar .ru,#farewell .ar .ru{font:inherit;color:inherit}

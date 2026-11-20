@@ -7,7 +7,7 @@ var CONF = window.NCONF || { codes: [], whatsapp: '' };
 /* paid pages (quizzes 3-30, reviews, B1 lessons, Падежи) live in the private storage: #open/<path> opens them with the code */
 var LINKS = { quiz: function (n) { return n <= 2 ? '../quiz_site/quiz' + pad(n) + '.html' : '#open/a1/quiz' + pad(n) + '.html'; }, review: function (n) { return '#quiz/r' + n; },
   videos: function (n) { return n ? '#lesson/' + n + '/videos' : '#library'; }, level: '#view/level',
-  b1: function () { return '#course/b1'; }, cases: function (n) { return hasCourse('cases') ? '#view/p/cases/cases' + n + '.html' : '#course/cases'; } };
+  b1: function () { return '#library'; }, cases: function (n) { return hasCourse('cases') ? '#view/p/cases/cases' + n + '.html' : '#course/cases'; } };
 function hasCourse(c) { return !!(S.acc && S.token && String(S.acc.scope || '').split('+').some(function (x) { return x.split(':')[0] === c; })); }
 var UNIT_PHOTO = ['u1', 'u2', 'u3', 'u4', 'u5', 'u6'];
 var LESSON_PHOTO = { 2: 'l2', 3: 'l3' };
@@ -210,6 +210,7 @@ function parse() {
   if (m) return { name: 'inbox', arg: m[1] ? +m[1] : 0 };
   m = h.match(/^ref\/([A-Z0-9]{4,12})$/i);
   if (m) { S.ref = m[1].toUpperCase(); store(); history.replaceState(null, '', S.onboarded ? '#unlock/0' : '#welcome'); return { name: S.onboarded ? 'unlock' : 'welcome', arg: 0 }; }
+  if (h === 'course/b1' || h === 'view/b1films' || /^view\/p\/b1\//.test(h)) { S.level = 'b1'; store(); history.replaceState(null, '', '#home'); return { name: 'home', arg: null }; }
   m = h.match(/^(view|course|quiz|watch)\/(.+)$/);
   if (m) return { name: m[1], arg: m[2] };
   return { name: h || 'home', arg: null };
@@ -286,7 +287,7 @@ function vLibrary() {
   h += '<section class="sec"><h2><span>كورس المبتدئين · ٦ وحدات</span><span class="ru">А1</span></h2><div class="hs ltr">' + posters('a1') + '</div></section>';
   h += '<section class="sec"><h2><span>ما قبل المتوسط</span><span class="ru">А2</span></h2><div class="soon ar">قريب: المستوى التاني بعد المبتدئين، بنفس شكل الدروس. لما يجهز هيظهر هنا.</div></section>';
   h += '<section class="sec"><h2><span>كورس المتوسط · ١٠ دروس ومهام</span><span class="ru">В1</span></h2><div class="hs ltr">' + posters('b1') + '</div>' +
-    '<div class="links" style="margin-top:10px">' + lrow('#course/b1', 'film', 'فيديوهات وأفلام В1', 'المقدمة وفيديوهات الدروس والأفلام') + '</div></section>';
+    '<div class="links" style="margin-top:10px">' + lrow('#watch/b1/intro', 'video', 'مقدمة كورس В1', 'فيديو مجاني: الكورس ماشي إزاي') + '</div></section>';
   h += '<section class="sec"><h2><span>فوق المتوسط</span><span class="ru">В2</span></h2><div class="soon ar">' + 'قريب: بعد المتوسط، بنفس شكل الدروس. لما يجهز هيظهر هنا.' + '</div></section>';
   h += '<section class="sec"><h2><span>المراجعة</span><span class="ru">Повторе́ние</span></h2><div class="links">' +
     [1, 2, 3].map(function (r) { var a = (r - 1) * 10 + 1; return lrow(LINKS.review(r), 'review', 'مراجعة ' + ad(r), 'كويز على الدروس من ' + ad(a) + ' لـ ' + ad(a + 9)); }).join('') + '</div></section>';
@@ -335,6 +336,7 @@ function vLesson(n) {
     LS = { n: n, L: L, seg: LS.n === n ? LS.seg : 0 };
     var segs = [];
     if (vidOf(vidKey(n)[0], vidKey(n)[1])) segs.push({ k: 'm', t: n > 200 ? 'فيديو المهمة' : 'فيديو الدرس' });
+    if (L.xvideos) segs.push({ k: 'y', t: 'فيديوهات إضافية' });
     if (L.vocab.length) segs.push({ k: 'v', t: 'جمل الدرس' });
     if (L.glossary.length) segs.push({ k: 'w', t: 'الكلمات' });
     if (L.grammar || L.conj || L.verb_table || L.trick) segs.push({ k: 'g', t: 'القواعد' });
@@ -347,7 +349,6 @@ function vLesson(n) {
     if (L.detail && L.detail.slides) segs.push({ k: 'e', t: 'بالتفصيل' });
     if (L.culture || L.funny) segs.push({ k: 'c', t: 'ثقافة وضحك' });
     if (L.quiz) segs.push({ k: 'q', t: 'الكويز' });
-    if (L.xvideos) segs.push({ k: 'y', t: 'فيديوهات إضافية' });
     segs.push({ k: 'x', t: 'الواجب والمزيد' });
     LS.segs = segs;
     if (LS.seg < 0 || LS.seg >= segs.length) { var ks = segs.map(function (x) { return x.k; }), qi = ks.indexOf('q'), yi = ks.indexOf('y'); LS.seg = LS.seg === -1 && qi >= 0 ? qi : LS.seg === -2 && yi >= 0 ? yi : 0; }
@@ -506,7 +507,7 @@ function vWatch(arg) {   // #watch/b1/l01 · #watch/b1/intro · #watch/a1/r1
   if (!v) { view.innerHTML = '<div class="page pad"><p class="ar">الفيديو ده لسه مش موجود.</p></div>'; return; }
   if (!vidFree(course, key) && !S.token) { go('#unlock/0'); return; }
   var title = course === 'b1' ? (key === 'intro' ? 'مقدمة كورس B1' : (key[0] === 'm' ? 'مهمة ' : 'الدرس ') + ad(+key.slice(1))) : 'المراجعة ' + ad(key.slice(1));
-  view.innerHTML = '<div class="page pad"><div class="ph1"><a class="back" href="' + (course === 'b1' ? '#course/b1' : '#library') + '" aria-label="رجوع">' + ico('back') + '</a><h1 class="ar" style="font-size:24px">' + esc(title) + '</h1><span class="ru">' + (course === 'b1' ? 'В1' : 'А1') + '</span></div>' +
+  view.innerHTML = '<div class="page pad"><div class="ph1"><a class="back" href="#library" aria-label="رجوع">' + ico('back') + '</a><h1 class="ar" style="font-size:24px">' + esc(title) + '</h1><span class="ru">' + (course === 'b1' ? 'В1' : 'А1') + '</span></div>' +
     videoHtml(course, key, 'img/' + (course === 'b1' ? 'u4' : 'u2') + '.jpg') + '</div>';
   bindVideo(null);
 }
@@ -1660,9 +1661,7 @@ function vCourse(c) {
 }
 function viewSrc(path) {
   if (path === 'level') return { src: '../quiz_site/level_test.html', t: 'اختبار المستوى', allow: 'microphone; autoplay' };
-  if (path === 'b1films') return { src: '../b1/films.html', t: 'أفلام وفيديوهات B1' };
-  var m = path.match(/^videos\/(\d+)$/); if (m) return { src: '../quiz_site/videos.html' + (+m[1] ? '#l' + m[1] : ''), t: 'فيديوهات الدروس' };
-  m = path.match(/^p\/([\w\/.-]+\.html)$/);
+  var m = path.match(/^p\/([\w\/.-]+\.html)$/);
   if (m) return S.token && API ? { src: API + '/p/' + m[1] + '?t=' + encodeURIComponent(S.token) + '&embed=1', t: /^b1/.test(m[1]) ? 'كورس B1' : 'الحالات الإعرابية', allow: 'microphone; autoplay' } : null;
   return null;
 }
@@ -2255,7 +2254,8 @@ function vProfile() {
     setRow('hidePr', 'إخفاء النطق العربي', 'لما ' + G('تتعود', 'تتعودي') + ' على الحروف الروسية') +
     setRow('hideTr', 'إخفاء الترجمة في الحوارات', G('عشان تفهم بالروسي بس', 'عشان تفهمي بالروسي بس')) +
     setRow('light', 'الوضع الفاتح', 'للمذاكرة في النور') +
-    setRow('noCat', 'إخفاء القط بايون', 'المساعد اللي بيديك نصايح وإنت بتذاكر'.replace('بيديك', G('بيديك', 'بيديكي')).replace('وإنت', G('وإنت', 'وإنتي'))) +
+    '<button class="set" data-act="birdstory"><span class="tx">حكاية ژارا، طائر النار<small>مين هي، وليه ريشها بيرجع كل يوم ' + G('بتذاكر', 'بتذاكري') + ' فيه</small></span>' + ico('feather') + '</button>' +
+    setRow('noCat', 'إخفاء ژارا', 'طائر النار اللي ' + G('بيديك', 'بيديكي') + ' نصايح وبيطير بين الصفحات') +
     setRow('noHello', 'من غير صوت الترحيب', 'ليرا بتسلّم ' + G('عليك', 'عليكي') + ' بالروسي لما ' + G('تفتح', 'تفتحي') + ' التطبيق') +
     remindRow() +
     rmdRow() +
@@ -2356,7 +2356,7 @@ document.addEventListener('click', function (e) {
   var line = t.closest('[data-line]'); if (line) { startDialogue(+line.dataset.line); return; }
   var pb = t.closest('.pb[data-url]'); if (pb) { playOne(pb, pb.dataset.url); return; }
   var set = t.closest('[data-set]'); if (set) { var k = set.dataset.set; S[k] = !S[k]; save(); applyPrefs(); set.querySelector('.tog').classList.toggle('on', !!S[k]);
-    if (k === 'noCat') { if (S.noCat) { var cc = document.getElementById('cat'); if (cc) cc.hidden = true; } else catIntro(); }
+    if (k === 'noCat') { if (S.noCat) { var cc = document.getElementById('cat'); if (cc) cc.hidden = true; } else { catIntro(); catPlace(); } }
     if (k === 'ramadan' && S.push) { var rh = document.getElementById('rhour'); if (rh) rh.dispatchEvent(new Event('change', { bubbles: true })); } return; }
   var gs = t.closest('[data-g-set]'); if (gs) { S.g = gs.dataset.gSet; save(); gs.parentNode.querySelectorAll('button').forEach(function (b) { b.classList.toggle('on', b === gs); }); return; }
   var av = t.closest('[data-av]'); if (av) { S.avatar = av.dataset.av; save(); av.parentNode.querySelectorAll('button').forEach(function (b) { b.classList.toggle('on', b === av); }); return; }
@@ -2381,6 +2381,7 @@ document.addEventListener('click', function (e) {
   else if (a === 'offline') { saveOffline(LS.n, LS.L, act); }
   else if (a === 'goal') { goalTick(+act.dataset.i, act); }
   else if (a === 'levels') { levelSheet(); }
+  else if (a === 'birdstory') { birdStory(); }
   else if (a === 'greplay') { setTimeout(render, 0); }
   else if (a === 'segy') { e.preventDefault(); var yi = LS.segs.map(function (x) { return x.k; }).indexOf('y'); if (yi >= 0) { LS.seg = yi; renderSeg(); window.scrollTo(0, 0); } }
   else if (a === 'bossgo') { if (GM) { GM.done = false; gameNext(); } }
@@ -2498,30 +2499,36 @@ function helloKey() {
   return { k: 'hi', ru: 'Приве́т! Ра́да тебя́ ви́деть!', ar: G('أهلًا! مبسوطة إني شايفاك', 'أهلًا! مبسوطة إني شايفاكي') };
 }
 var helloPending = null;
+var helloDone = false;
 function sayHello(k) {
-  if (S.noHello) return;
+  if (S.noHello || helloDone) return;
   var a = new Audio('audio/hello/' + k + '.mp3'); a.volume = .9;
-  var p = a.play(); if (p && p.catch) p.catch(function () { helloPending = k; });   // phones allow sound only after a tap: play it on the first one
+  var p = a.play(); if (p && p.then) p.then(function () { helloDone = true; helloPending = null; }, function () { helloPending = k; }); else helloDone = true;   // phones allow sound only after a tap: play it on the first one
 }
 document.addEventListener('pointerdown', function () { if (helloPending) { var k = helloPending; helloPending = null; sayHello(k); } }, { capture: true, passive: true });
 function splash() {
   if (!S.onboarded) return;
-  var last = S.lastOpen || 0; S.lastOpen = Date.now(); store();
-  if (Date.now() - last < 20 * 60000) { catIntro(); return; }   // back within 20 minutes: straight in
+  var away = S.lastOpen ? Date.now() - S.lastOpen : 864e5; S.lastOpen = Date.now(); store();
+  var seen = false; try { seen = sessionStorage.getItem('nasl-open') === '1'; sessionStorage.setItem('nasl-open', '1'); } catch (e) {}
+  if (seen) { catIntro(); return; }   // the same open session (a reload): straight in. Every new launch of the app gets the opening.
   var g = helloKey(), name = (S.name || '').trim().split(' ')[0];
   var word = 'Насле́дие'.match(/.́?/g);
-  var el = document.createElement('div'); el.id = 'splash'; el.setAttribute('role', 'presentation');
+  var el = document.createElement('div'); el.id = 'splash'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', 'Насле́дие');
   el.innerHTML = '<div class="sp-in"><img class="sp-logo" src="img/logo.png" alt="">' +
-    '<div class="sp-word ru" aria-label="Насле́дие">' + word.map(function (c, i) { return '<span style="--i:' + i + '">' + c + '</span>'; }).join('') + '</div>' +
+    '<div class="sp-word ru" aria-hidden="true">' + word.map(function (c, i) { return '<span style="--i:' + i + '">' + c + '</span>'; }).join('') + '</div>' +
     '<svg class="sp-vine" viewBox="0 0 220 24" aria-hidden="true"><path d="M4 12 C40 2 70 22 110 12 C150 2 180 22 216 12"/><circle cx="110" cy="12" r="3.2"/><circle cx="58" cy="11" r="2.2"/><circle cx="162" cy="13" r="2.2"/></svg>' +
-    '<div class="sp-hello"><span class="ru">' + g.ru + '</span><span class="ar">' + mix(g.ar + (name ? ' يا ' + name : '')) + '</span></div></div><i class="sp-sweep"></i>';
+    '<div class="sp-hello"><span class="ru">' + g.ru + '</span><span class="ar">' + mix(g.ar + (name ? ' يا ' + name : '')) + '</span></div>' +
+    '<button class="sp-go"><span class="ru">Войти́</span><span class="ar">ادخل</span></button></div><i class="sp-sweep"></i>';
   document.body.appendChild(el);
-  setTimeout(function () { sayHello(g.k); }, RM ? 100 : 1100);
-  var close = function () { if (!el.parentNode) return; el.classList.add('out'); setTimeout(function () { el.remove(); catIntro(); }, RM ? 150 : 650); };
-  el.addEventListener('click', close);
-  setTimeout(close, RM ? 900 : 2900);
+  var gone = false, close = function (withVoice) {
+    if (gone) return; gone = true;
+    if (withVoice) sayHello(g.k);   // a tap: the phone lets the greeting play
+    el.classList.add('out'); setTimeout(function () { el.remove(); catIntro(); }, RM ? 150 : 700);
+  };
+  el.addEventListener('click', function () { close(true); });
+  setTimeout(function () { sayHello(g.k); }, RM ? 100 : 1200);   // phones that already allow sound (Android after the first visit) hear it at once
+  setTimeout(function () { close(false); }, 9000);
 }
-
 /* ---------- farewell: in the installed app, «back» on the first screen says goodbye before the app closes ---------- */
 var STANDALONE = (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
 if (STANDALONE && history.pushState) {
@@ -2542,18 +2549,16 @@ if (STANDALONE && history.pushState) {
 
 /* ---------- the mascot sample: «Кот Баю́н», Pushkin's learned cat on his gold chain (an Egyptian favourite animal, a Russian tale);
    tap him for a tip about this screen; he helps in games when the student is stuck or misses twice ---------- */
-var CAT_SVG = '<svg viewBox="0 0 120 132" class="catsvg" aria-hidden="true">' +
-  '<g class="c-tail"><path d="M80 116 C108 114 116 86 102 72 C96 66 89 72 95 78 C104 87 100 104 80 106Z"/><path class="c-curl" d="M101 80 q4 6 0 12"/></g>' +
-  '<path class="c-body" d="M38 124 C28 104 32 78 50 68 L72 68 C90 78 94 104 84 124Z"/>' +
-  '<path class="c-chest" d="M61 76 c-8 8 -8 20 0 28 c8 -8 8 -20 0 -28z"/><path class="c-leaf" d="M52 92 q-6 -4 -4 -10 q6 2 4 10z M70 92 q6 -4 4 -10 q-6 2 -4 10z"/>' +
-  '<ellipse class="c-paw" cx="49" cy="124" rx="9" ry="5"/><ellipse class="c-paw" cx="73" cy="124" rx="9" ry="5"/>' +
-  '<g class="c-head"><path class="c-ear l" d="M36 42 L33 12 L52 27Z"/><path class="c-ear r" d="M86 42 L89 12 L70 27Z"/>' +
-  '<path class="c-in" d="M38 34 L37 19 L47 27Z M84 34 L85 19 L75 27Z"/>' +
-  '<path class="c-face" d="M34 44 Q34 24 61 24 Q88 24 88 44 Q90 68 61 70 Q32 68 34 44Z"/>' +
-  '<g class="c-eyes"><ellipse cx="49" cy="45" rx="6.5" ry="7.5"/><ellipse cx="73" cy="45" rx="6.5" ry="7.5"/><ellipse class="c-pupil" cx="50" cy="46" rx="2.2" ry="5"/><ellipse class="c-pupil" cx="74" cy="46" rx="2.2" ry="5"/><circle class="c-glint" cx="47.5" cy="42.5" r="1.6"/><circle class="c-glint" cx="71.5" cy="42.5" r="1.6"/></g>' +
-  '<path class="c-nose" d="M58 54 h6 l-3 3.4z"/><path class="c-mouth" d="M61 57.5 q-2.5 4 -6 3 M61 57.5 q2.5 4 6 3"/>' +
-  '<path class="c-wh" d="M44 56 L26 52 M44 59 L26 60 M78 56 L96 52 M78 59 L96 60"/></g>' +
-  '<g class="c-chain"><circle cx="44" cy="70" r="2.6"/><circle cx="50" cy="73" r="2.6"/><circle cx="56" cy="75" r="2.6"/><circle cx="66" cy="75" r="2.6"/><circle cx="72" cy="73" r="2.6"/><circle cx="78" cy="70" r="2.6"/><circle class="c-medal" cx="61" cy="79" r="5"/></g></svg>';
+var CAT_SVG = '<svg viewBox="0 0 100 80" class="birdsvg" aria-hidden="true">' +
+  '<g class="b-tail"><path class="f f1" d="M57 49 C74 46 87 33 96 18 C91 38 80 51 61 55Z"/><path class="f f2" d="M57 52 C78 55 90 50 99 41 C93 57 78 63 59 58Z"/><path class="f f3" d="M55 54 C71 64 81 72 93 75 C80 78 65 71 55 59Z"/>' +
+  '<circle class="fe" cx="91" cy="27" r="3.2"/><circle class="fe" cx="93" cy="48" r="3.2"/><circle class="fe" cx="85" cy="72" r="3.2"/><circle class="fd" cx="91" cy="27" r="1.3"/><circle class="fd" cx="93" cy="48" r="1.3"/><circle class="fd" cx="85" cy="72" r="1.3"/></g>' +
+  '<path class="b-body" d="M29 45 C29 33 40 27 50 31 C61 35 65 48 60 56 C54 64 35 62 29 45Z"/>' +
+  '<path class="b-chest" d="M32 46 C33 39 39 36 45 39 C42 47 40 53 37 56 C34 53 32 50 32 46Z"/>' +
+  '<g class="b-wing"><path d="M43 40 C54 35 65 40 67 49 C59 46 52 48 46 53 C43 49 42 44 43 40Z"/><path class="wl" d="M48 43 q7 -1 12 4 M47 47 q6 -1 10 3"/></g>' +
+  '<g class="b-head"><path class="crest" d="M27 22 q-3 -10 2 -14 q-1 7 1 13 M30 21 q1 -9 8 -11 q-4 5 -5 11 M25 23 q-6 -6 -4 -12 q1 6 5 10"/>' +
+  '<circle class="cd" cx="29" cy="8" r="2"/><circle class="cd" cx="38" cy="10" r="2"/><circle class="cd" cx="21" cy="11" r="2"/>' +
+  '<circle class="hd" cx="29" cy="30" r="9"/><path class="beak" d="M21 29 L13 32 L21 35Z"/><g class="eye"><circle cx="26" cy="29" r="2.3"/><circle class="gl" cx="25.3" cy="28.2" r=".8"/></g></g>' +
+  '<path class="legs" d="M41 60 l-1 7 M47 61 l0 7 M37 67 h6 M44 68 h6"/></svg>';
 var CAT_TIPS = {
   home: [G('ابدأ بالدرس اللي عليه الدور. ١٠ دقايق بس النهارده كفاية.', 'ابدئي بالدرس اللي عليه الدور. ١٠ دقايق بس النهارده كفاية.'), 'كل يوم ' + G('بتذاكر', 'بتذاكري') + ' فيه طائر النار بيفرد ريشة. الريشة فوق جنب الجرس.', G('زهقت؟ جرّب', 'زهقتي؟ جرّبي') + ' «تحدي الدقيقة» من «اتكلم».'],
   library: ['كل وحدة فيها ٥ دروس. الدروس المفتوحة صورتها منورة.', G('اختار', 'اختاري') + ' المستوى من الزرار اللي فوق في الرئيسية.'],
@@ -2561,7 +2566,7 @@ var CAT_TIPS = {
   lesson: [G('ابدأ', 'ابدئي') + ' بـ «جمل الدرس»، وبعدين الحوارات. كل جملة ليها صوت.', G('ردّد', 'ردّدي') + ' بعد ليرا بصوت عالي. ده أهم من القراية بالعين.', 'في «فيديوهات إضافية» دوس على الدقيقة، والفيديو يبدأ عند الجملة نفسها.'],
   practice: [G('كلّم', 'كلّمي') + ' ليرا على الدرس. لو ' + G('اتلخبطت', 'اتلخبطتي') + ' دوس «ساعدني».', 'الألعاب فوق: الغلطة مش بتخسّرك حاجة، بس بتقطع الكومبو.'],
   games: ['الكلمة اللي ' + G('تغلط', 'تغلطي') + ' فيها بترجعلك بكرة لوحدها. متقلقش.'.replace('متقلقش', G('متقلقش', 'متقلقيش')), '«زعيم الوحدة» بيفتح بعد ما ' + G('تبدأ', 'تبدئي') + ' ٣ دروس من الوحدة.'],
-  profile: ['من هنا ' + G('تقدر', 'تقدري') + ' ' + G('تخفيني', 'تخفيني') + ' لو مش ' + G('عايزني', 'عايزاني') + '، وأنا مش هزعل.', 'الأوسمة بتتفتح لوحدها وإنت بتذاكر.'.replace('وإنت', G('وإنت', 'وإنتي'))],
+  profile: ['من هنا ' + G('تقدر', 'تقدري') + ' تخفيني لو مش ' + G('عايزني', 'عايزاني') + '، وأنا مش هزعل. ولو ' + G('عايز', 'عايزة') + ' تعرف حكايتي دوس «حكاية ژارا».', 'الأوسمة بتتفتح لوحدها وإنت بتذاكر.'.replace('وإنت', G('وإنت', 'وإنتي'))],
   inbox: ['هنا رسايل المدرس. لو التنبيهات مقفولة ' + G('شغّلها', 'شغّليها') + ' من «حسابي».'],
   album: ['٣ مرات صح في نفس الكلمة = إطار دهبي.']
 };
@@ -2580,19 +2585,39 @@ var CAT_GAME = {
 var CAT_CHEER = ['ولا يهمك، الغلط جزء من التعلم.', 'نفس عميق… وكمّل. إنت قدها.'.replace('إنت قدها', G('إنت قدها', 'إنتي قدها')), 'الروس نفسهم بيغلطوا في التشديد!'];
 function catEl() {
   var c = document.getElementById('cat');
-  if (!c) { c = document.createElement('div'); c.id = 'cat'; c.innerHTML = '<button class="cat-btn" aria-label="القط بايون: نصيحة">' + CAT_SVG + '</button><div class="cat-bub" role="status" aria-live="polite"></div>'; document.body.appendChild(c); }
+  if (!c) { c = document.createElement('div'); c.id = 'cat'; c.innerHTML = '<button class="cat-btn" aria-label="ژارا طائر النار: نصيحة">' + CAT_SVG + '</button><div class="cat-bub" role="status" aria-live="polite"></div>'; document.body.appendChild(c); }
   return c;
 }
 var catT = 0;
 function catSay(txt, ms) {
   if (S.noCat) return; var c = catEl(), b = c.querySelector('.cat-bub');
-  b.innerHTML = '<b class="ru">Баю́н</b><span class="ar">' + mix(txt) + '</span>'; c.classList.add('talk'); clearTimeout(catT);
+  b.innerHTML = '<b class="ru">Жа́ра</b><span class="ar">' + mix(txt) + '</span>'; c.classList.add('talk'); clearTimeout(catT);
   catT = setTimeout(function () { c.classList.remove('talk'); }, ms || 6500);
 }
+var birdAt = null;
+function birdSpot() {   // the top of the active tab's icon (or above the mini player when it shows)
+  var tabs = document.getElementById('tabs'); if (!tabs || tabs.hidden) return null;
+  var a = tabs.querySelector('a.on') || tabs.querySelector('a'); if (!a) return null;
+  var ic = (a.querySelector('.ico') || a).getBoundingClientRect(), mini = document.getElementById('mini');
+  var top = !mini.hidden ? mini.getBoundingClientRect().top : tabs.getBoundingClientRect().top;
+  return { x: ic.left + ic.width / 2 - 31, y: top - 45, tab: a.dataset.tab };
+}
+function birdMove(c, to) {
+  var from = birdAt; birdAt = to;
+  if (!from || RM || (Math.abs(from.x - to.x) < 2 && Math.abs(from.y - to.y) < 2)) { c.style.transform = 'translate(' + to.x + 'px,' + to.y + 'px)'; c.dataset.face = to.x > innerWidth / 2 ? 'l' : 'r'; return; }
+  var dx = to.x - from.x, mid = { x: from.x + dx / 2, y: Math.min(from.y, to.y) - 70 - Math.min(60, Math.abs(dx) / 4) };
+  c.dataset.face = dx > 0 ? 'r' : 'l'; c.classList.add('fly'); c.classList.remove('talk');
+  var an = c.animate([{ transform: 'translate(' + from.x + 'px,' + from.y + 'px)' }, { transform: 'translate(' + (from.x + dx * .25) + 'px,' + (mid.y + 20) + 'px)', offset: .3 },
+    { transform: 'translate(' + mid.x + 'px,' + mid.y + 'px)', offset: .5 }, { transform: 'translate(' + (to.x - dx * .1) + 'px,' + (to.y - 18) + 'px)', offset: .85 },
+    { transform: 'translate(' + to.x + 'px,' + to.y + 'px)' }], { duration: 720 + Math.min(300, Math.abs(dx)), easing: 'cubic-bezier(.45,0,.25,1)', fill: 'forwards' });
+  an.onfinish = function () { c.style.transform = 'translate(' + to.x + 'px,' + to.y + 'px)'; an.cancel(); c.classList.remove('fly'); c.classList.remove('land'); void c.offsetWidth; c.classList.add('land'); c.dataset.face = to.x > innerWidth / 2 ? 'l' : 'r'; };
+}
+window.addEventListener('resize', function () { var c = document.getElementById('cat'); if (c && !c.hidden) { birdAt = null; var sp = birdSpot(); if (sp) birdMove(c, sp); } });
 function catPlace() {
   var c = document.getElementById('cat'); if (!c) return;
   var hide = S.noCat || !S.onboarded || ['welcome', 'chat', 'call', 'view', 'watch', 'quiz'].indexOf(route.name) >= 0;
-  c.hidden = hide; c.classList.toggle('high', !document.getElementById('mini').hidden);
+  var sp = hide ? null : birdSpot(); if (!sp) hide = true;
+  c.hidden = hide; if (hide) { birdAt = null; } else requestAnimationFrame(function () { birdMove(c, birdSpot() || sp); });
   if (!hide) {
     var tips = CAT_TIPS[route.name] || CAT_TIPS[{ unit: 'unit', game: 'games', duel: 'games', boss: 'games' }[route.name]];
     S.catSeen = S.catSeen || {}; var key = route.name + ':' + today();
@@ -2604,14 +2629,23 @@ function catPlace() {
 function catIntro() {
   if (S.noCat || S.catMet || !S.onboarded) { catEl(); catPlace(); return; }
   catEl(); catPlace(); S.catMet = 1; store();
-  setTimeout(function () { catSay(G('أهلًا! أنا بايون، القط العالِم بتاع الحكايات الروسية. دوس عليّ في أي وقت وأديك نصيحة.', 'أهلًا! أنا بايون، القط العالِم بتاع الحكايات الروسية. دوسي عليّ في أي وقت وأديكي نصيحة.'), 8000); }, 600);
+  setTimeout(function () { catSay(G('أهلًا! أنا ژارا، طائر النار. ريشي ضاع في السكة من روسيا لمصر، وكل يوم بتذاكر فيه بترجعلي ريشة. دوس عليّ في أي وقت وأديك نصيحة.', 'أهلًا! أنا ژارا، طائر النار. ريشي ضاع في السكة من روسيا لمصر، وكل يوم بتذاكري فيه بترجعلي ريشة. دوسي عليّ في أي وقت وأديكي نصيحة.'), 9000); }, 700);
 }
 var catIdle = 0, catMiss = 0;
 function catGameQ() {   // a new game question: wait, then help if the student is stuck
   clearTimeout(catIdle); if (S.noCat || !GM || !GM.q) return;
   var q = GM.q; catIdle = setTimeout(function () { if (GM && GM.q === q && !GM.lock && CAT_GAME[q.type]) catSay(CAT_GAME[q.type], 7000); }, 18000);
 }
-function catGameAnswer(ok) { if (ok) { catMiss = 0; return; } catMiss++; if (catMiss === 2 && GM && GM.q && CAT_GAME[GM.q.type]) { catSay(CAT_CHEER[Math.floor(Math.random() * CAT_CHEER.length)] + ' ' + CAT_GAME[GM.q.type], 7000); catMiss = 0; } }
+function birdStory() {
+  var o = overlay('<div class="bstory">' + CAT_SVG + '</div><h3 class="d-ar">حكاية ژارا</h3><span class="ru" style="color:var(--gold-hi);font-size:18px">Жар-пти́ца</span>' +
+    '<p class="ar">في الحكايات الروسية القديمة فيه طائر ريشه بينوّر زي النار والدهب. اللي يلاقي ريشة واحدة منه، حياته بتتغير.</p>' +
+    '<p class="ar">ژارا طارت من غابات روسيا لحد مصر عشان تدوّر على صحاب يتعلموا لغتها. بس في السكة، الريح خدت ريشها الدهب.</p>' +
+    '<p class="ar">كل يوم ' + G('بتذاكر', 'بتذاكري') + ' فيه، ريشة بترجعلها. سبع أيام ورا بعض، وديلها كله بينوّر من تاني.</p>' +
+    '<p class="ar">وهي اللي هتطير معاك بين صفحات التطبيق، وتديك نصيحة لما ' + G('تحتاج', 'تحتاجي') + '. ولما ريشها يكمل… هتطير بيك لحد موسكو، في الكلام على الأقل!</p>'.replace('معاك', G('معاك', 'معاكي')).replace('بيك', G('بيك', 'بيكي')).replace('تديك', G('تديك', 'تديكي')) +
+    '<span class="ru">Жар-пти́ца прилете́ла!</span><button class="btn" data-close>' + G('يلا نكمّل', 'يلا نكمّل') + '</button>', 'm-story');
+  return o;
+}
+function catGameAnswer(ok) { if (ok) { catMiss = 0; if (GM && GM.combo && GM.combo % 5 === 0) { var c = document.getElementById('cat'); if (c) { c.classList.remove('joy'); void c.offsetWidth; c.classList.add('joy'); } } return; } catMiss++; if (catMiss === 2 && GM && GM.q && CAT_GAME[GM.q.type]) { catSay(CAT_CHEER[Math.floor(Math.random() * CAT_CHEER.length)] + ' ' + CAT_GAME[GM.q.type], 7000); catMiss = 0; } }
 document.addEventListener('click', function (e) {
   if (!e.target.closest('#cat .cat-btn')) return;
   var c = document.getElementById('cat'); c.classList.remove('hop'); void c.offsetWidth; c.classList.add('hop');
