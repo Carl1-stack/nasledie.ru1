@@ -90,7 +90,7 @@ function getJSON(u) { return fetch(u).then(function (r) { if (!r.ok) throw new E
 var API = (CONF.api || '').replace(/\/$/, '');
 function lessonUrl(n) { return isFree(n) ? 'data/l' + pad(n) + '.json' : n > 100 ? API + '/c/b1/' + bkey(n) + '.json?t=' + encodeURIComponent(S.token || '') : API + '/c/a1/l' + pad(n) + '.json?t=' + encodeURIComponent(S.token || ''); }
 function lesson(n) { if (CACHE[n]) return Promise.resolve(CACHE[n]);
-  return fetch(lessonUrl(n)).then(function (r) {
+  return fetch(lessonUrl(n), { cache: 'no-cache' }).then(function (r) {   // always the newest lesson file (phones kept day-old copies)
     if (r.status === 401 || r.status === 403) return r.json().catch(function () { return {}; }).then(function (j) { var e = new Error('denied'); e.reason = j.reason || 'denied'; throw e; });
     if (!r.ok) throw new Error('net'); return r.json();
   }).then(function (d) {
@@ -421,8 +421,8 @@ function renderSeg() {
       (L.next ? '<div class="box gold"><h3 class="ar">' + esc(L.next.title_ar || 'الدرس الجاي') + '</h3><p class="ru">' + esc(L.next.title_ru || '') + '</p>' +
         (L.next.words || []).map(function (w) { return '<div class="nx"><span class="ru">' + esc(w[0]) + '</span><span class="ar">' + esc(w[1]) + '</span></div>'; }).join('') + '</div>' : '') +
       '<div class="links">' + (L.quiz ? '' : lrow(LINKS.quiz(n), 'test', 'كويز الدرس', '٣٠ سؤال، والنتيجة بتوصل للمدرس')) +
-      (!L.xvideos ? '' : '<a class="lrow" href="#lesson/' + n + '/videos" data-act="segy">' + ico('film') + '<span class="tx"><b>فيديوهات الدرس</b><small>روسي حقيقي عن نفس الموضوع</small></span>' + ico('back', 'end') + '</a>' +
-      '<a class="lrow" href="#chat/' + n + '/f">' + ico('spark') + '<span class="tx"><b>' + G('اتكلم مع ليرا', 'اتكلمي مع ليرا') + '</b><small>شات على الدرس ده بتصحيح لطيف</small></span>' + ico('back', 'end') + '</a>') +
+      (!L.xvideos ? '' : '<a class="lrow" href="#lesson/' + n + '/videos" data-act="segy">' + ico('film') + '<span class="tx"><b>فيديوهات الدرس</b><small>روسي حقيقي عن نفس الموضوع</small></span>' + ico('back', 'end') + '</a>') +
+      ('<a class="lrow" href="#chat/' + n + '/f">' + ico('spark') + '<span class="tx"><b>' + G('اتكلم مع ليرا', 'اتكلمي مع ليرا') + '</b><small>شات على الدرس ده بتصحيح لطيف</small></span>' + ico('back', 'end') + '</a>') +
       '<button class="lrow" data-act="offline">' + ico('down') + '<span class="tx"><b>' + G('حمّل الدرس', 'حمّلي الدرس') + '</b><small>عشان تسمعه من غير نت</small></span></button></div>' +
       recHtml(n, 'hw', 'فويس للمدرس: ' + G('قول', 'قولي') + ' اللي ' + G('اتعلمته', 'اتعلمتيه') + ' في الدرس') + '</div>';
   }
@@ -1883,7 +1883,7 @@ function highlight(i) { var lines = document.querySelectorAll('#lyr .ly'); lines
 function startDialogue(from) {
   var s = LS.segs[LS.seg], fun = s.k === 'c', di = fun ? -1 : +s.k.slice(1), d = dlgOf(s.k), n = LS.n;
   var items = d.lines.map(function (ln) { return { src: audioUrl(n, ln.a), slow: ln.slow ? audioUrl(n, ln.slow) : null, ru: ln.ru }; });
-  playQueue(items, from, { key: n + s.k, ru: LS.L.ru + (fun ? ' · ' + (d.ru || '') : ' · Диало́г ' + (di + 1)), ar: 'الدرس ' + ad(n) + (fun ? ' · حوار يضحّك' : ' · الحوار ' + ad(di + 1)), img: photoFor(n), lesson: n },
+  playQueue(items, from, { key: n + s.k, ru: LS.L.ru + (fun ? ' · ' + (d.ru || '') : ' · Диало́г ' + (di + 1)), ar: lessonLabel(n) + (fun ? ' · حوار يضحّك' : ' · الحوار ' + ad(di + 1)), img: photoFor(n), lesson: n },
     { onLine: function (i) { if (P.meta && document.getElementById('lyr') && LS.n === n && LS.segs[LS.seg].k === s.k) highlight(i); },
       onEnd: function () { if (fun) return; var s0 = stars(n); prog(n)['d' + (di + 1)] = 1; save(); afterProgress(n, s0); } });
 }
@@ -2059,14 +2059,14 @@ function aiErr(r) {
 }
 var callOk = function () { return !!(SR && 'speechSynthesis' in window && S.token && S.acc && S.acc.state === 'active'); };
 function vPractice() {
-  var n = S.aiLesson && LES[S.aiLesson] && canOpen(S.aiLesson) ? S.aiLesson : nextLesson();
-  var all = []; unitsOf('a1').forEach(function (u) { u.lessons.forEach(function (l) { if (canOpen(l.num)) all.push(l.num); }); });
+  var lv = levelNow(), all = []; unitsOf(lv).forEach(function (u) { u.lessons.forEach(function (l) { if (canOpen(l.num)) all.push(l.num); }); });
+  var n = S.aiLesson && all.indexOf(S.aiLesson) >= 0 ? S.aiLesson : (all.indexOf(nextLesson(lv)) >= 0 ? nextLesson(lv) : all[0] || 1);
   view.innerHTML = '<div class="page pad"><div class="ph1"><h1 class="ar">' + G('اتكلم', 'اتكلمي') + '</h1><span class="ru">Пра́ктика</span></div>' +
     '<a class="gcard hero" href="#games" style="margin-top:14px"><span class="ni">' + ico('star') + '</span><span class="tx"><span class="ru">Игра́ть</span><b class="ar">ألعاب وتحديات</b><small class="ar">صياد التشديد، محقق النغمة، تحدي الدقيقة وكمان</small></span>' + ico('back', 'end') + '</a>' +
     '<div class="call" style="margin-top:14px"><div class="medal"><img src="img/lera.jpg" alt=""></div><span class="nm ru">Ле́ра</span>' +
     '<p class="ar" style="text-align:center">' + G('اتكلم', 'اتكلمي') + ' معايا بالروسي على الدرس. ' + G('هصححلك', 'هصححلك') + ' بلطف، ولو ' + G('اتلخبطت', 'اتلخبطتي') + ' دوس على اللمبة وهقولك تقول إيه.</p></div>' +
     '<section class="sec"><h2><span>' + G('اختار الدرس', 'اختاري الدرس') + '</span><span class="ru">Уро́к</span></h2><div class="lchips">' +
-    all.map(function (k) { return '<button data-ai-lesson="' + k + '"' + (k === n ? ' class="on"' : '') + '>' + k + '</button>'; }).join('') + '</div></section>' +
+    (all.length ? all.map(function (k) { return '<button data-ai-lesson="' + k + '"' + (k === n ? ' class="on"' : '') + '>' + lessonNo(k) + '</button>'; }).join('') : '<p class="ar note">' + G('افتح', 'افتحي') + ' درس من المستوى ده الأول.</p>') + '</div></section>' +
     '<section class="sec"><h2><span>' + G('اختار المهمة', 'اختاري المهمة') + '</span><span class="ru">Зада́ния</span></h2><div class="mis" id="mis"><p class="ar" style="color:var(--dim)">بيحمّل…</p></div></section>' +
     (S.token ? '' : '<p class="note ar">' + G('المجاني: الدرس ١ و ٢ بعدد رسايل محدود في اليوم. مع الكود: كل دروسك، رسايل أكتر، ومكالمات بالصوت.', 'المجاني: الدرس ١ و ٢ بعدد رسايل محدود في اليوم. مع الكود: كل دروسك، رسايل أكتر، ومكالمات بالصوت.') + '</p>') + '</div>';
   var box = document.getElementById('mis');
@@ -2092,7 +2092,7 @@ function vChat(a) {
     if (parse().name !== 'chat') return;
     CH.L = L; var m = missionOf(L, a.mi);
     view.innerHTML = '<div class="chat"><div class="ch-top pad"><a class="back" href="#practice" aria-label="رجوع">' + ico('back') + '</a><img src="img/lera.jpg" alt="">' +
-      '<div class="who"><span class="ru">' + esc(m ? m.ru : 'Ле́ра') + '</span><small class="ar">' + esc(m ? m.ar : 'كلام حر · الدرس ' + ad(a.n)) + '</small></div>' +
+      '<div class="who"><span class="ru">' + esc(m ? m.ru : 'Ле́ра') + '</span><small class="ar">' + esc(m ? m.ar : 'كلام حر · ' + (a.n > 100 ? 'В1 · ' : '') + lessonLabel(a.n)) + '</small></div>' +
       '<button class="ib' + (S.hideTr ? '' : ' on') + '" data-act="trans" aria-label="الترجمة">' + ico('ar') + '</button>' +
       '<button class="btn ghost sm" data-act="ai-end">' + G('خلصت', 'خلصت') + '</button></div>' +
       (m && m.steps && m.steps.length ? '<div class="steps pad ar" id="steps"></div>' : '') +
@@ -2372,11 +2372,11 @@ document.addEventListener('click', function (e) {
   else if (a === 'playall') {
     var w = act.dataset.what, n = LS.n, rows = w === 'w' ? LS.L.glossary : [].concat.apply([], LS.L.vocab.map(function (b) { return b.rows; }));
     var items = rows.filter(function (r) { return r.a; }).map(function (r) { return { src: audioUrl(n, r.a), ru: r.ru }; });
-    playQueue(items, 0, { key: n + w, ru: LS.L.ru + (w === 'w' ? ' · Слова́' : ' · Фра́зы'), ar: 'الدرس ' + ad(n), img: photoFor(n), lesson: n }, { onEnd: function () { var s0 = stars(n); prog(n).words = 1; save(); afterProgress(n, s0); } });
+    playQueue(items, 0, { key: n + w, ru: LS.L.ru + (w === 'w' ? ' · Слова́' : ' · Фра́зы'), ar: lessonLabel(n), img: photoFor(n), lesson: n }, { onEnd: function () { var s0 = stars(n); prog(n).words = 1; save(); afterProgress(n, s0); } });
   }
   else if (a === 'read') {
     var R = LS.L.reading, nn = LS.n, id = act.dataset.slow === '1' ? R.slow : R.a;
-    playQueue([{ src: audioUrl(nn, id), ru: R.ru }], 0, { key: nn + 'r', ru: R.ru, ar: 'الدرس ' + ad(nn) + ' · القراءة', img: photoFor(nn), lesson: nn }, { onEnd: function () { var s0 = stars(nn); prog(nn).read = 1; save(); afterProgress(nn, s0); } });
+    playQueue([{ src: audioUrl(nn, id), ru: R.ru }], 0, { key: nn + 'r', ru: R.ru, ar: lessonLabel(nn) + ' · القراءة', img: photoFor(nn), lesson: nn }, { onEnd: function () { var s0 = stars(nn); prog(nn).read = 1; save(); afterProgress(nn, s0); } });
   }
   else if (a === 'offline') { saveOffline(LS.n, LS.L, act); }
   else if (a === 'goal') { goalTick(+act.dataset.i, act); }
@@ -2412,7 +2412,7 @@ document.addEventListener('click', function (e) {
   else if (a === 'drillplay') {
     var D = LS.L[act.dataset.d], nn2 = LS.n, its = [];
     (D.items || []).forEach(function (it) { if (it.qa) its.push({ src: audioUrl(nn2, it.qa), ru: it.q }); if (it.aa) its.push({ src: audioUrl(nn2, it.aa), ru: it.ans }); });
-    P.rep = true; playQueue(its, 0, { key: nn2 + act.dataset.d, ru: LS.L.ru + ' · ' + (D.ru || ''), ar: 'الدرس ' + ad(nn2) + ' · تدريب', img: photoFor(nn2), lesson: nn2 });
+    P.rep = true; playQueue(its, 0, { key: nn2 + act.dataset.d, ru: LS.L.ru + ' · ' + (D.ru || ''), ar: lessonLabel(nn2) + ' · تدريب', img: photoFor(nn2), lesson: nn2 });
     toast(G('اسمع السؤال وجاوب في السكتة', 'اسمعي السؤال وجاوبي في السكتة'));
   }
   else if (a === 'view-back') { if (history.length > 1) history.back(); else go('#library'); }
