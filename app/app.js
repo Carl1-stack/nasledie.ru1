@@ -2165,26 +2165,46 @@ function drawSteps() {
   var el = document.getElementById('steps'); if (!el || !CH.L) return; var m = missionOf(CH.L, CH.mi); if (!m) return;
   el.innerHTML = m.steps.map(function (s, i) { return '<span class="' + (CH.steps.indexOf(i + 1) >= 0 ? 'ok' : '') + '">' + ad(i + 1) + '. ' + esc(s) + '</span>'; }).join('');
 }
-function itemHtml(it) {
+function itemHtml(it, i) {
   if (it.t === 'ai') return '<div class="b ai"><span class="ru">' + esc(it.ru) + '</span><span class="tr ar">' + esc(it.ar) + '</span><button class="say" data-act="say" data-t="' + esc(it.ru) + '" aria-label="اسمع">' + ico('sound') + '</button></div>';
   if (it.t === 'me') return '<div class="b me"><span class="ru">' + esc(it.ru) + '</span></div>';
-  if (it.t === 'fix') return '<div class="fix"><span class="ar">' + esc(it.ar || 'الأصح كده:') + '</span><span class="ru">' + esc(it.ru) + '</span>' + tryHtml(it.ru) + '</div>';
+  if (it.t === 'fix') return '<div class="fix"><span class="ar">' + mix(it.ar || 'الأصح كده:') + '</span><span class="ru">' + esc(it.ru) + '</span>' + tryHtml(it.ru) + '</div>';
   if (it.t === 'hint') return '<div class="hintc"><span class="ru">' + esc(it.ru) + '</span><span class="tr ar">' + esc(it.ar) + '</span><div class="row2" style="margin-top:4px">' +
     '<button class="btn sm" data-act="hint-use" data-t="' + esc(it.ru) + '">' + G('استخدمها', 'استخدميها') + '</button><button class="btn ghost sm" data-act="say" data-t="' + esc(it.ru) + '">' + ico('sound') + 'اسمع</button></div>' + tryHtml(it.ru) + '</div>';
   if (it.t === 'note') return '<p class="note ar" style="text-align:center">' + esc(it.ar) + '</p>';
+  if (it.t === 'card') return cardHtml(it, i);
   return '';
+}
+/* Лера's quick exercise cards (tutor rules, 2026-11-21): choose / fill the gap / a word's table from the dictionary */
+function cardHtml(it, i) {
+  var c = it.c, fresh = !it.seen; it.seen = 1; var head = '<div class="tcard' + (fresh ? ' new' : '') + '"><div class="tch ar">' + ico('bulb') + '<span>' + mix(c.prompt_ar) + '</span></div>';
+  if (c.type === 'declension_table') return head + '<div class="dtw">' + dictTable(c.word) + '</div>' + (c.why_ar ? '<p class="why ar">' + mix(c.why_ar) + '</p>' : '') + '</div>';
+  var done = it.pick != null, ok = done && it.pick === c.answer;
+  var gap = done ? '<b class="gap' + (ok ? ' ok' : '') + '">' + esc(c.options[c.answer]) + '</b>' : '<b class="gap">_____</b>';
+  var ru = esc(c.ru).split('___').join(gap);
+  return head + '<p class="tq ru">' + ru + '</p><div class="topts">' + c.options.map(function (o, k) {
+    var cl = done ? (k === c.answer ? ' ok' : k === it.pick ? ' no' : '') : '';
+    return '<button class="ru' + cl + '" data-tcard="' + i + '" data-topt="' + k + '"' + (done ? ' disabled' : '') + '>' + esc(o) + '</button>'; }).join('') + '</div>' +
+    (done ? '<p class="why ar">' + (ok ? G('برافو!', 'برافو!') + ' ' : G('مش دي، ', 'مش دي، ')) + mix(c.why_ar || '') + '</p>' : '') + '</div>';
+}
+function cardPick(i, k) {
+  var it = CH && CH.items[i]; if (!it || it.t !== 'card' || it.pick != null) return;
+  it.pick = k; var ok = k === it.c.answer;
+  if (ok) { try { chime && chime(); } catch (e) {} touchStreak(); }
+  drawChat();
 }
 function scoreHtml(sc) {
   var st = ''; for (var i = 0; i < 3; i++) st += ico('star', i < sc.stars ? '' : 'off');
-  return '<div class="score"><div class="medal" style="width:84px;height:84px"><img src="img/lera.jpg" alt=""></div><div class="st">' + st + '</div><p class="ar">' + esc(sc.summary_ar) + '</p>' +
-    (sc.good_ar && sc.good_ar.length ? '<h3 class="ar">' + G('عملت كويس', 'عملتي كويس') + '</h3><ul class="ar">' + sc.good_ar.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>' : '') +
-    (sc.work_ar && sc.work_ar.length ? '<h3 class="ar">' + G('ركّز على', 'ركّزي على') + '</h3><ul class="ar">' + sc.work_ar.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>' : '') +
-    (sc.review_ru && sc.review_ru.length ? '<h3 class="ar">' + G('كرر الجمل دي', 'كرري الجمل دي') + '</h3><div class="rv">' + sc.review_ru.map(function (x) { return '<div class="it"><span class="ru">' + esc(x) + '</span><button class="say" style="position:static;margin:0" data-act="say" data-t="' + esc(x) + '" aria-label="اسمع">' + ico('sound') + '</button></div>'; }).join('') + '</div>' : '') +
+  return '<div class="score"><div class="medal" style="width:84px;height:84px"><img src="img/lera.jpg" alt=""></div><div class="st">' + st + '</div><p class="ar">' + mix(sc.summary_ar) + '</p>' +
+    (sc.good_ar && sc.good_ar.length ? '<h3 class="ar">' + G('عملت كويس', 'عملتي كويس') + '</h3><ul class="ar">' + sc.good_ar.map(function (x) { return '<li>' + mix(x) + '</li>'; }).join('') + '</ul>' : '') +
+    (sc.work_ar && sc.work_ar.length ? '<h3 class="ar">' + G('ركّز على', 'ركّزي على') + '</h3><ul class="ar">' + sc.work_ar.map(function (x) { return '<li>' + mix(x) + '</li>'; }).join('') + '</ul>' : '') +
+    (sc.fixes && sc.fixes.length ? '<h3 class="ar">أهم ٣ تصحيحات</h3><div class="sfix">' + sc.fixes.map(function (f) { return '<div class="it"><s class="ru">' + esc(f.wrong) + '</s><b class="ru">' + esc(f.right) + '</b><button class="say" style="position:static;margin:0" data-act="say" data-t="' + esc(f.right) + '" aria-label="اسمع">' + ico('sound') + '</button>' + (f.why_ar ? '<small class="ar">' + mix(f.why_ar) + '</small>' : '') + '</div>'; }).join('') + '</div>' : '') +
+    (sc.review_ru && sc.review_ru.length ? '<h3 class="ar">' + G('جمل تحفظها', 'جمل تحفظيها') + '</h3><div class="rv">' + sc.review_ru.map(function (x) { return '<div class="it"><span class="ru">' + esc(x) + '</span><button class="say" style="position:static;margin:0" data-act="say" data-t="' + esc(x) + '" aria-label="اسمع">' + ico('sound') + '</button></div>'; }).join('') + '</div>' : '') +
     '<div class="row2" style="justify-content:center"><button class="btn" data-act="ai-again">' + G('محادثة جديدة', 'محادثة جديدة') + '</button><a class="btn ghost" href="#practice">رجوع</a></div></div>';
 }
 function drawChat() {
   var box = document.getElementById('msgs'); if (!box) return;
-  box.innerHTML = CH.items.map(itemHtml).join('') + (CH.busy ? '<div class="typing" aria-label="بتكتب"><i></i><i></i><i></i></div>' : '') + (CH.score ? scoreHtml(CH.score) : '');
+  box.innerHTML = CH.items.map(function (it, i) { return itemHtml(it, i); }).join('') + (CH.busy ? '<div class="typing" aria-label="بتكتب"><i></i><i></i><i></i></div>' : '') + (CH.score ? scoreHtml(CH.score) : '');
   drawSteps();
   var bar = view.querySelector('.ch-bar'); if (bar) bar.hidden = !!CH.score;
   setTimeout(function () { window.scrollTo(0, document.body.scrollHeight); }, 30);
@@ -2200,6 +2220,7 @@ function aiCall(end) {
       if (end) { c.score = j; prog(c.n).ai = 1; save(); if (c === CH) { if (c.call) { stopVoice(); c.call = false; go('#chat/' + c.n + '/' + (c.mi < 0 ? 'f' : c.mi)); } else drawChat(); } return; }
       if (j.fix_ru) c.items.push({ t: 'fix', ru: j.fix_ru, ar: j.fix_ar });
       c.msgs.push({ role: 'assistant', content: j.reply_ru }); c.items.push({ t: 'ai', ru: j.reply_ru, ar: j.reply_ar });
+      if (j.card && !c.call) c.items.push({ t: 'card', c: j.card });
       c.last = j; c.steps = j.steps_done || []; if (j.finished) { c.fin = true; c.items.push({ t: 'note', ar: G('المهمة خلصت! دوس «خلصت» فوق عشان تشوف نجومك', 'المهمة خلصت! دوسي «خلصت» فوق عشان تشوفي نجومك') }); }
       if (c !== CH) return;
       if (c.call) { CALL.state = 'speak'; callUi(); speak(j.reply_ru, function () { CALL.state = 'idle'; if (CH === c && parse().name === 'call' && !c.fin) callListen(); else callUi(); }); }
@@ -2403,6 +2424,7 @@ document.addEventListener('click', function (e) {
   var bb = t.closest('[data-bb]'); if (bb) { buildBack(+bb.dataset.bb); return; }
   var mc = t.closest('[data-mc]'); if (mc) { memoryTap(+mc.dataset.mc); return; }
   var co = t.closest('[data-copt]'); if (co) { chatPick(+co.dataset.copt); return; }
+  var tc = t.closest('[data-tcard]'); if (tc) { cardPick(+tc.dataset.tcard, +tc.dataset.topt); return; }
   var aq = t.closest('[data-askq]'); if (aq) { askSend(aq.dataset.askq); return; }
   var sy = t.closest('[data-say]'); if (sy) { sayRu(sy.dataset.say); return; }
   var ac = t.closest('[data-album]'); if (ac) { playOne(ac, ac.dataset.url); return; }

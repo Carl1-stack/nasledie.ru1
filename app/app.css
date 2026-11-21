@@ -987,3 +987,25 @@ body.sp-on #embers{z-index:95}
 .aa.typing{display:flex;gap:5px;align-self:flex-start;width:auto;padding:14px 16px}
 .aa.typing i{width:7px;height:7px;border-radius:50%;background:var(--dim);animation:tdot 1s infinite}.aa.typing i:nth-child(2){animation-delay:.15s}.aa.typing i:nth-child(3){animation-delay:.3s}
 .anote{position:fixed;bottom:calc(var(--safe-b) + 66px);left:50%;transform:translateX(-50%);width:100%;max-width:480px;margin:0;padding:4px 16px;text-align:center;font-size:11.5px;color:var(--dim);background:linear-gradient(transparent,var(--bg) 60%);z-index:5}
+/* Лера's exercise cards + report corrections (tutor rules, 2026-11-21) */
+.tcard{align-self:stretch;border-radius:16px;padding:12px 14px;background:linear-gradient(160deg,rgba(214,168,90,.10),rgba(214,168,90,.03));border:1px solid rgba(214,168,90,.4);display:grid;gap:10px}
+.tcard.new{animation:vt-in .35s ease both}
+.tcard .tch{display:flex;gap:8px;align-items:center;color:var(--gold-hi);font-weight:600;font-size:14px}
+.tcard .tch svg{width:18px;height:18px;flex:none}
+.tcard .tq{font-size:19px;line-height:1.5;direction:ltr;text-align:left;margin:0}
+.tcard .gap{display:inline-block;min-width:64px;padding:0 6px;border-bottom:2px solid var(--gold);color:var(--gold-hi);text-align:center}
+.tcard .gap.ok{border-color:var(--green);color:#9FE0B9}
+.topts{display:flex;flex-wrap:wrap;gap:8px;direction:ltr}
+.topts button{flex:1 1 30%;min-height:44px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:inherit;font-size:17px;transition:background .2s,border-color .2s,transform .15s}
+.topts button:active{transform:scale(.97)}
+.topts button.ok{background:rgba(63,163,107,.22);border-color:var(--green)}
+.topts button.no{background:rgba(192,57,43,.18);border-color:var(--red);opacity:.8}
+.tcard .why{margin:0;font-size:14px;color:var(--dim)}
+.tcard .dtw{overflow-x:auto}
+.sfix{display:grid;gap:8px;text-align:start}
+.sfix .it{display:grid;grid-template-columns:1fr auto;gap:2px 8px;align-items:center;padding:8px 10px;border-radius:12px;background:rgba(255,255,255,.04)}
+.sfix s{grid-column:1;color:var(--dim);direction:ltr;text-align:left;font-size:14px}
+.sfix b{grid-column:1;direction:ltr;text-align:left;color:#9FE0B9;font-size:16px}
+.sfix .say{grid-column:2;grid-row:1/3}
+.sfix small{grid-column:1/3;font-size:13px;color:var(--dim)}
+@media (prefers-reduced-motion:reduce){.tcard.new{animation:none}}
