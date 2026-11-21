@@ -1,7 +1,7 @@
 /* Наследие app service worker: the app shell works offline; a lesson saved with «حمّل الدرس» plays offline.
    Bump VERSION after changing app files so phones fetch the new shell. */
-var VERSION = 'nasl-shell-v18';
-var SHELL = ['./', 'index.html', 'app.css', 'app.js', 'config.js', 'manifest.webmanifest', 'data/index.json', 'data/credits.json',
+var VERSION = 'nasl-shell-v20';
+var SHELL = ['./', 'index.html', 'app.css', 'app.js', 'pdd.js', 'pdd.css', 'config.js', 'manifest.webmanifest', 'data/index.json', 'data/credits.json',
   'img/logo.png', 'img/logo_cine.jpg', 'img/icon-192.png', 'img/u1.jpg', 'img/u2.jpg', 'img/u3.jpg', 'img/u4.jpg', 'img/u5.jpg', 'img/u6.jpg', 'img/l2.jpg', 'img/l3.jpg',
   'img/lera.jpg', 'img/omar.jpg', 'img/olga.jpg', 'img/learner_m.jpg', 'vendor/adhan.min.js', 'data/season.json'];
 self.addEventListener('install', function (e) { e.waitUntil(caches.open(VERSION).then(function (c) { return c.addAll(SHELL); }).then(function () { return self.skipWaiting(); })); });
