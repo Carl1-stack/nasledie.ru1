@@ -202,6 +202,7 @@ function parse() {
     return { name: 'view', arg: 'p/' + p };
   }
   if (h === 'album') return { name: 'album', arg: null };
+  if (h === 'ask') return { name: 'ask', arg: null };
   m = h.match(/^boss\/(\d+)$/); if (m) return { name: 'boss', arg: +m[1] };
   m = h.match(/^duel\/(new|\d+)$/); if (m) return { name: 'duel', arg: m[1] };
   m = h.match(/^game\/(\w+)$/);
@@ -223,7 +224,7 @@ function render() {
   if (route.name !== 'game' && route.name !== 'boss' && route.name !== 'duel' && GM) { clearTimeout(GM.tt); GM = null; }
   if (route.name !== 'game' && route.name !== 'duel') RNG = Math.random;
   var R = { home: vHome, library: vLibrary, unit: vUnit, lesson: vLesson, practice: vPractice, profile: vProfile, welcome: vWelcome, unlock: vUnlock,
-    open: vOpen, chat: vChat, call: vCall, view: vView, course: vCourse, quiz: vQuiz, mistakes: vMistakes, certs: vCerts, watch: vWatch, inbox: vInbox, games: vGames, game: vGame, album: vAlbum, boss: vBoss, duel: vDuel }[route.name] || vHome;
+    open: vOpen, chat: vChat, call: vCall, view: vView, course: vCourse, quiz: vQuiz, mistakes: vMistakes, certs: vCerts, watch: vWatch, inbox: vInbox, games: vGames, game: vGame, album: vAlbum, boss: vBoss, duel: vDuel, ask: vAsk }[route.name] || vHome;
   if (route.quiz) LS = { n: route.arg, seg: -1 };
   if (route.xv) LS = { n: route.arg, seg: -2 };   // an old quiz link opens the lesson on its quiz tab
   view.innerHTML = '';
@@ -237,9 +238,9 @@ function render() {
 }
 function refreshChrome() {
   var tabs = document.getElementById('tabs'), mini = document.getElementById('mini');
-  var noTabs = route.name === 'welcome' || route.name === 'chat' || route.name === 'call' || route.name === 'view';
+  var noTabs = route.name === 'welcome' || route.name === 'chat' || route.name === 'call' || route.name === 'view' || route.name === 'ask';
   tabs.hidden = noTabs;
-  var tab = { home: 'home', library: 'library', unit: 'library', lesson: 'library', practice: 'practice', profile: 'profile', unlock: 'library', course: 'library', quiz: 'library', view: 'library', mistakes: 'home', inbox: 'home', games: 'practice', game: 'practice', album: 'practice', boss: 'practice', duel: 'practice', certs: 'profile', chat: 'practice', call: 'practice', watch: 'library' }[route.name];
+  var tab = { home: 'home', library: 'library', unit: 'library', lesson: 'library', practice: 'practice', profile: 'profile', unlock: 'library', course: 'library', quiz: 'library', view: 'library', mistakes: 'home', inbox: 'home', games: 'practice', game: 'practice', album: 'practice', boss: 'practice', duel: 'practice', ask: 'practice', certs: 'profile', chat: 'practice', call: 'practice', watch: 'library' }[route.name];
   tabs.querySelectorAll('a').forEach(function (a) { a.classList.toggle('on', a.dataset.tab === tab); });
   mini.hidden = noTabs || !P.meta || route.name === 'lesson';
   view.className = noTabs ? 'notabs' : (mini.hidden ? 'noplayer' : '');
@@ -932,7 +933,7 @@ function chatStart(g, pool) {
   view.innerHTML = '<div class="page pad game"><div class="gtop"><a class="back" href="#games" aria-label="رجوع">' + ico('back') + '</a><span class="gname"><span class="ru">' + esc(D.ru || g.ru) + '</span></span>' +
     '<span class="gstat"><span class="combo" id="gcombo"></span><b id="gscore">' + ad(0) + '</b></span></div>' +
     '<p class="ar gsub" style="margin:0 0 8px">' + G('إنت', 'إنتي') + ' <span class="ru">' + esc(who) + '</span>. ' + esc(D.scene || '') + '</p>' +
-    '<div id="gq"><div class="chat" id="chatlog"></div><div id="chatopts"></div></div></div>';
+    '<div id="gq"><div class="gchat" id="chatlog"></div><div id="chatopts"></div></div></div>';
   chatStep();
 }
 function chatBubble(l, mine, extra) {
@@ -2062,7 +2063,8 @@ function vPractice() {
   var lv = levelNow(), all = []; unitsOf(lv).forEach(function (u) { u.lessons.forEach(function (l) { if (canOpen(l.num)) all.push(l.num); }); });
   var n = S.aiLesson && all.indexOf(S.aiLesson) >= 0 ? S.aiLesson : (all.indexOf(nextLesson(lv)) >= 0 ? nextLesson(lv) : all[0] || 1);
   view.innerHTML = '<div class="page pad"><div class="ph1"><h1 class="ar">' + G('اتكلم', 'اتكلمي') + '</h1><span class="ru">Пра́ктика</span></div>' +
-    '<a class="gcard hero" href="#games" style="margin-top:14px"><span class="ni">' + ico('star') + '</span><span class="tx"><span class="ru">Игра́ть</span><b class="ar">ألعاب وتحديات</b><small class="ar">صياد التشديد، محقق النغمة، تحدي الدقيقة وكمان</small></span>' + ico('back', 'end') + '</a>' +
+    '<a class="gcard hero" href="#ask" style="margin-top:14px"><span class="ni">' + ico('bulb') + '</span><span class="tx"><span class="ru">Спроси́ Ле́ру</span><b class="ar">اسأل ليرا أي سؤال</b><small class="ar">قواعد، كلمات، نطق، تاريخ وثقافة روسيا، وجدول أي كلمة من القاموس</small></span>' + ico('back', 'end') + '</a>' +
+    '<a class="gcard hero" href="#games" style="margin-top:10px"><span class="ni">' + ico('star') + '</span><span class="tx"><span class="ru">Игра́ть</span><b class="ar">ألعاب وتحديات</b><small class="ar">صياد التشديد، محقق النغمة، تحدي الدقيقة وكمان</small></span>' + ico('back', 'end') + '</a>' +
     '<div class="call" style="margin-top:14px"><div class="medal"><img src="img/lera.jpg" alt=""></div><span class="nm ru">Ле́ра</span>' +
     '<p class="ar" style="text-align:center">' + G('اتكلم', 'اتكلمي') + ' معايا بالروسي على الدرس. ' + G('هصححلك', 'هصححلك') + ' بلطف، ولو ' + G('اتلخبطت', 'اتلخبطتي') + ' دوس على اللمبة وهقولك تقول إيه.</p></div>' +
     '<section class="sec"><h2><span>' + G('اختار الدرس', 'اختاري الدرس') + '</span><span class="ru">Уро́к</span></h2><div class="lchips">' +
@@ -2080,6 +2082,60 @@ function vPractice() {
         (callOk() ? '<a class="btn ghost sm" href="#call/' + n + '/' + c.i + '">' + ico('phone') + 'مكالمة</a>' : (S.token ? '' : '<span class="note ar" style="margin:0;align-self:center">المكالمة للمشتركين</span>')) + '</div></div>';
     }).join('');
   }).catch(function () { box.innerHTML = '<p class="ar" style="color:var(--dim)">الدرس مش متاح دلوقتي.</p>'; });
+}
+/* ---------- «اسأل ليرا» (2026-11-21): any question about Russian; answers from the course library, encyclopedia notes and a full dictionary ---------- */
+var ASK_SUGG = ['إمتى أستخدم «в» وإمتى «на»؟', 'صرّفلي الفعل «хоте́ть»', 'إيه الفرق بين «ты» و«вы»؟', 'إزاي أنطق حرف «ы»؟', 'مين هو بوشكين؟', 'إيه هي «Ма́сленица»؟', 'ليه «челове́к» جمعها «лю́ди»؟', 'إيه الفرق بين «говори́ть» و«сказа́ть»؟'];
+var CASE_AR = [['Имени́тельный', 'مين؟ إيه؟'], ['Роди́тельный', 'مفيش مين؟ بتاع مين؟'], ['Да́тельный', 'لمين؟'], ['Вини́тельный', 'شايف مين؟ إيه؟'], ['Твори́тельный', 'مع مين؟ بإيه؟'], ['Предло́жный', 'فين؟ عن مين؟']];
+var ASKB = false;
+function dictTable(w) {
+  var f = w.forms || [], cell = function (x) { return '<td class="ru">' + esc(x || '—') + '</td>'; };
+  if (w.type === 'n') return '<table class="dt"><thead><tr><th class="ar">الحالة</th><th class="ar">مفرد</th><th class="ar">جمع</th></tr></thead><tbody>' +
+    CASE_AR.map(function (c, i) { return '<tr><th><span class="ru">' + c[0] + '</span><small class="ar">' + c[1] + '</small></th>' + cell(f[i]) + cell(f[i + 6]) + '</tr>'; }).join('') + '</tbody></table>';
+  if (w.type === 'v') return '<table class="dt"><tbody>' + ['я', 'ты', 'он / она́', 'мы', 'вы', 'они́'].map(function (p, i) { return '<tr><th class="ru">' + p + '</th>' + cell(f[i]) + '</tr>'; }).join('') +
+    '<tr><th class="ar">الماضي</th>' + cell([f[6], f[7], f[8], f[9]].filter(Boolean).join(' · ')) + '</tr><tr><th class="ar">الأمر</th>' + cell([f[10], f[11]].filter(Boolean).join(' · ')) + '</tr></tbody></table>';
+  if (w.type === 'a') return '<table class="dt"><thead><tr><th></th><th class="ar">مذكر</th><th class="ar">مؤنث</th><th class="ar">محايد</th><th class="ar">جمع</th></tr></thead><tbody>' +
+    CASE_AR.map(function (c, i) { return '<tr><th><span class="ru">' + c[0] + '</span></th>' + cell(f[i]) + cell(f[i + 6]) + cell(f[i + 12]) + cell(f[i + 18]) + '</tr>'; }).join('') + '</tbody></table>';
+  return '';
+}
+function sayRu(t) { try { var u = new SpeechSynthesisUtterance(String(t).replace(/́/g, '')); u.lang = 'ru-RU'; u.rate = .9; speechSynthesis.cancel(); speechSynthesis.speak(u); } catch (e) {} }
+function askCard(a) {
+  if (a.q) return '<div class="aq ar">' + mix(a.q) + '</div>';
+  if (a.err) return '<div class="aa err ar">' + esc(a.err) + '</div>';
+  var tts = 'speechSynthesis' in window;
+  return '<div class="aa"><div class="ah"><img src="img/lera.jpg" alt=""><b class="ru">Ле́ра</b></div><p class="ar">' + mix(a.answer_ar) + '</p>' +
+    (a.examples && a.examples.length ? '<div class="aex">' + a.examples.map(function (x) { return '<div class="ax">' + (tts ? '<button class="pb" data-say="' + esc(x.ru) + '" aria-label="اسمع">' + ico('play') + '</button>' : '') + '<span class="ru">' + esc(x.ru) + '</span><small class="ar">' + esc(x.ar) + '</small></div>'; }).join('') + '</div>' : '') +
+    (a.words || []).map(function (w) { var t = dictTable(w); return t ? '<details class="awd" open><summary><span class="ru">' + esc(w.lemma) + '</span><small class="ar">' + ({ n: 'اسم', v: 'فعل', a: 'صفة' }[w.type] || '') + ' · من القاموس</small></summary><div class="dtw">' + t + '</div></details>' : ''; }).join('') +
+    (a.tip_ar ? '<div class="atip ar">' + ico('bulb') + '<span>' + mix(a.tip_ar) + '</span></div>' : '') +
+    (a.sources && a.sources.length ? '<small class="asrc ar">المصادر: ' + a.sources.map(function (s2) { return s2.src === 'wiki' && s2.url ? '<a href="' + esc(s2.url) + '" target="_blank" rel="noopener" class="ru">' + esc(s2.title) + '</a>' : '<span>' + mix(s2.src === 'teach' ? 'طريقة الشرح' : s2.title) + '</span>'; }).join(' · ') + '</small>' : '') + '</div>';
+}
+function vAsk() {
+  S.askHist = S.askHist || [];
+  view.innerHTML = '<div class="chat ask"><div class="ch-top pad"><a class="back" href="#practice" aria-label="رجوع">' + ico('back') + '</a><img src="img/lera.jpg" alt="">' +
+    '<div class="who"><span class="ru">Спроси́ Ле́ру</span><small class="ar">' + G('اسأل', 'اسألي') + ' أي سؤال عن الروسي: قواعد، كلمات، نطق، تاريخ، ثقافة</small></div>' +
+    (S.askHist.length ? '<button class="ib" data-act="ask-clear" aria-label="امسح">' + ico('back') + '</button>' : '') + '</div>' +
+    '<div class="msgs pad" id="amsgs">' + (S.askHist.length ? S.askHist.map(askCard).join('') :
+      '<div class="asugg"><p class="ar">' + G('جرّب', 'جرّبي') + ' سؤال من دول، أو ' + G('اكتب', 'اكتبي') + ' سؤالك:</p>' + ASK_SUGG.map(function (q) { return '<button class="ar" data-askq="' + esc(q) + '">' + mix(q) + '</button>'; }).join('') + '</div>') + '</div>' +
+    '<p class="anote ar">ليرا ذكاء اصطناعي وممكن تغلط. لو حاجة مش واضحة ' + G('اسأل', 'اسألي') + ' المدرس في الحصة.</p>' +
+    '<div class="ch-bar pad"><input id="ask-in" dir="auto" autocomplete="off" enterkeyhint="send" placeholder="' + G('اكتب سؤالك…', 'اكتبي سؤالك…') + '"><button class="go" data-act="ask-send" aria-label="ابعت">' + ico('send') + '</button></div></div>';
+  var m = document.getElementById('amsgs'); m.lastElementChild && m.lastElementChild.scrollIntoView({ block: 'end' });
+  document.getElementById('ask-in').addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); askSend(); } });
+}
+function askSend(q) {
+  var inp = document.getElementById('ask-in'); q = (q || (inp && inp.value) || '').trim(); if (!q || ASKB) return;
+  if (inp) inp.value = '';
+  S.askHist = (S.askHist || []).concat([{ q: q }]).slice(-24); store();
+  var m = document.getElementById('amsgs'); if (m.querySelector('.asugg')) m.innerHTML = '';
+  m.insertAdjacentHTML('beforeend', askCard({ q: q }) + '<div class="aa typing" id="atyping"><i></i><i></i><i></i></div>'); m.lastElementChild.scrollIntoView({ block: 'end', behavior: 'smooth' });
+  ASKB = true;
+  var hist = []; (S.askHist || []).slice(-7, -1).forEach(function (a) { if (a.q) hist.push({ role: 'user', content: a.q }); else if (a.answer_ar) hist.push({ role: 'assistant', content: a.answer_ar }); });
+  fetch(API + '/api/ask' + (S.token ? '?t=' + encodeURIComponent(S.token) : ''), { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ q: q, g: S.g, device: S.device, history: hist }) })
+    .then(function (r) { return r.json(); }).then(function (j) {
+      ASKB = false; var t = document.getElementById('atyping'); if (t) t.remove();
+      var a = j.ok ? { answer_ar: j.answer_ar, examples: j.examples, tip_ar: j.tip_ar, words: j.words, sources: j.sources } :
+        { err: j.reason === 'limit' ? G('خلصت أسئلة النهارده. ارجع بكرة، أو اسأل المدرس في الحصة.', 'خلصت أسئلة النهارده. ارجعي بكرة، أو اسألي المدرس في الحصة.') : j.reason === 'busy' ? 'ليرا عليها ضغط دلوقتي، جرّب بعد شوية.' : 'حصلت مشكلة، جرّب تاني.' };
+      if (j.ok) { S.askHist.push(a); S.askHist = S.askHist.slice(-24); store(); touchStreak(); }
+      var mm = document.getElementById('amsgs'); if (!mm) return; mm.insertAdjacentHTML('beforeend', askCard(a)); mm.lastElementChild.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    }).catch(function () { ASKB = false; var t = document.getElementById('atyping'); if (t) t.remove(); toast(G('محتاج نت', 'محتاجة نت')); });
 }
 var CH = null;
 function newChat(n, mi, call) { return { n: n, mi: mi, call: !!call, id: (window.crypto && crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(16).slice(2)), msgs: [], items: [], steps: [], fin: false, busy: false, last: null, score: null, L: null }; }
@@ -2347,6 +2403,8 @@ document.addEventListener('click', function (e) {
   var bb = t.closest('[data-bb]'); if (bb) { buildBack(+bb.dataset.bb); return; }
   var mc = t.closest('[data-mc]'); if (mc) { memoryTap(+mc.dataset.mc); return; }
   var co = t.closest('[data-copt]'); if (co) { chatPick(+co.dataset.copt); return; }
+  var aq = t.closest('[data-askq]'); if (aq) { askSend(aq.dataset.askq); return; }
+  var sy = t.closest('[data-say]'); if (sy) { sayRu(sy.dataset.say); return; }
   var ac = t.closest('[data-album]'); if (ac) { playOne(ac, ac.dataset.url); return; }
   var nt = t.closest('[data-note]');
   if (nt) { var id = +nt.dataset.note, m = (S.inbox || []).filter(function (x) { return x.id === id; })[0]; if (m) { if (!m.read) { m.read = true; noteOpened(id); store(); } if (m.url && m.url !== './#inbox/' + id) { go(m.url.replace(/^\.\//, '')); return; } paintBell(); } return; }
@@ -2381,6 +2439,8 @@ document.addEventListener('click', function (e) {
   else if (a === 'offline') { saveOffline(LS.n, LS.L, act); }
   else if (a === 'goal') { goalTick(+act.dataset.i, act); }
   else if (a === 'levels') { levelSheet(); }
+  else if (a === 'ask-send') { askSend(); }
+  else if (a === 'ask-clear') { S.askHist = []; store(); vAsk(); }
   else if (a === 'birdstory') { birdStory(); }
   else if (a === 'greplay') { setTimeout(render, 0); }
   else if (a === 'segy') { e.preventDefault(); var yi = LS.segs.map(function (x) { return x.k; }).indexOf('y'); if (yi >= 0) { LS.seg = yi; renderSeg(); window.scrollTo(0, 0); } }
@@ -2480,7 +2540,7 @@ function saveOffline(n, L, btn) {
 
 /* ---------- cinematic moves between pages (2026-11-21): View Transitions where the phone has them, a soft rise elsewhere ---------- */
 var TAB_ORDER = { home: 0, library: 1, practice: 2, profile: 3 };
-function tabIdx(name) { var t = { unit: 'library', lesson: 'library', course: 'library', quiz: 'library', watch: 'library', unlock: 'library', mistakes: 'home', inbox: 'home', games: 'practice', game: 'practice', album: 'practice', boss: 'practice', duel: 'practice', chat: 'practice', call: 'practice', certs: 'profile' }[name] || name; return TAB_ORDER[t] === undefined ? -1 : TAB_ORDER[t]; }
+function tabIdx(name) { var t = { unit: 'library', lesson: 'library', course: 'library', quiz: 'library', watch: 'library', unlock: 'library', mistakes: 'home', inbox: 'home', games: 'practice', game: 'practice', album: 'practice', boss: 'practice', duel: 'practice', ask: 'practice', chat: 'practice', call: 'practice', certs: 'profile' }[name] || name; return TAB_ORDER[t] === undefined ? -1 : TAB_ORDER[t]; }
 function navRender() {
   var from = route ? route.name : 'home', to = parse().name, a = tabIdx(from), b = tabIdx(to);
   var dir = a >= 0 && b >= 0 && a !== b ? (b > a ? 'fwd' : 'back') : (from === to ? 'same' : 'deep');
@@ -2514,16 +2574,15 @@ function splash() {
   var g = helloKey(), name = (S.name || '').trim().split(' ')[0];
   var word = 'Насле́дие'.match(/.́?/g);
   var el = document.createElement('div'); el.id = 'splash'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', 'Насле́дие');
-  el.innerHTML = '<div class="sp-in"><img class="sp-logo" src="img/logo.png" alt="">' +
-    '<div class="sp-word ru" aria-hidden="true">' + word.map(function (c, i) { return '<span style="--i:' + i + '">' + c + '</span>'; }).join('') + '</div>' +
-    '<svg class="sp-vine" viewBox="0 0 220 24" aria-hidden="true"><path d="M4 12 C40 2 70 22 110 12 C150 2 180 22 216 12"/><circle cx="110" cy="12" r="3.2"/><circle cx="58" cy="11" r="2.2"/><circle cx="162" cy="13" r="2.2"/></svg>' +
+  el.innerHTML = '<div class="sp-in"><div class="sp-stage"><img class="sp-cloth" src="img/logo_cine.jpg" alt="Насле́дие"><i class="sp-light"></i></div>' +
     '<div class="sp-hello"><span class="ru">' + g.ru + '</span><span class="ar">' + mix(g.ar + (name ? ' يا ' + name : '')) + '</span></div>' +
     '<button class="sp-go"><span class="ru">Войти́</span><span class="ar">ادخل</span></button></div><i class="sp-sweep"></i>';
   document.body.appendChild(el);
+  if (!RM) { var dust = setInterval(function () { if (!el.parentNode) { clearInterval(dust); return; } var r = el.querySelector('.sp-cloth').getBoundingClientRect(); embers(r.left + Math.random() * r.width, r.top + r.height * (.2 + Math.random() * .8), 1, .5, .35); }, 140); document.body.classList.add('sp-on'); }
   var gone = false, close = function (withVoice) {
     if (gone) return; gone = true;
     if (withVoice) sayHello(g.k);   // a tap: the phone lets the greeting play
-    el.classList.add('out'); setTimeout(function () { el.remove(); catIntro(); }, RM ? 150 : 700);
+    el.classList.add('out'); setTimeout(function () { el.remove(); document.body.classList.remove('sp-on'); catIntro(); }, RM ? 150 : 700);
   };
   el.addEventListener('click', function () { close(true); });
   setTimeout(function () { sayHello(g.k); }, RM ? 100 : 1200);   // phones that already allow sound (Android after the first visit) hear it at once
@@ -2531,8 +2590,12 @@ function splash() {
 }
 /* ---------- farewell: in the installed app, «back» on the first screen says goodbye before the app closes ---------- */
 var STANDALONE = (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
-if (STANDALONE && history.pushState) {
+function armFarewell() {   // Chrome ignores back-button steps added before the first touch, so the guard step is added on the first tap
+  if (!STANDALONE || !history.pushState || armFarewell.done) return; armFarewell.done = true;
   try { if (!(history.state && history.state.g)) { history.replaceState({ base: 1 }, ''); history.pushState({ g: 1 }, '', location.hash || '#home'); } } catch (e) {}
+}
+if (STANDALONE && history.pushState) {
+  document.addEventListener('pointerdown', armFarewell, { capture: true, passive: true }); document.addEventListener('keydown', armFarewell, { capture: true });
   window.addEventListener('popstate', function (e) {
     if (!(e.state && e.state.base)) return;
     var h = new Date().getHours(), late = h >= 22 || h < 4, name = (S.name || '').trim().split(' ')[0];
@@ -2543,7 +2606,7 @@ if (STANDALONE && history.pushState) {
     document.body.appendChild(el);
     if (!S.noHello) { var a = new Audio('audio/hello/' + (late ? 'night' : 'bye') + '.mp3'); var p = a.play(); if (p && p.catch) p.catch(function () {}); }
     setTimeout(function () { history.back(); }, RM ? 700 : 1700);
-    setTimeout(function () { if (el.parentNode) { el.remove(); try { history.pushState({ g: 1 }, '', '#home'); } catch (x) {} } }, 3200);   // still here (the phone kept the app open): back to normal
+    setTimeout(function () { if (el.parentNode) { el.remove(); armFarewell.done = false; } }, 3200);   // still here (the phone kept the app open): back to normal
   });
 }
 
