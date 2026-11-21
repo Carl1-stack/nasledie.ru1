@@ -1,0 +1,82 @@
+/* Падежи́ (2026-11-22): styles for app/cases.js. Uses the app's tokens (--gold, --gold-hi, --card, --line, --dim, --pr, --green, --red). */
+.cs{padding-bottom:110px}
+.cs .ru{direction:ltr;unicode-bidi:isolate}
+.cs .hl{color:var(--gold-hi);font-weight:800}
+.cs-intro{color:var(--dim);font-size:14px;margin:14px 0 6px}
+.cs-lv{background:var(--card);border:1px solid var(--line);border-radius:18px;margin:12px 0;overflow:hidden}
+.cs-lv>summary{display:flex;align-items:center;gap:12px;padding:14px;cursor:pointer;list-style:none}
+.cs-lv>summary::-webkit-details-marker{display:none}
+.cs-lv>summary .tx{display:flex;flex-direction:column;flex:1}
+.cs-lv>summary small{color:var(--dim);font-size:12px}
+.cs-lv>summary .end{transform:rotate(-90deg);transition:transform .2s}
+.cs-lv[open]>summary .end{transform:rotate(90deg)}
+.cs-lvru{font:400 30px/1 var(--d-ru);color:var(--gold);min-width:46px;text-align:center}
+.cs-soon{color:var(--dim);font-size:13.5px;padding:0 14px 14px;margin:0}
+.cs-case{display:flex;justify-content:space-between;align-items:baseline;padding:10px 14px 4px;border-top:1px solid var(--line);font-weight:800;font-size:13.5px;color:var(--gold)}
+.cs-case .ru{font:600 12px var(--ru);color:var(--dim)}
+.cs-ep .no{font:700 12px var(--ru)!important;color:var(--gold)}
+.cs-ep.done .no{color:var(--green)}
+.cs-sc{font:700 12px var(--ru);color:var(--green)}
+.cs-free{font-size:11px;color:var(--gold-hi);border:1px solid var(--gold);border-radius:999px;padding:1px 8px}
+.cs-lab{font:700 11.5px var(--ru);color:var(--gold);letter-spacing:.5px}
+.cs-t1{font:600 15px var(--ru);color:var(--gold-hi)}
+.cs-sit{background:var(--card);border-right:4px solid var(--gold);border-radius:12px;padding:10px 12px;font-size:14.5px;margin:6px 0 12px}
+.cs-sec{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px;margin:12px 0}
+.cs-sec h3{margin:0;font-size:17px;color:var(--fg)}
+.cs-sub{margin:2px 0 10px;font-size:13px;color:var(--dim);text-align:left}
+.cs-box{background:rgba(214,168,90,.08);border-radius:14px;padding:10px 12px;margin:8px 0}
+.cs-box.sm p{font-size:13.5px}
+.cs-box.warn{background:rgba(192,57,43,.10)}
+.cs-box p{margin:3px 0;font-size:14.5px;line-height:1.8}
+.cs-ruline{direction:ltr;text-align:left;margin:3px 0;font:700 15px var(--ru);color:var(--gold-hi)}
+.cs-row{padding:9px 2px;border-bottom:1px dashed var(--line)}
+.cs-row:last-child{border-bottom:0}
+.cs-rr{text-align:left;font:700 17px/1.45 var(--ru);color:var(--fg)}
+.cs-pr{text-align:left;direction:rtl;unicode-bidi:isolate;color:var(--pr);font-size:13.5px;font-weight:700}
+.cs-why{color:var(--gold);font-weight:700;font-size:13.5px;margin-top:2px}
+.cs-tr{color:var(--dim);font-size:13px}
+.cs-tw{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:6px 0}
+.cs-t{width:100%;border-collapse:collapse;font-size:14px;min-width:300px}
+.cs-t th{background:var(--mini);color:#fff;padding:7px 6px;font-weight:800;font-size:12.5px}
+.cs-t td{padding:7px 6px;border-bottom:1px solid var(--line);text-align:center;font-family:var(--ru);font-weight:600}
+.cs-t td.lab{color:var(--gold);font-family:var(--ar);font-size:12.5px}
+.cs-scene{display:flex;gap:6px;justify-content:center;align-items:stretch;flex-wrap:wrap;margin:4px 0 8px}
+.cs-sc{background:rgba(242,236,225,.05);border:1px solid var(--line);border-radius:12px;padding:6px 10px;text-align:center;min-width:80px}
+.cs-sc small{display:block;color:var(--dim);font-size:11px}
+.cs-sc b{font:700 18px var(--ru)}
+.cs-sc.foc{border-color:var(--gold);background:rgba(214,168,90,.12)}
+.cs-sc.verb b{color:var(--dim);font-size:15px}
+.cs-arr{align-self:center;color:var(--dim)}
+.cs-cmp{display:grid;gap:10px}
+.cs-side{border-radius:14px;padding:10px;border:1px solid var(--line)}
+.cs-side.r{background:rgba(214,168,90,.07)}
+.cs-sh{font:800 17px var(--ru);text-align:left;color:var(--gold-hi)}
+.cs-vg{border:1px solid var(--line);border-radius:14px;padding:10px;margin:8px 0}
+.cs-vg>b{color:var(--gold);font-size:14px}
+.cs-hint{color:var(--dim);font-size:13.5px;margin:0 0 6px}
+.cs-qa{display:flex;gap:8px;padding:9px 0;border-bottom:1px solid var(--line)}
+.cs-qa .n{color:var(--gold);font-weight:800;min-width:16px}
+.cs-qx{flex:1;text-align:left}
+.cs-qx .ru{font:700 16px var(--ru)}
+.cs-qx .ru.bad{color:var(--red);text-decoration:line-through}
+.cs-qx .ru.hint{font:500 13px var(--ru);color:var(--dim)}
+.cs-qx .cs-why{text-align:right}
+.cs-qx details summary{cursor:pointer;color:var(--gold);font-size:13px;font-weight:800;text-align:right;list-style:none;margin-top:4px}
+.cs-ans .ru{color:var(--green)}
+.cs-key{margin-top:10px}
+.cs-key summary{cursor:pointer;color:var(--gold);font-weight:800}
+.cs-task{border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin:8px 0}
+.cs-task>b{color:var(--gold);font-size:14.5px}
+.cs-task p{margin:4px 0;font-size:13.5px}
+.cs-band{background:var(--mini);border-radius:14px;padding:12px;text-align:center}
+.cs-band .ru{font:700 18px var(--ru);color:var(--gold-hi)}
+.cs-end{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:18px 0}
+.cs-qbar{height:6px;border-radius:3px;background:var(--line);overflow:hidden;margin:6px 0}
+.cs-qbar i{display:block;height:100%;background:var(--gold)}
+.cs-qn{color:var(--dim)}
+.cs-big{font:800 46px/1 var(--ru);color:var(--gold-hi);margin:10px 0}
+.cs-sent{color:var(--dim);font-size:13px}
+.cs .qz{display:grid;gap:10px}
+.cs .q-ru{direction:ltr}
+.cs .seg a{flex:0 0 auto;border:1px solid var(--line);color:var(--dim);border-radius:999px;padding:7px 13px;font:700 12px var(--ar);text-decoration:none}
+.cs .seg a.on{background:var(--fg);color:var(--bg);border-color:var(--fg)}
