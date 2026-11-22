@@ -1820,21 +1820,51 @@ function lyrHtml(d) {
 function parasHtml(p) { return (p || []).map(function (x) { return x[0] === 'ru' ? '<p class="ru">' + esc(x[1]) + '</p>' : '<p class="ar">' + mix(x[1]) + '</p>'; }).join(''); }
 function picUrl(n, f) { return isFree(n) ? 'pics/l' + pad(n) + '/' + f : n > 100 ? API + '/c/b1/pics/' + bkey(n) + '/' + f + '?t=' + encodeURIComponent(S.token || '') : API + '/c/a1/pics/l' + pad(n) + '/' + f + '?t=' + encodeURIComponent(S.token || ''); }
 function pbtn(n, id) { return id ? '<button class="pb" data-url="' + audioUrl(n, id) + '" aria-label="اسمع">' + ico('play') + '</button>' : '<span></span>'; }
+/* rules + conjugation (teacher, 2026-11-22: "make it look better… simple and decent"): one rule = a numbered Arabic line over
+   a Russian strip (short lists become chips); one verb = a card with its six persons in two columns (singular | plural),
+   the ending in gold, every form a tap-to-hear tile */
+function ruChips(t) {
+  var parts = String(t).replace(/\s+$/, '').replace(/([,?!])\s+/g, '$1|§|').replace(/\s+·\s+/g, '|§|').split('|§|');
+  var ok = (parts.length >= 3 || (parts.length === 2 && parts.every(function (x) { return x.indexOf('—') > 0; }))) && parts.every(function (x) { return x.replace(/[,.]$/, '').split(' ').length <= 4; });
+  return ok ? '<div class="rchips">' + parts.map(function (x) { return '<span class="ru">' + esc(x.replace(/[,.]$/, '')) + '</span>'; }).join('') + '</div>' : '<span class="ru rsent">' + esc(t) + '</span>';
+}
+function ruleCard(g, n, k) {
+  return '<div class="rule"><div class="rule-h"><span class="rule-n">' + ad(k + 1) + '</span><p class="ar">' + mix(g.ar) + '</p></div>' +
+    (g.ru ? '<div class="rule-ex">' + (g.a ? '<button class="pb" data-url="' + audioUrl(n, g.a) + '" aria-label="اسمع">' + ico('play') + '</button>' : '') +
+      '<div class="rule-ru">' + ruChips(g.ru) + (g.pr ? '<span class="pr">' + esc(g.pr) + '</span>' : '') + '</div></div>' : '') + '</div>';
+}
+function endSplit(forms) {   // common stem of the verb forms (stress marks ignored) → [pronoun, stem, ending] for each
+  var vs = forms.map(function (f) { var w = String(f.ru).split(' '); return w.length > 1 ? [w.slice(0, -1).join(' '), w[w.length - 1]] : ['', w[0]]; });
+  var bare = vs.map(function (v) { return v[1].replace(/́/g, '').toLowerCase(); });
+  var k = 0; while (bare.every(function (b) { return b.length > k && b[k] === bare[0][k]; })) k++;
+  if (k < 2 || bare.some(function (b) { return b.length - k > 5; })) k = 0;
+  return vs.map(function (v) { var w = v[1], c = 0, at = 0; while (at < w.length && c < k) { if (w[at] !== '́') c++; at++; } while (w[at] === '́') at++;
+    return [v[0], w.slice(0, at), w.slice(at)]; });
+}
+function conjCard(v, n) {
+  var forms = v.forms || [], sp = endSplit(forms), six = forms.length === 6;
+  var cell = function (f, i) { var x = sp[i]; return '<button class="cj-c"' + (f.a ? ' data-cj="' + audioUrl(n, f.a) + '"' : '') + '><span class="cj-p">' + esc(x[0]) + '</span>' +
+    '<span class="cj-v">' + esc(x[1]) + (x[2] ? '<b>' + esc(x[2]) + '</b>' : '') + '</span>' + (f.pr ? '<small class="pr">' + esc(f.pr) + '</small>' : '') + '</button>'; };
+  var order = six ? [0, 3, 1, 4, 2, 5] : forms.map(function (_, i) { return i; });
+  return '<div class="cj"><div class="cj-h"><div class="cj-inf">' + (v.a ? '<button class="pb" data-url="' + audioUrl(n, v.a) + '" aria-label="اسمع">' + ico('play') + '</button>' : '') +
+      '<div><b class="ru">' + esc(v.ru) + '</b>' + (v.pr ? '<small class="pr">' + esc(v.pr) + '</small>' : '') + '</div></div>' +
+      '<div class="cj-meta"><span class="ar cj-mean">' + esc(v.ar || '') + '</span>' + (v.tip_ar ? '<span class="ar cj-tag">' + esc(v.tip_ar) + '</span>' : '') + '</div></div>' +
+    (v.tip_ru ? '<div class="cj-pat ru">' + esc(v.tip_ru) + '</div>' : '') +
+    (six ? '<div class="cj-cols"><span class="ar">مفرد</span><span class="ar">جمع</span></div>' : '') +
+    '<div class="cj-grid">' + order.map(function (i) { return cell(forms[i], i); }).join('') + '</div></div>';
+}
 function grammarHtml(L, n) {
   var h = '';
-  if (L.grammar) h += '<div class="vhead"><span class="ar">القاعدة في جمل</span><span class="ru">Грамма́тика</span></div>' +
-    L.grammar.map(function (g) { return '<div class="gcard"><p class="ar">' + mix(g.ar) + '</p>' + (g.ru ? '<div class="wrow">' + pbtn(n, g.a) + '<div><span class="ru">' + esc(g.ru) + '</span>' + (g.pr ? '<span class="pr" style="display:block">' + esc(g.pr) + '</span>' : '') + '</div></div>' : '') + '</div>'; }).join('');
+  if (L.grammar) h += '<div class="vhead"><span class="ar">القاعدة في جمل</span><span class="ru">Грамма́тика</span></div>' + L.grammar.map(function (g, k) { return ruleCard(g, n, k); }).join('');
   if (L.trick) h += '<div class="box gold"><h3 class="ar">حيلة للحفظ</h3>' + parasHtml(L.trick) + '</div>';
-  (L.verb_table || []).forEach(function (v) {
+  [].concat(L.verb_table || []).forEach(function (v) {   // Lesson 23 on: one object, older exports: a list
     h += '<div class="vhead"><span class="ar">' + esc(v.title_ar || '') + '</span><span class="ru">' + esc(v.ru || '') + '</span></div>' +
-      (v.present_ar ? '<p class="note ar" style="margin:0 0 4px">' + esc(v.present_ar) + '</p>' : '') + '<div class="words">' + (v.present || []).map(function (r) { return wrow(r, n); }).join('') + '</div>' +
-      (v.stem ? '<div class="box"><p class="ru">' + esc(v.stem.ru || '') + '</p><p class="ar">' + esc(v.stem.ar || '') + '</p></div>' : '') +
+      (v.present && v.present.length ? conjCard({ ru: v.ru, ar: v.present_ar || '', forms: v.present }, n) : '') +
+      (v.stem ? '<div class="box"><p class="ru">' + esc(v.stem.ru || '') + '</p><p class="ar">' + mix(v.stem.ar || '') + '</p></div>' : '') +
       '<div class="words">' + (v.rows || []).map(function (r) { return wrow(r, n); }).join('') + '</div>';
   });
-  if (L.conj) h += '<div class="vhead"><span class="ar">تصريف أفعال الدرس</span><span class="ru">Глаго́лы</span></div>' +
-    L.conj.map(function (v) { return '<div class="gcard"><div class="wrow">' + pbtn(n, v.a) + '<div><span class="ru" style="font-size:18px">' + esc(v.ru) + '</span><span class="ar">' + esc(v.ar || '') + '</span></div></div>' +
-      (v.tip_ar ? '<p class="note ar" style="margin:2px 0 6px">' + esc(v.tip_ar) + '</p>' : '') + (v.tip_ru ? '<p class="ru note" style="margin:0 0 6px">' + esc(v.tip_ru) + '</p>' : '') +
-      '<div class="words">' + (v.forms || []).map(function (f) { return wrow(f, n); }).join('') + '</div></div>'; }).join('');
+  if (L.conj) h += '<div class="vhead"><span class="ar">تصريف أفعال الدرس</span><span class="ru">Глаго́лы</span></div><p class="note ar cj-help">' + G('دوس على أي تصريف تسمعه. النهاية بالدهبي هي اللي بتتغير.', 'دوسي على أي تصريف تسمعيه. النهاية بالدهبي هي اللي بتتغير.') + '</p>' +
+    L.conj.map(function (v) { return conjCard(v, n); }).join('');
   return h;
 }
 function drillHtml(D, n, key) {
@@ -1860,10 +1890,10 @@ function practiceHtml(L, n) {
   return h;
 }
 function phonHtml(L, n) {
-  var h = (L.phon || []).map(function (p) { return '<div class="gcard"><div class="hd2"><span class="ru">' + esc(p.ru || '') + '</span><b class="ar">' + esc(p.ar || '') + '</b></div>' +
+  var h = (L.phon || []).map(function (p) { return '<div class="lcard"><div class="hd2"><span class="ru">' + esc(p.ru || '') + '</span><b class="ar">' + esc(p.ar || '') + '</b></div>' +
     parasHtml(p.rule) + '<div class="words">' + (p.ex || []).map(function (e) { return wrow(e, n); }).join('') + '</div></div>'; }).join('');
   if (L.ik_card) h += '<div class="vhead"><span class="ar">نغمة الجملة</span><span class="ru">Интона́ция</span></div>' + L.ik_card.map(function (c) {
-    return '<div class="gcard"><div class="wrow">' + pbtn(n, c.a) + '<div><span class="ik ru">ИК-' + c.ik + '</span><span class="ru">' + esc(c.ru) + '</span></div></div><p class="ar">' + esc(c.ar || '') + '</p></div>'; }).join('');
+    return '<div class="lcard"><div class="wrow">' + pbtn(n, c.a) + '<div><span class="ik ru">ИК-' + c.ik + '</span><span class="ru">' + esc(c.ru) + '</span></div></div><p class="ar">' + esc(c.ar || '') + '</p></div>'; }).join('');
   return h;
 }
 function realHtml(R, n) {
@@ -1875,7 +1905,7 @@ function realHtml(R, n) {
   if (R.note) h += '<p class="note ar">' + mix(R.note) + '</p>';
   h += sec('سلانج نضيف', 'Сленг', R.slang);
   if (R.idioms && R.idioms.length) h += '<div class="vhead"><span class="ar">أمثال وتعبيرات</span><span class="ru">Идио́мы</span></div>' + R.idioms.map(function (i) {
-    return '<div class="gcard"><div class="wrow">' + pbtn(n, i.a) + '<div><span class="ru">' + esc(i.ru) + '</span><span class="ar">' + esc(i.ar || '') + '</span></div></div>' + (i.note ? '<p class="note ar" style="margin:4px 0 0">' + esc(i.note) + '</p>' : '') + '</div>'; }).join('');
+    return '<div class="lcard"><div class="wrow">' + pbtn(n, i.a) + '<div><span class="ru">' + esc(i.ru) + '</span><span class="ar">' + esc(i.ar || '') + '</span></div></div>' + (i.note ? '<p class="note ar" style="margin:4px 0 0">' + esc(i.note) + '</p>' : '') + '</div>'; }).join('');
   return h;
 }
 function wrow(r, n) { return '<div class="wrow">' + (r.a ? '<button class="pb" data-url="' + audioUrl(n, r.a) + '" aria-label="اسمع">' + ico('play') + '</button>' : '<span></span>') +
@@ -2445,6 +2475,7 @@ document.addEventListener('click', function (e) {
   var seg = t.closest('[data-seg]'); if (seg) { LS.seg = +seg.dataset.seg; renderSeg(); return; }
   var line = t.closest('[data-line]'); if (line) { startDialogue(+line.dataset.line); return; }
   var pb = t.closest('.pb[data-url]'); if (pb) { playOne(pb, pb.dataset.url); return; }
+  var cj = t.closest('[data-cj]'); if (cj) { playOne(cj, cj.dataset.cj); return; }
   var set = t.closest('[data-set]'); if (set) { var k = set.dataset.set; S[k] = !S[k]; save(); applyPrefs(); set.querySelector('.tog').classList.toggle('on', !!S[k]);
     if (k === 'noCat') { if (S.noCat) { var cc = document.getElementById('cat'); if (cc) cc.hidden = true; } else { catIntro(); catPlace(); } }
     if (k === 'ramadan' && S.push) { var rh = document.getElementById('rhour'); if (rh) rh.dispatchEvent(new Event('change', { bubbles: true })); } return; }
@@ -2832,7 +2863,7 @@ document.addEventListener('click', function (e) {
 
 /* ---------- boot ---------- */
 if (window.NCASES) window.NCASES.init({ S: function () { return S; }, API: API, CONF: CONF, esc: esc, ad: ad, G: G, ico: ico, mix: mix, mixAr: mixAr, chime: chime, buzz: buzz, touchStreak: touchStreak,
-  save: save, levelNow: levelNow, xvHtml: xvHtml, oldCase: function (n) { return LINKS.cases(n); } });
+  save: save, levelNow: levelNow, xvHtml: xvHtml, playOne: playOne, oldCase: function (n) { return LINKS.cases(n); } });
 if (window.NPDD) window.NPDD.init({ S: function () { return S; }, API: API, esc: esc, ad: ad, G: G, ico: ico, mix: mix, chime: chime, buzz: buzz, touchStreak: touchStreak,
   hasCourse: hasCourse, openedPdd: pddOpened, stopMain: function () { try { au.pause(); } catch (e) {} } });
 window.addEventListener('hashchange', navRender);

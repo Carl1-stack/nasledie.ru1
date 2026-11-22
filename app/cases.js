@@ -16,10 +16,14 @@ function ru(t, cls) {   // Russian: [[case form]] in gold; its own LTR island
 var AR_RE = /[؀-ۿ]/;
 function ar(t) { return A.mix(String(t || '').replace(/\[\[|\]\]/g, '')); }
 function seg(t) { return String(t).split('|').map(function (x) { x = x.trim(); return x ? (AR_RE.test(x) ? '<span class="ar">' + ar(x) + '</span>' : ru(x)) : ''; }).filter(Boolean).join('<br>'); }
-function paras(l) { return (l || []).map(function (p) { return p[0] === 'ar' ? '<p class="ar">' + ar(p[1]) + '</p>' : '<p class="cs-ruline">' + ru(p[1]) + '</p>'; }).join(''); }
+function paras(l, ids) { return (l || []).map(function (p, i) { return p[0] === 'ar' ? '<p class="ar">' + ar(p[1]) + '</p>' : '<p class="cs-ruline">' + pb(ids && ids[i]) + ru(p[1]) + '</p>'; }).join(''); }
+/* voices (teacher, 2026-11-22: the app's grammar lessons get sound; the decks stay silent) */
+var CUR = null;
+function pb(id) { return id ? '<button class="cs-pb" data-csau="' + id + '" aria-label="اسمع">' + A.ico('play') + '</button>' : ''; }
+function auUrl(id) { return CUR.free ? 'audio/cases/' + CUR.key + '/' + id + '.mp3' : A.API + '/c/cases/audio/' + CUR.key + '/' + id + '.mp3?t=' + encodeURIComponent(S().token || ''); }
 function pr(t) { return t ? '<div class="pr cs-pr">' + esc(t) + '</div>' : ''; }
 function exRow(e, why) {
-  return '<div class="cs-row"><div class="cs-rr">' + ru(e.ru) + '</div>' + pr(e.pr) + (why ? '<div class="cs-why ar">' + ar(why) + '</div>' : '') + (e.ar ? '<div class="cs-tr ar">' + ar(e.ar) + '</div>' : '') + '</div>';
+  return '<div class="cs-row' + (e.a ? ' au' : '') + '"><div class="cs-rr">' + pb(e.a) + ru(e.ru) + '</div>' + pr(e.pr) + (why ? '<div class="cs-why ar">' + ar(why) + '</div>' : '') + (e.ar ? '<div class="cs-tr ar">' + ar(e.ar) + '</div>' : '') + '</div>';
 }
 
 /* ---------- access ---------- */
@@ -73,32 +77,32 @@ function vMap() {
 
 /* ---------- one lesson ---------- */
 var R = {
-  say: function (d) { return '<div class="cs-box">' + paras(d.paras) + '</div>' + (d.ex || []).map(function (e) { return exRow(e); }).join(''); },
+  say: function (d) { return '<div class="cs-box">' + paras(d.paras, d.pa_paras) + '</div>' + (d.ex || []).map(function (e) { return exRow(e); }).join(''); },
   table: function (d) {
     var th = d.head.map(function (x) { return '<th>' + seg(x) + '</th>'; }).join('');
-    var rows = d.rows.map(function (r) { return '<tr>' + r.map(function (c, i) { return '<td' + (i === 0 ? ' class="lab"' : '') + '>' + seg(c) + '</td>'; }).join('') + '</tr>'; }).join('');
+    var rows = d.rows.map(function (r, ri) { return '<tr>' + r.map(function (c, i) { var id = d.ca && d.ca[ri] && d.ca[ri][i]; return '<td' + (i === 0 ? ' class="lab"' : '') + '>' + (id ? '<span class="cs-cell">' + pb(id) + seg(c) + '</span>' : seg(c)) + '</td>'; }).join('') + '</tr>'; }).join('');
     return '<div class="cs-tw"><table class="cs-t"><thead><tr>' + th + '</tr></thead><tbody>' + rows + '</tbody></table></div>' + (d.notes && d.notes.length ? '<div class="cs-box sm">' + paras(d.notes) + '</div>' : '');
   },
   uses: function (d) { return d.rows.map(function (r) { return exRow(r, r.why); }).join(''); },
   tricks: function (d) { return d.rows.map(function (r) { return exRow(r, r.why); }).join(''); },
   idea: function (d) {
     var sc = '<div class="cs-scene" dir="ltr">' + d.scene.map(function (s, i) { return '<div class="cs-sc' + (i === d.focus ? ' foc' : '') + (s[0] ? '' : ' verb') + '">' + (s[0] ? '<small>' + ru(s[0]) + '</small>' : '') + '<b>' + ru(s[1]) + '</b></div>'; }).join('<span class="cs-arr">→</span>') + '</div>';
-    return sc + exRow(d.sent) + '<div class="cs-box">' + paras(d.points) + '</div>';
+    return sc + exRow(d.sent) + '<div class="cs-box">' + paras(d.points, d.pa_points) + '</div>';
   },
   compare: function (d) {
     var side = function (b, c) { return '<div class="cs-side ' + c + '"><div class="cs-sh">' + ru(b.head) + '</div>' + (b.ru2 ? '<p class="cs-ruline">' + ru(b.ru2) + '</p>' : '') + '<div class="cs-why ar">' + ar(b.ar) + '</div>' + b.ex.map(function (e) { return exRow(e); }).join('') + '</div>'; };
     return '<div class="cs-cmp">' + side(d.left, 'l') + side(d.right, 'r') + '</div>' + (d.note && d.note.length ? '<div class="cs-box sm">' + paras(d.note) + '</div>' : '');
   },
   verbs: function (d) { return d.groups.map(function (g) { return '<div class="cs-vg"><b class="ar">' + ar(g.ar) + '</b><p class="cs-ruline">' + ru(g.verbs) + '</p>' + exRow(g) + '</div>'; }).join(''); },
-  arabic: function (d) { return d.rows.map(function (r) { return exRow(r, r.arx); }).join('') + '<div class="cs-box warn">' + paras(d.diff) + '</div>'; },
+  arabic: function (d) { return d.rows.map(function (r) { return exRow(r, r.arx); }).join('') + '<div class="cs-box warn">' + paras(d.diff, d.pa_diff) + '</div>'; },
   drill: function (d) {
     return '<p class="ar cs-hint">' + (d.wrong ? A.G('الجمل دي غلط عمدًا: صلّحها بصوت عالي، وبعدين افتح الإجابة.', 'الجمل دي غلط عمدًا: صلّحيها بصوت عالي، وبعدين افتحي الإجابة.') : A.G('جاوب إنت الأول بصوت عالي، وبعدين افتح الإجابة.', 'جاوبي إنتي الأول بصوت عالي، وبعدين افتحي الإجابة.')) + '</p>' +
-      d.items.map(function (it, k) { return '<div class="cs-qa"><span class="n ru">' + (k + 1) + '</span><div class="cs-qx"><div>' + ru(it.q, d.wrong ? 'bad' : '') + (it.hint ? ' ' + ru(it.hint, 'hint') : '') + '</div>' + (it.why ? '<div class="cs-why ar">' + ar(it.why) + '</div>' : '') +
-        '<details><summary class="ar">الإجابة</summary><div class="cs-ans">' + ru(it.ans) + '</div>' + pr(it.apr) + '</details></div></div>'; }).join('');
+      d.items.map(function (it, k) { return '<div class="cs-qa"><span class="n ru">' + (k + 1) + '</span><div class="cs-qx"><div>' + pb(it.qa) + ru(it.q, d.wrong ? 'bad' : '') + (it.hint ? ' ' + ru(it.hint, 'hint') : '') + '</div>' + (it.why ? '<div class="cs-why ar">' + ar(it.why) + '</div>' : '') +
+        '<details><summary class="ar">الإجابة</summary><div class="cs-ans">' + pb(it.aa) + ru(it.ans) + '</div>' + pr(it.apr) + '</details></div></div>'; }).join('');
   },
-  text: function (d) { return '<p class="ar cs-hint">' + ar(d.how) + '</p>' + d.rows.map(function (r) { return exRow(r); }).join('') + '<details class="cs-key"><summary class="ar">الإجابة</summary>' + paras(d.key) + '</details>'; },
+  text: function (d) { return '<p class="ar cs-hint">' + ar(d.how) + '</p>' + d.rows.map(function (r) { return exRow(r); }).join('') + '<details class="cs-key"><summary class="ar">الإجابة</summary>' + paras(d.key, d.pa_key) + '</details>'; },
   tasks: function (d) { return d.cards.map(function (c, i) { return '<div class="cs-task"><b class="ar">' + A.ad(i + 1) + '. ' + ar(c.ar) + '</b><p class="ar">' + ar(c.how) + '</p><p class="cs-ruline">' + ru(c.ru) + '</p></div>'; }).join(''); },
-  section: function (d) { return '<div class="cs-band"><div class="ru">' + ru(d.q) + '</div>' + paras(d.points) + '</div>'; },
+  section: function (d) { return '<div class="cs-band"><div class="ru">' + ru(d.q) + '</div>' + paras(d.points, d.pa_points) + '</div>'; },
 };
 function lessonHead(l, d, tab) {
   var tabs = [['', 'الدرس'], ['quiz', 'الكويز']].concat(d.xvideos ? [['videos', 'فيديوهات إضافية']] : []);
@@ -112,7 +116,7 @@ function nextLesson(l) {
   return null;
 }
 function vLesson(l, d, tab) {
-  var h = lessonHead(l, d, tab);
+  CUR = l; var h = lessonHead(l, d, tab);
   if (tab === 'quiz') { view().innerHTML = h + '<div id="csq"></div></div>'; quizStart(l, d); return; }
   if (tab === 'videos') { view().innerHTML = h + A.xvHtml(d.xvideos, 0) + '</div>'; return; }
   h += '<p class="ar cs-sit">' + ar(d.situation) + '</p>';
@@ -179,6 +183,8 @@ function route(arg) {
   }).catch(function () { view().innerHTML = '<div class="page pad"><p class="ar">محتاج نت أول مرة.</p></div>'; });
 }
 document.addEventListener('click', function (e) {
+  var au = e.target.closest('[data-csau]');
+  if (au && CUR) { e.preventDefault(); e.stopPropagation(); A.playOne(au, auUrl(au.dataset.csau)); return; }
   if (!document.getElementById('csq')) return;
   var t = e.target.closest('[data-csopt],[data-csact]'); if (!t) return;
   if (t.dataset.csopt !== undefined) { quizPick(+t.dataset.csopt); return; }

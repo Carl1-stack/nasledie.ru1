@@ -80,3 +80,12 @@
 .cs .q-ru{direction:ltr}
 .cs .seg a{flex:0 0 auto;border:1px solid var(--line);color:var(--dim);border-radius:999px;padding:7px 13px;font:700 12px var(--ar);text-decoration:none}
 .cs .seg a.on{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+/* voices in the app (2026-11-22) */
+.cs-pb{display:inline-grid;place-items:center;width:30px;height:30px;margin:0 8px 0 0;vertical-align:middle;border-radius:50%;border:1px solid rgba(214,168,90,.45);background:rgba(214,168,90,.08);color:var(--gold);cursor:pointer;flex:none;transition:background .2s,transform .15s}
+.cs-pb .ico{width:13px;height:13px}
+.cs-pb:active{transform:scale(.92)}
+.cs-pb.playing{background:var(--gold);color:var(--ink)}
+.cs-row.au .cs-rr{display:flex;align-items:center;gap:0}
+.cs-cell{display:inline-flex;align-items:center;gap:0;direction:ltr}
+.cs-t .cs-pb{width:26px;height:26px;margin-right:6px}
+.cs-ruline .cs-pb,.cs-ans .cs-pb{width:26px;height:26px}
