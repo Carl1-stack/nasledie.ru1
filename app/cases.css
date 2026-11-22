@@ -85,7 +85,7 @@
 .cs-pb .ico{width:13px;height:13px}
 .cs-pb:active{transform:scale(.92)}
 .cs-pb.playing{background:var(--gold);color:var(--ink)}
-.cs-row.au .cs-rr{display:flex;align-items:center;gap:0}
+.cs-row.au .cs-rr{display:flex;align-items:center;gap:0;direction:ltr;justify-content:flex-start}
 .cs-cell{display:inline-flex;align-items:center;gap:0;direction:ltr}
 .cs-t .cs-pb{width:26px;height:26px;margin-right:6px}
 .cs-ruline .cs-pb,.cs-ans .cs-pb{width:26px;height:26px}
