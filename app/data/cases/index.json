@@ -318,7 +318,7 @@
 "free": false,
 "q": 15,
 "slides": 10,
-"videos": false
+"videos": true
 },
 {
 "key": "imu05",
@@ -333,7 +333,7 @@
 "free": false,
 "q": 15,
 "slides": 10,
-"videos": false
+"videos": true
 },
 {
 "key": "imu06",
@@ -348,7 +348,7 @@
 "free": false,
 "q": 15,
 "slides": 10,
-"videos": false
+"videos": true
 },
 {
 "key": "imu07",
@@ -363,7 +363,7 @@
 "free": false,
 "q": 15,
 "slides": 9,
-"videos": false
+"videos": true
 }
 ],
 "reviews": [
