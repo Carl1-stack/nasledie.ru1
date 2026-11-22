@@ -98,7 +98,7 @@ var R = {
   drill: function (d) {
     return '<p class="ar cs-hint">' + (d.wrong ? A.G('الجمل دي غلط عمدًا: صلّحها بصوت عالي، وبعدين افتح الإجابة.', 'الجمل دي غلط عمدًا: صلّحيها بصوت عالي، وبعدين افتحي الإجابة.') : A.G('جاوب إنت الأول بصوت عالي، وبعدين افتح الإجابة.', 'جاوبي إنتي الأول بصوت عالي، وبعدين افتحي الإجابة.')) + '</p>' +
       d.items.map(function (it, k) { return '<div class="cs-qa"><span class="n ru">' + (k + 1) + '</span><div class="cs-qx"><div>' + pb(it.qa) + ru(it.q, d.wrong ? 'bad' : '') + (it.hint ? ' ' + ru(it.hint, 'hint') : '') + '</div>' + (it.why ? '<div class="cs-why ar">' + ar(it.why) + '</div>' : '') +
-        '<details><summary class="ar">الإجابة</summary><div class="cs-ans">' + pb(it.aa) + ru(it.ans) + '</div>' + pr(it.apr) + '</details></div></div>'; }).join('');
+        '<details><summary class="ar">الإجابة</summary><div class="cs-ans">' + pb(it.aa) + ru(it.ans) + '</div>' + (it.aar ? '<div class="cs-tr ar">' + esc(it.aar) + '</div>' : '') + '</details></div></div>'; }).join('');
   },
   text: function (d) { return '<p class="ar cs-hint">' + ar(d.how) + '</p>' + d.rows.map(function (r) { return exRow(r); }).join('') + '<details class="cs-key"><summary class="ar">الإجابة</summary>' + paras(d.key, d.pa_key) + '</details>'; },
   tasks: function (d) { return d.cards.map(function (c, i) { return '<div class="cs-task"><b class="ar">' + A.ad(i + 1) + '. ' + ar(c.ar) + '</b><p class="ar">' + ar(c.how) + '</p><p class="cs-ruline">' + ru(c.ru) + '</p></div>'; }).join(''); },

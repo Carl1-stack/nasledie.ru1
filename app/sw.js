@@ -31,7 +31,7 @@ self.addEventListener('fetch', function (e) {
       .catch(function () { return caches.match(req, { ignoreVary: true }); })); return; }
   if (url.origin !== location.origin && !isFont) return;
   if (req.headers.get('range')) return;   // let the browser stream audio ranges itself
-  var shellFile = url.origin === location.origin && (/\/(index\.html|app\.css|app\.js|config\.js)?$/.test(url.pathname) || /\/data\/[^/]+\.json$/.test(url.pathname));
+  var shellFile = url.origin === location.origin && (/\/(index\.html|[\w-]+\.css|[\w-]+\.js|manifest\.webmanifest)?$/.test(url.pathname) || /\/data\/.+\.json$/.test(url.pathname));
   if (shellFile) {   // network first, so updates arrive; cache when offline
     e.respondWith(fetch(req, { cache: 'no-cache' }).then(function (r) { var c = r.clone(); if (r.ok) caches.open(VERSION).then(function (ca) { ca.put(req, c); }); return r; })
       .catch(function () { return caches.match(req); }));

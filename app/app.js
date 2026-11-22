@@ -1844,7 +1844,7 @@ function endSplit(forms) {   // common stem of the verb forms (stress marks igno
 function conjCard(v, n) {
   var forms = v.forms || [], sp = endSplit(forms), six = forms.length === 6;
   var cell = function (f, i) { var x = sp[i]; return '<button class="cj-c"' + (f.a ? ' data-cj="' + audioUrl(n, f.a) + '"' : '') + '><span class="cj-p">' + esc(x[0]) + '</span>' +
-    '<span class="cj-v">' + esc(x[1]) + (x[2] ? '<b>' + esc(x[2]) + '</b>' : '') + '</span>' + (f.pr ? '<small class="pr">' + esc(f.pr) + '</small>' : '') + '</button>'; };
+    '<span class="cj-v">' + esc(x[1]) + (x[2] ? '<b>' + esc(x[2]) + '</b>' : '') + '</span>' + (f.ar ? '<small class="tl">' + esc(f.ar) + '</small>' : '') + '</button>'; };
   var order = six ? [0, 3, 1, 4, 2, 5] : forms.map(function (_, i) { return i; });
   return '<div class="cj"><div class="cj-h"><div class="cj-inf">' + (v.a ? '<button class="pb" data-url="' + audioUrl(n, v.a) + '" aria-label="اسمع">' + ico('play') + '</button>' : '') +
       '<div><b class="ru">' + esc(v.ru) + '</b>' + (v.pr ? '<small class="pr">' + esc(v.pr) + '</small>' : '') + '</div></div>' +
@@ -1870,8 +1870,8 @@ function grammarHtml(L, n) {
 function drillHtml(D, n, key) {
   return '<div class="vhead"><span class="ar">' + esc(D.ar || '') + '</span><span class="ru">' + esc(D.ru || '') + '</span></div>' + (D.note ? '<p class="note ar" style="margin:0 0 8px">' + mix(D.note) + '</p>' : '') +
     (D.img ? '<img class="dimg" src="' + picUrl(n, D.img) + '" alt="" loading="lazy">' : '') +
-    '<div class="drill">' + (D.items || []).map(function (it, i) { return '<div class="ditem"><div class="wrow">' + pbtn(n, it.qa) + '<span class="ru">' + esc(it.q) + '</span></div>' +
-      '<button class="reveal" data-act="reveal">' + G('شوف الإجابة', 'شوفي الإجابة') + '</button><div class="ans" hidden><div class="wrow">' + pbtn(n, it.aa) + '<span class="ru">' + esc(it.ans) + '</span></div></div></div>'; }).join('') + '</div>' +
+    '<div class="drill">' + (D.items || []).map(function (it, i) { return '<div class="ditem"><div class="wrow">' + pbtn(n, it.qa) + '<div><span class="ru">' + esc(it.q) + '</span>' + (it.qar ? '<span class="tl">' + esc(it.qar) + '</span>' : '') + '</div></div>' +
+      '<button class="reveal" data-act="reveal">' + G('شوف الإجابة', 'شوفي الإجابة') + '</button><div class="ans" hidden><div class="wrow">' + pbtn(n, it.aa) + '<div><span class="ru">' + esc(it.ans) + '</span>' + (it.aar ? '<span class="tl">' + esc(it.aar) + '</span>' : '') + '</div></div></div></div>'; }).join('') + '</div>' +
     '<div class="row2"><button class="btn" data-act="drillplay" data-d="' + key + '">' + ico('repeat') + G('سؤال، سكتة وجاوب، وبعدين الإجابة', 'سؤال، سكتة وجاوبي، وبعدين الإجابة') + '</button></div>';
 }
 function practiceHtml(L, n) {
@@ -2368,7 +2368,7 @@ function vProfile() {
     '<section class="sec"><h2><span>الأوسمة</span><span class="ru">Награ́ды</span></h2><div class="badges">' +
       badges().map(function (x) { return '<div class="badge' + (x.on ? ' on' : '') + '"><span class="md">' + ico(x.ic) + '</span><small class="ar">' + x.ar + '</small></div>'; }).join('') + '</div></section>' +
     '<section class="sec"><h2><span>الإعدادات</span></h2>' +
-    setRow('hidePr', 'إخفاء النطق العربي', 'لما ' + G('تتعود', 'تتعودي') + ' على الحروف الروسية') +
+
     setRow('hideTr', 'إخفاء الترجمة في الحوارات', G('عشان تفهم بالروسي بس', 'عشان تفهمي بالروسي بس')) +
     setRow('light', 'الوضع الفاتح', 'للمذاكرة في النور') +
     '<button class="set" data-act="birdstory"><span class="tx">حكاية ژارا، طائر النار<small>مين هي، وليه ريشها بيرجع كل يوم ' + G('بتذاكر', 'بتذاكري') + ' فيه</small></span>' + ico('feather') + '</button>' +
@@ -2877,6 +2877,10 @@ getJSON('data/index.json').then(function (idx) {
   refreshStatus().then(function () { if (!S.token) return; return pullProgress().then(function () { if (parse().name !== 'chat' && parse().name !== 'call' && parse().name !== 'open') render(); }); });
 }).catch(function () { view.innerHTML = '<div class="page pad"><p class="ar">التطبيق محتاج نت أول مرة يفتح.</p></div>'; });
 function fillCreditsLater() { new MutationObserver(function () { if (document.getElementById('credits') && !document.getElementById('credits').children.length) fillCredits(); }).observe(view, { childList: true }); fillCredits(); }
-if ('serviceWorker' in navigator && location.protocol !== 'file:') { navigator.serviceWorker.register('sw.js').catch(function () {}); }
+if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+  var hadSW = !!navigator.serviceWorker.controller, swReloaded = false;   // a new version took over → reload once, so the phone never keeps an old screen
+  navigator.serviceWorker.addEventListener('controllerchange', function () { if (hadSW && !swReloaded) { swReloaded = true; location.reload(); } });
+  navigator.serviceWorker.register('sw.js').then(function (r) { r.update && r.update(); }).catch(function () {});
+}
 applyPrefs();
 })();

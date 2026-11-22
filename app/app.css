@@ -32,6 +32,11 @@ button{font:inherit;color:inherit}
 span.ru,span.ar{display:inline}
 .pr{font-family:var(--ar);direction:rtl;unicode-bidi:isolate;text-align:left;font-size:12.5px;color:var(--pr)}
 body.nopr .pr{display:none}
+/* teacher, 2026-11-22: "remove the pronunciation under every word, add the translation instead" — no Arabic pronunciation line anywhere */
+.pr{display:none!important}
+.tl{display:block;font:500 13px/1.6 var(--ar);color:var(--dim);direction:rtl;unicode-bidi:isolate;text-align:left}
+.cj-c .tl{font-size:12px;line-height:1.5}
+.ditem .tl{margin-top:2px}
 .d-ru{font-family:var(--d-ru);font-weight:400}
 .d-ar{font-family:var(--d-ar);font-weight:700}
 .ico{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}
