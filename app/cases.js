@@ -6,6 +6,14 @@
 (function () {
 'use strict';
 var A = null, IDX = null, CACHE = {}, QZ = null;
+/* two courses share this module (2026-11-23): Падежи́ (#cases) and Грамма́тика (#grammar, grammar/PLAN.md, tools/grammar_export.py) */
+var COURSES = {
+  cases: { id: 'cases', opened: 'casesv2', done: 'cases', res: 'c-', name: 'Падежи ', ru: 'Падежи́', img: 'u3', meta: 'الحالات الإعرابية الست: كل استخدام في درس، من الأسهل للأصعب',
+    intro: ['ابدأ بدرس الحروف، وبعدين امشي بالترتيب في مستواك. كل درس فيه شرح بسيط، وجدول، وغلطات مشهورة، وتمرين، وكويز.', 'ابدئي بدرس الحروف، وبعدين امشي بالترتيب في مستواكي. كل درس فيه شرح بسيط، وجدول، وغلطات مشهورة، وتمرين، وكويز.'] },
+  grammar: { id: 'grammar', opened: 'grammar', done: 'grammar', res: 'g-', name: 'Грамматика ', ru: 'Грамма́тика', img: 'u4', meta: 'القواعد اللي مش حالات: الفعل، الحركة، الظرف، الصفة، الجملة… كل نقطة في درس',
+    intro: ['كل مستوى متقسم بالموضوع: الفعل، أفعال الحركة، الظرف، والباقي. ابدأ بدرس المقدمة بتاع كل موضوع، وبعدين بالترتيب.', 'كل مستوى متقسم بالموضوع: الفعل، أفعال الحركة، الظرف، والباقي. ابدئي بدرس المقدمة بتاع كل موضوع، وبعدين بالترتيب.'] }
+};
+var K = COURSES.cases, IDXS = {};
 function esc(s) { return A.esc(s); }
 function S() { return A.S(); }
 var ACC = /([АаЕеЁёИиОоУуЫыЭэЮюЯя])'/g;
@@ -20,7 +28,7 @@ function paras(l, ids) { return (l || []).map(function (p, i) { return p[0] === 
 /* voices (teacher, 2026-11-22: the app's grammar lessons get sound; the decks stay silent) */
 var CUR = null;
 function pb(id) { return id ? '<button class="cs-pb" data-csau="' + id + '" aria-label="اسمع">' + A.ico('play') + '</button>' : ''; }
-function auUrl(id) { return CUR.free ? 'audio/cases/' + CUR.key + '/' + id + '.mp3' : A.API + '/c/cases/audio/' + CUR.key + '/' + id + '.mp3?t=' + encodeURIComponent(S().token || ''); }
+function auUrl(id) { return CUR.free ? 'audio/' + K.id + '/' + CUR.key + '/' + id + '.mp3' : A.API + '/c/' + K.id + '/audio/' + CUR.key + '/' + id + '.mp3?t=' + encodeURIComponent(S().token || ''); }
 function pr(t) { return t ? '<div class="pr cs-pr">' + esc(t) + '</div>' : ''; }
 function exRow(e, why) {
   return '<div class="cs-row' + (e.a ? ' au' : '') + '"><div class="cs-rr">' + pb(e.a) + ru(e.ru) + '</div>' + pr(e.pr) + (why ? '<div class="cs-why ar">' + ar(why) + '</div>' : '') + (e.ar ? '<div class="cs-tr ar">' + ar(e.ar) + '</div>' : '') + '</div>';
@@ -31,28 +39,28 @@ function scopeHas(c) { var a = S().acc; return !!(a && S().token && String(a.sco
 function canOpen(l) {
   if (l.free) return true;
   var a = S().acc; if (!a || !S().token || a.state === 'cancelled') return false;
-  if (a.state === 'active' && (scopeHas('cases') || scopeHas('b1') || (l.level === 'a1' && scopeHas('a1')))) return true;
-  return (a.opened || []).indexOf('casesv2:' + l.id) >= 0;
+  if (a.state === 'active' && ((K.id === 'cases' && scopeHas('cases')) || scopeHas('b1') || scopeHas('b2') || (l.level === 'a1' && (scopeHas('a1') || scopeHas('a2'))) || (l.level === 'a2' && scopeHas('a2')))) return true;   // the level rules (grammar: teacher, 2026-11-23)
+  return (a.opened || []).indexOf(K.opened + ':' + l.id) >= 0;
 }
-function fileUrl(l) { return l.free ? 'data/cases/' + l.key + '.json' : A.API + '/c/cases/' + l.key + '.json?t=' + encodeURIComponent(S().token || ''); }
-function loadIdx() { if (IDX) return Promise.resolve(IDX); return fetch('data/cases/index.json', { cache: 'no-cache' }).then(function (r) { return r.json(); }).then(function (j) { IDX = j; return j; }); }
+function fileUrl(l) { return l.free ? 'data/' + K.id + '/' + l.key + '.json' : A.API + '/c/' + K.id + '/' + l.key + '.json?t=' + encodeURIComponent(S().token || ''); }
+function loadIdx() { var c = K.id; if (IDXS[c]) { IDX = IDXS[c]; return Promise.resolve(IDX); } return fetch('data/' + c + '/index.json', { cache: 'no-cache' }).then(function (r) { return r.json(); }).then(function (j) { IDXS[c] = j; if (K.id === c) IDX = j; return j; }); }
 function loadLesson(l) {
-  if (CACHE[l.key]) return Promise.resolve(CACHE[l.key]);
+  var ck = K.id + ':' + l.key; if (CACHE[ck]) return Promise.resolve(CACHE[ck]);
   return fetch(fileUrl(l), { cache: 'no-cache' }).then(function (r) { if (r.status === 401 || r.status === 403) throw 'denied'; if (!r.ok) throw 'net'; return r.json(); }).then(function (d) {
-    CACHE[l.key] = d;
-    var a = S().acc; if (!l.free && a) { a.opened = a.opened || []; var k = 'casesv2:' + l.id; if (a.opened.indexOf(k) < 0) { a.opened.push(k); A.save(); } }
+    CACHE[ck] = d;
+    var a = S().acc; if (!l.free && a) { a.opened = a.opened || []; var k = K.opened + ':' + l.id; if (a.opened.indexOf(k) < 0) { a.opened.push(k); A.save(); } }
     return d;
   });
 }
-function done() { return S().cases || (S().cases = {}); }
+function done() { var s = S(); return s[K.done] || (s[K.done] = {}); }
 function view() { return document.getElementById('view'); }
 
 /* ---------- the map: level chapters → cases → lessons ---------- */
 function vMap() {
   var lv = A.levelNow(), D = done();
-  var h = '<section class="hero" style="height:250px"><img src="img/u3.jpg" alt=""><div class="topbar pad"><a class="back" href="#library" aria-label="رجوع">' + A.ico('back') + '</a></div>' +
-    '<div class="in pad"><span class="d-ru ru t-ru" style="font-size:34px">Падежи́</span><span class="ar meta">الحالات الإعرابية الست: كل استخدام في درس، من الأسهل للأصعب</span></div></section><div class="pad cs">';
-  h += '<p class="ar cs-intro">' + A.G('ابدأ بدرس الحروف، وبعدين امشي بالترتيب في مستواك. كل درس فيه شرح بسيط، وجدول، وغلطات مشهورة، وتمرين، وكويز.', 'ابدئي بدرس الحروف، وبعدين امشي بالترتيب في مستواكي. كل درس فيه شرح بسيط، وجدول، وغلطات مشهورة، وتمرين، وكويز.') + '</p>';
+  var h = '<section class="hero" style="height:250px"><img src="img/' + K.img + '.jpg" alt=""><div class="topbar pad"><a class="back" href="#library" aria-label="رجوع">' + A.ico('back') + '</a></div>' +
+    '<div class="in pad"><span class="d-ru ru t-ru" style="font-size:34px">' + K.ru + '</span><span class="ar meta">' + K.meta + '</span></div></section><div class="pad cs">';
+  h += '<p class="ar cs-intro">' + A.G(K.intro[0], K.intro[1]) + '</p>';
   IDX.levels.forEach(function (L) {
     var ls = IDX.lessons.filter(function (l) { return l.level === L.id; });
     var dn = ls.filter(function (l) { return D[l.key]; }).length;
@@ -64,14 +72,15 @@ function vMap() {
       h += '<div class="cs-case"><span class="ar">' + esc(c.ar) + '</span><span class="ru">' + esc(c.ru) + '</span></div>';
       cl.forEach(function (l) {
         var open = canOpen(l), d = D[l.key];
-        h += '<a class="ep pad cs-ep' + (d ? ' done' : '') + '" href="' + (open ? '#cases/' + l.key : '#unlock/0') + '"><span class="no ru">' + esc(l.code === '0' ? '•' : l.code) + '</span><span><span class="ru">' + esc(l.ru) + '</span><span class="ar">' + esc(l.ar) + '</span></span>' +
+        h += '<a class="ep pad cs-ep' + (d ? ' done' : '') + '" href="' + (open ? '#' + K.id + '/' + l.key : '#unlock/0') + '"><span class="no ru">' + esc(l.code === '0' ? '•' : l.code) + '</span><span><span class="ru">' + esc(l.ru) + '</span><span class="ar">' + esc(l.ar) + '</span></span>' +
           (open ? (d ? '<span class="cs-sc ru">' + d + '%</span>' : (l.free ? '<span class="cs-free ar">ببلاش</span>' : '')) : '<span class="lk">' + A.ico('lock') + '</span>') + '</a>';
       });
     });
     h += '</details>';
   });
-  h += '<section class="sec" style="margin-top:18px"><h2><span>مراجعة شاملة (حالتين في كل درس)</span><span class="ru">Повторе́ние</span></h2><div class="links">' +
+  if ((IDX.reviews || []).length) h += '<section class="sec" style="margin-top:18px"><h2><span>مراجعة شاملة (حالتين في كل درس)</span><span class="ru">Повторе́ние</span></h2><div class="links">' +
     IDX.reviews.map(function (r) { return '<a class="lrow" href="' + A.oldCase(r.n) + '">' + A.ico('book') + '<span class="tx"><b>' + esc(r.ar) + '</b><small class="ru">' + esc(r.ru) + '</small></span>' + A.ico('back', 'end') + '</a>'; }).join('') + '</div></section></div>';
+  else h += '</div>';
   view().innerHTML = h;
 }
 
@@ -106,9 +115,9 @@ var R = {
 };
 function lessonHead(l, d, tab) {
   var tabs = [['', 'الدرس'], ['quiz', 'الكويز']].concat(d.xvideos ? [['videos', 'فيديوهات إضافية']] : []);
-  return '<div class="page pad cs"><div class="ph1"><a class="back" href="#cases" aria-label="رجوع">' + A.ico('back') + '</a><div><span class="ru cs-lab">' + esc(d.label) + ' · ' + IDX.levels.filter(function (x) { return x.id === l.level; })[0].ru + '</span>' +
+  return '<div class="page pad cs"><div class="ph1"><a class="back" href="#' + K.id + '" aria-label="رجوع">' + A.ico('back') + '</a><div><span class="ru cs-lab">' + esc(d.label) + ' · ' + IDX.levels.filter(function (x) { return x.id === l.level; })[0].ru + '</span>' +
     '<h1 class="ar" style="font-size:22px;margin:2px 0">' + esc(d.ar) + '</h1><span class="ru cs-t1">' + esc(d.ru) + '</span></div></div>' +
-    '<div class="seg">' + tabs.map(function (t) { return '<a class="sg' + (t[0] === tab ? ' on' : '') + '" href="#cases/' + l.key + (t[0] ? '/' + t[0] : '') + '">' + t[1] + '</a>'; }).join('') + '</div>';
+    '<div class="seg">' + tabs.map(function (t) { return '<a class="sg' + (t[0] === tab ? ' on' : '') + '" href="#' + K.id + '/' + l.key + (t[0] ? '/' + t[0] : '') + '">' + t[1] + '</a>'; }).join('') + '</div>';
 }
 function nextLesson(l) {
   var ls = IDX.lessons, i = ls.indexOf(l);
@@ -122,8 +131,8 @@ function vLesson(l, d, tab) {
   h += '<p class="ar cs-sit">' + ar(d.situation) + '</p>';
   d.slides.forEach(function (s) { h += '<section class="cs-sec"><h3 class="ar">' + ar(s.ar) + '</h3><div class="cs-sub">' + ru(s.ru) + '</div>' + (R[s.type] ? R[s.type](s) : '') + '</section>'; });
   var nx = nextLesson(l);
-  h += '<div class="cs-end"><a class="btn" href="#cases/' + l.key + '/quiz">' + A.ico('test') + A.G('اعمل الكويز', 'اعملي الكويز') + '</a>' +
-    (nx ? '<a class="btn ghost" href="' + (canOpen(nx) ? '#cases/' + nx.key : '#unlock/0') + '">الدرس اللي بعده</a>' : '') + '</div></div>';
+  h += '<div class="cs-end"><a class="btn" href="#' + K.id + '/' + l.key + '/quiz">' + A.ico('test') + A.G('اعمل الكويز', 'اعملي الكويز') + '</a>' +
+    (nx ? '<a class="btn ghost" href="' + (canOpen(nx) ? '#' + K.id + '/' + nx.key : '#unlock/0') + '">الدرس اللي بعده</a>' : '') + '</div></div>';
   view().innerHTML = h;
   loadVerbs().then(function () { if (CUR === l && !document.getElementById('csq')) markVerbs(view()); });
 }
@@ -157,15 +166,15 @@ function quizEnd() {
   var nx = nextLesson(l);
   document.getElementById('csq').innerHTML = '<div class="qz res"><div class="cs-big ru">' + tot + '/' + n + '</div><p class="ar">' + (pct >= 90 ? 'ممتاز! الدرس ده بقى في إيدك.' : pct >= 70 ? A.G('كويس جدًا! راجع الغلطات وكمّل.', 'كويس جدًا! راجعي الغلطات وكمّلي.') : A.G('ارجع للدرس مرة كمان، وبعدين أعيد الكويز.', 'ارجعي للدرس مرة كمان، وبعدين أعيدي الكويز.')) + '</p>' +
     '<p class="ar cs-sent" id="cssent"></p><div class="row2" style="justify-content:center;gap:8px;flex-wrap:wrap"><button class="btn ghost" data-csact="again">' + A.G('أعيد الكويز', 'أعيدي الكويز') + '</button>' +
-    (nx ? '<a class="btn" href="' + (canOpen(nx) ? '#cases/' + nx.key : '#unlock/0') + '">الدرس اللي بعده</a>' : '') + '</div></div>';
+    (nx ? '<a class="btn" href="' + (canOpen(nx) ? '#' + K.id + '/' + nx.key : '#unlock/0') + '">الدرس اللي بعده</a>' : '') + '</div></div>';
   send(l, QZ, tot, pct);
 }
 function send(l, Z, tot, pct) {
-  var s = S(), jobs = [], d = { type: 'quiz', name: s.name || 'طالب', lesson: 'Падежи ' + Z.d.label.replace(/́/g, '') + ' · ' + Z.d.ru.replace(/́/g, ''), score: tot + '/' + Z.d.quiz.length,
+  var s = S(), jobs = [], d = { type: 'quiz', name: s.name || 'طالب', lesson: K.name + Z.d.label.replace(/́/g, '') + ' · ' + Z.d.ru.replace(/́/g, ''), score: tot + '/' + Z.d.quiz.length,
     lesson_part: Z.sc.cur[0] + '/' + Z.sc.cur[1], review_part: Z.sc.rev[1] ? Z.sc.rev[0] + '/' + Z.sc.rev[1] : '', mistakes: Z.wrong.join('\n'), source: 'app' };
   if (A.CONF.results) jobs.push(fetch(A.CONF.results, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(d) }));
   if (s.token && A.API) jobs.push(fetch(A.API + '/api/quiz?t=' + encodeURIComponent(s.token), { method: 'POST', headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ key: 'c-' + l.key, pct: pct, score: tot, total: Z.d.quiz.length, cur: Z.sc.cur, rev: Z.sc.rev, mistakes: Z.wrong.slice(0, 40) }) }));
+    body: JSON.stringify({ key: K.res + l.key, pct: pct, score: tot, total: Z.d.quiz.length, cur: Z.sc.cur, rev: Z.sc.rev, mistakes: Z.wrong.slice(0, 40) }) }));
   if (!jobs.length) return;
   Promise.all(jobs).then(function () { var e = document.getElementById('cssent'); if (e) e.textContent = 'النتيجة وصلت للمدرس.'; }).catch(function () {});
 }
@@ -325,7 +334,7 @@ function route(arg) {
     if (!l) { vMap(); return; }
     if (!canOpen(l)) { location.hash = '#unlock/0'; return; }
     loadLesson(l).then(function (d) { vLesson(l, d, p[1] || ''); window.scrollTo(0, 0); })
-      .catch(function (e) { view().innerHTML = '<div class="page pad"><p class="ar">' + (e === 'denied' ? 'الدرس ده مش في الكود بتاعك. كلم المدرس على واتساب.' : 'الدرس محتاج نت. جرّب تاني.') + '</p><a class="btn" href="#cases">رجوع</a></div>'; });
+      .catch(function (e) { view().innerHTML = '<div class="page pad"><p class="ar">' + (e === 'denied' ? 'الدرس ده مش في الكود بتاعك. كلم المدرس على واتساب.' : 'الدرس محتاج نت. جرّب تاني.') + '</p><a class="btn" href="#' + K.id + '">رجوع</a></div>'; });
   }).catch(function () { view().innerHTML = '<div class="page pad"><p class="ar">محتاج نت أول مرة.</p></div>'; });
 }
 document.addEventListener('click', function (e) {
@@ -339,7 +348,7 @@ document.addEventListener('click', function (e) {
 });
 window.NCASES = {
   init: function (bridge) { A = bridge; },
-  view: function (arg) { route(arg); },
+  view: function (arg, course) { K = COURSES[course || 'cases'] || COURSES.cases; IDX = IDXS[K.id] || null; route(arg); },
   count: function () { return IDX ? IDX.lessons.length : 0; },
 };
 })();

@@ -202,7 +202,8 @@ function parse() {
     return { name: 'view', arg: 'p/' + p };
   }
   m = h.match(/^pdd(?:\/(.*))?$/); if (m) return { name: 'pdd', arg: m[1] || '' };
-  m = h.match(/^cases(?:\/(.*))?$/); if (m) return { name: 'cases', arg: m[1] || '' };   // Падежи v2 (cases.js, 2026-11-22)
+  m = h.match(/^cases(?:\/(.*))?$/); if (m) return { name: 'cases', arg: m[1] || '' };
+  m = h.match(/^grammar(?:\/(.*))?$/); if (m) return { name: 'grammar', arg: m[1] || '' };   // Грамма́тика (cases.js, grammar/PLAN.md, 2026-11-23)   // Падежи v2 (cases.js, 2026-11-22)
   if (h === 'course/cases') return { name: 'cases', arg: '' };   // ПДД driving-theory course (pdd.js)
   if (h === 'album') return { name: 'album', arg: null };
   if (h === 'ask') return { name: 'ask', arg: null };
@@ -227,7 +228,7 @@ function render() {
   if (route.name !== 'game' && route.name !== 'boss' && route.name !== 'duel' && GM) { clearTimeout(GM.tt); GM = null; }
   if (route.name !== 'game' && route.name !== 'duel') RNG = Math.random;
   var R = { home: vHome, library: vLibrary, unit: vUnit, lesson: vLesson, practice: vPractice, profile: vProfile, welcome: vWelcome, unlock: vUnlock,
-    open: vOpen, chat: vChat, call: vCall, view: vView, course: vCourse, quiz: vQuiz, mistakes: vMistakes, certs: vCerts, watch: vWatch, inbox: vInbox, games: vGames, game: vGame, album: vAlbum, boss: vBoss, duel: vDuel, ask: vAsk, pdd: vPdd, cases: vCases }[route.name] || vHome;
+    open: vOpen, chat: vChat, call: vCall, view: vView, course: vCourse, quiz: vQuiz, mistakes: vMistakes, certs: vCerts, watch: vWatch, inbox: vInbox, games: vGames, game: vGame, album: vAlbum, boss: vBoss, duel: vDuel, ask: vAsk, pdd: vPdd, cases: vCases, grammar: vGrammar }[route.name] || vHome;
   if (route.quiz) LS = { n: route.arg, seg: -1 };
   if (route.xv) LS = { n: route.arg, seg: -2 };   // an old quiz link opens the lesson on its quiz tab
   view.innerHTML = '';
@@ -244,7 +245,7 @@ function refreshChrome() {
   var tabs = document.getElementById('tabs'), mini = document.getElementById('mini');
   var noTabs = route.name === 'welcome' || route.name === 'chat' || route.name === 'call' || route.name === 'view' || route.name === 'ask';
   tabs.hidden = noTabs;
-  var tab = { home: 'home', library: 'library', unit: 'library', lesson: 'library', practice: 'practice', profile: 'profile', unlock: 'library', course: 'library', quiz: 'library', view: 'library', mistakes: 'home', inbox: 'home', games: 'practice', game: 'practice', album: 'practice', boss: 'practice', duel: 'practice', ask: 'practice', certs: 'profile', chat: 'practice', call: 'practice', watch: 'library', cases: 'library', pdd: pddOnly() ? 'home' : 'library' }[route.name];
+  var tab = { home: 'home', library: 'library', unit: 'library', lesson: 'library', practice: 'practice', profile: 'profile', unlock: 'library', course: 'library', quiz: 'library', view: 'library', mistakes: 'home', inbox: 'home', games: 'practice', game: 'practice', album: 'practice', boss: 'practice', duel: 'practice', ask: 'practice', certs: 'profile', chat: 'practice', call: 'practice', watch: 'library', cases: 'library', grammar: 'library', pdd: pddOnly() ? 'home' : 'library' }[route.name];
   tabs.querySelectorAll('a').forEach(function (a) { a.classList.toggle('on', a.dataset.tab === tab); });
   mini.hidden = noTabs || !P.meta || route.name === 'lesson';
   view.className = noTabs ? 'notabs' : (mini.hidden ? 'noplayer' : '');
@@ -263,6 +264,8 @@ function pddOnly() { return !!(S.acc && S.token && String(S.acc.scope || '') ===
 function pddOpened() { return !!(S.acc && (S.acc.opened || []).indexOf('pdd:1') >= 0); }
 function vPdd(arg) { if (window.NPDD) window.NPDD.view(arg); }
 function vCases(arg) { if (window.NCASES) window.NCASES.view(arg); }
+function vGrammar(arg) { if (window.NCASES) window.NCASES.view(arg, 'grammar'); }
+function grammarCard() { return '<a class="gcard hero" href="#grammar" style="margin:10px 0 4px"><span class="ni">' + ico('bulb') + '</span><span class="tx"><span class="ru">Грамма́тика</span><b class="ar">القواعد</b><small class="ar">الفعل، أفعال الحركة، الظرف، الصفة، الأرقام، الجملة: كل نقطة في درس، بالمستويات</small></span>' + ico('back', 'end') + '</a>'; }
 function casesCard() { return '<a class="gcard hero" href="#cases" style="margin:14px 0 4px"><span class="ni">' + ico('book') + '</span><span class="tx"><span class="ru">Падежи́</span><b class="ar">الحالات الإعرابية الست</b><small class="ar">كل استخدام في درس: المبتدئين، وما قبل المتوسط، والمتوسط، وفوق المتوسط</small></span>' + ico('back', 'end') + '</a>'; }
 function pddCard() { return hasCourse('pdd') || pddOpened() ? '<a class="gcard hero" href="#pdd" style="margin:14px 0 4px"><span class="ni">' + ico('test') + '</span><span class="tx"><span class="ru">ПДД</span><b class="ar">رخصة القيادة في روسيا</b><small class="ar">الـ ٨٠٠ سؤال الرسميين، تمرين كل يوم، وامتحان زي الحقيقي</small></span>' + ico('back', 'end') + '</a>' : ''; }
 function vHome() {
@@ -296,7 +299,7 @@ function posters(lv) {
   }).join('');
 }
 function vLibrary() {
-  var h = '<div class="page pad"><div class="ph1"><h1 class="ar">المكتبة</h1><span class="ru">Библиоте́ка</span></div>' + pddCard() + casesCard();
+  var h = '<div class="page pad"><div class="ph1"><h1 class="ar">المكتبة</h1><span class="ru">Библиоте́ка</span></div>' + pddCard() + casesCard() + grammarCard();
   h += '<section class="sec"><h2><span>كورس المبتدئين · ٦ وحدات</span><span class="ru">А1</span></h2><div class="hs ltr">' + posters('a1') + '</div></section>';
   h += '<section class="sec"><h2><span>ما قبل المتوسط</span><span class="ru">А2</span></h2><div class="soon ar">قريب: المستوى التاني بعد المبتدئين، بنفس شكل الدروس. لما يجهز هيظهر هنا.</div></section>';
   h += '<section class="sec"><h2><span>كورس المتوسط · ١٠ دروس ومهام</span><span class="ru">В1</span></h2><div class="hs ltr">' + posters('b1') + '</div>' +
@@ -2606,7 +2609,7 @@ function saveOffline(n, L, btn) {
 
 /* ---------- cinematic moves between pages (2026-11-21): View Transitions where the phone has them, a soft rise elsewhere ---------- */
 var TAB_ORDER = { home: 0, library: 1, practice: 2, profile: 3 };
-function tabIdx(name) { var t = { unit: 'library', lesson: 'library', course: 'library', quiz: 'library', watch: 'library', unlock: 'library', mistakes: 'home', inbox: 'home', games: 'practice', game: 'practice', album: 'practice', boss: 'practice', duel: 'practice', ask: 'practice', chat: 'practice', call: 'practice', certs: 'profile', cases: 'library', pdd: pddOnly() ? 'home' : 'library' }[name] || name; return TAB_ORDER[t] === undefined ? -1 : TAB_ORDER[t]; }
+function tabIdx(name) { var t = { unit: 'library', lesson: 'library', course: 'library', quiz: 'library', watch: 'library', unlock: 'library', mistakes: 'home', inbox: 'home', games: 'practice', game: 'practice', album: 'practice', boss: 'practice', duel: 'practice', ask: 'practice', chat: 'practice', call: 'practice', certs: 'profile', cases: 'library', grammar: 'library', pdd: pddOnly() ? 'home' : 'library' }[name] || name; return TAB_ORDER[t] === undefined ? -1 : TAB_ORDER[t]; }
 function navRender() {
   var from = route ? route.name : 'home', to = parse().name, a = tabIdx(from), b = tabIdx(to);
   var dir = a >= 0 && b >= 0 && a !== b ? (b > a ? 'fwd' : 'back') : (from === to ? 'same' : 'deep');
