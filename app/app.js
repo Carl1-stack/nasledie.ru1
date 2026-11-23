@@ -2740,9 +2740,9 @@ function birdSpot() {   // the top of the active tab's icon (or above the mini p
   var top = !mini.hidden ? mini.getBoundingClientRect().top : tabs.getBoundingClientRect().top;
   return { x: ic.left + ic.width / 2 - 35, y: top - 47, tab: a.dataset.tab };
 }
-function birdMove(c, to) {
+function birdMove(c, to, done) {
   var from = birdAt; birdAt = to;
-  if (!from || RM || (Math.abs(from.x - to.x) < 2 && Math.abs(from.y - to.y) < 2)) { c.style.transform = 'translate(' + to.x + 'px,' + to.y + 'px)'; c.dataset.face = to.x > innerWidth / 2 ? 'l' : 'r'; return; }
+  if (!from || RM || (Math.abs(from.x - to.x) < 2 && Math.abs(from.y - to.y) < 2)) { c.style.transform = 'translate(' + to.x + 'px,' + to.y + 'px)'; c.dataset.face = to.x > innerWidth / 2 ? 'l' : 'r'; if (done) done(); return; }
   var dx = to.x - from.x, mid = { x: from.x + dx / 2, y: Math.min(from.y, to.y) - 70 - Math.min(60, Math.abs(dx) / 4) };
   c.dataset.face = dx > 0 ? 'r' : 'l'; c.classList.add('fly'); c.classList.remove('talk'); delete c.dataset.st; BIRD.sleep = false;
   var b0 = c.querySelector('.cat-btn'); if (BIRD.dx) { b0.style.translate = '0px 0px'; BIRD.dx = 0; }
@@ -2751,9 +2751,9 @@ function birdMove(c, to) {
     { transform: 'translate(' + mid.x + 'px,' + mid.y + 'px)', offset: .5 }, { transform: 'translate(' + (to.x - dx * .1) + 'px,' + (to.y - 18) + 'px)', offset: .85 },
     { transform: 'translate(' + to.x + 'px,' + to.y + 'px)' }], { duration: 720 + Math.min(300, Math.abs(dx)), easing: 'cubic-bezier(.45,0,.25,1)', fill: 'forwards' });
   an.onfinish = function () { c.style.transform = 'translate(' + to.x + 'px,' + to.y + 'px)'; an.cancel(); c.classList.remove('fly'); c.classList.remove('land'); void c.offsetWidth; c.classList.add('land'); c.dataset.face = to.x > innerWidth / 2 ? 'l' : 'r';
-    var r = c.getBoundingClientRect(); embers(r.left + r.width / 2, r.bottom - 6, 14, 2.4, .6); if (Math.random() < .3) dropFeather(r.left + r.width / 2, r.top + 10); };
+    var r = c.getBoundingClientRect(); embers(r.left + r.width / 2, r.bottom - 6, 14, 2.4, .6); if (Math.random() < .3) dropFeather(r.left + r.width / 2, r.top + 10); if (done) done(); };
 }
-window.addEventListener('resize', function () { var c = document.getElementById('cat'); if (c && !c.hidden) { birdAt = null; var sp = birdSpot(); if (sp) birdMove(c, sp); } });
+window.addEventListener('resize', function () { var c = document.getElementById('cat'); if (c && !c.hidden && !(typeof BIRD !== 'undefined' && BIRD.away)) { birdAt = null; var sp = birdSpot(); if (sp) birdMove(c, sp); } });
 /* Жа́ра's life: small natural acts while she sits, sleep at night or when nobody touches the phone, embers when she flies */
 var BIRD = { t: 0, sto: 0, sleep: false, lastTouch: Date.now(), dx: 0 };
 function birdEl() { var c = document.getElementById('cat'); return c && !c.hidden && !RM ? c : null; }
@@ -2773,7 +2773,7 @@ function birdLife() {
   clearTimeout(BIRD.t);
   BIRD.t = setTimeout(function () {
     var c = birdEl();
-    if (c && !c.classList.contains('talk') && !c.classList.contains('fly') && document.visibilityState === 'visible') {
+    if (c && !BIRD.away && !c.classList.contains('talk') && !c.classList.contains('fly') && document.visibilityState === 'visible') {
       var h = new Date().getHours(), idle = Date.now() - BIRD.lastTouch;
       if ((h >= 23 || h < 6) && idle > 20000 || idle > 90000) { if (!BIRD.sleep) { BIRD.sleep = true; clearTimeout(BIRD.sto); c.dataset.st = 'sleep'; } }
       else if (!BIRD.sleep) {
@@ -2819,7 +2819,7 @@ function dropFeather(x, y) {
   f.animate([{ transform: 'translate(0,0) rotate(0)', opacity: 1 }, { transform: 'translate(' + dx * .5 + 'px,40px) rotate(40deg)', opacity: 1, offset: .4 }, { transform: 'translate(' + dx + 'px,90px) rotate(-30deg)', opacity: 0 }], { duration: 2200, easing: 'ease-in-out' }).onfinish = function () { f.remove(); };
 }
 function catPlace() {
-  var c = document.getElementById('cat'); if (!c) return;
+  var c = document.getElementById('cat'); if (!c) return; BIRD.away = false;
   var hide = S.noCat || !S.onboarded || ['welcome', 'chat', 'call', 'view', 'watch', 'quiz'].indexOf(route.name) >= 0;
   var sp = hide ? null : birdSpot(); if (!sp) hide = true;
   c.hidden = hide; if (hide) { birdAt = null; } else requestAnimationFrame(function () { birdMove(c, birdSpot() || sp); });
@@ -2863,7 +2863,14 @@ document.addEventListener('click', function (e) {
 
 /* ---------- boot ---------- */
 if (window.NCASES) window.NCASES.init({ S: function () { return S; }, API: API, CONF: CONF, esc: esc, ad: ad, G: G, ico: ico, mix: mix, mixAr: mixAr, chime: chime, buzz: buzz, touchStreak: touchStreak,
-  save: save, levelNow: levelNow, xvHtml: xvHtml, playOne: playOne, oldCase: function (n) { return LINKS.cases(n); } });
+  save: save, levelNow: levelNow, xvHtml: xvHtml, playOne: playOne, oldCase: function (n) { return LINKS.cases(n); },
+  /* Жа́ра for the conjugation cards (cases.js, 2026-11-22): fly to a point, spread the wings, fly home */
+  bird: {
+    here: function () { var c = document.getElementById('cat'); return !!(c && !c.hidden && !S.noCat && !RM); },
+    to: function (x, y, done) { var c = document.getElementById('cat'); if (!c || c.hidden || S.noCat) { if (done) done(); return; } BIRD.away = true; clearTimeout(catT); c.classList.remove('talk'); birdMove(c, { x: x - 35, y: y - 27 }, done); },
+    st: function (st) { var c = document.getElementById('cat'); if (!c) return; if (st) { c.dataset.st = st; clearTimeout(BIRD.sto); } else delete c.dataset.st; },
+    home: function () { BIRD.away = false; var c = document.getElementById('cat'); if (!c || c.hidden) return; delete c.dataset.st; var sp = birdSpot(); if (sp) birdMove(c, sp); }
+  }, embers: embers, feather: dropFeather });
 if (window.NPDD) window.NPDD.init({ S: function () { return S; }, API: API, esc: esc, ad: ad, G: G, ico: ico, mix: mix, chime: chime, buzz: buzz, touchStreak: touchStreak,
   hasCourse: hasCourse, openedPdd: pddOpened, stopMain: function () { try { au.pause(); } catch (e) {} } });
 window.addEventListener('hashchange', navRender);

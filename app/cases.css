@@ -89,3 +89,53 @@
 .cs-cell{display:inline-flex;align-items:center;gap:0;direction:ltr}
 .cs-t .cs-pb{width:26px;height:26px;margin-right:6px}
 .cs-ruline .cs-pb,.cs-ans .cs-pb{width:26px;height:26px}
+/* conjugation cards (2026-11-22): tappable verbs + Жа́ра's card of fire */
+.vbw{cursor:pointer;border-bottom:1.5px dotted rgba(214,168,90,.75);padding-bottom:1px;transition:color .2s,text-shadow .2s,border-color .2s;-webkit-tap-highlight-color:transparent}
+.vbw:hover,.vbw:focus-visible{color:var(--gold-hi);border-bottom-style:solid;outline:none}
+.vbw.lit{color:#FFE2A8;border-bottom:1.5px solid #FF9A3C;text-shadow:0 0 10px rgba(255,140,50,.9),0 0 22px rgba(255,90,30,.55);animation:vb-ignite .9s ease-in-out infinite alternate}
+@keyframes vb-ignite{to{text-shadow:0 0 6px rgba(255,180,80,.8),0 0 16px rgba(255,90,30,.4)}}
+.vb-bd{position:fixed;inset:0;z-index:38;background:radial-gradient(120% 80% at 50% 40%,rgba(6,10,20,.35),rgba(4,7,14,.78));backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);opacity:0;transition:opacity .35s ease;touch-action:none}
+.vb-bd.in{opacity:1}
+.vb-card{position:fixed;z-index:39;overflow:auto;overscroll-behavior:contain;padding:16px 14px 12px;border-radius:20px;color:#F2ECE1;opacity:0;
+  background:radial-gradient(140% 90% at var(--ox,50%) var(--oy,0),rgba(255,140,50,.20),transparent 55%),linear-gradient(170deg,#1A2744 0%,#0E1730 55%,#0A1124 100%);
+  border:1px solid rgba(240,212,155,.55);box-shadow:0 0 0 1px rgba(255,150,60,.15),0 24px 60px rgba(0,0,0,.6),0 0 46px rgba(255,120,40,.28),inset 0 1px 0 rgba(255,226,168,.25)}
+.vb-card.open{opacity:1}
+.vb-card{scrollbar-width:none}.vb-card::-webkit-scrollbar{display:none}
+.vb-card .ru{direction:ltr;unicode-bidi:isolate}
+.vb-fire{position:absolute;left:0;right:0;top:0;height:3px;border-radius:20px 20px 0 0;background:linear-gradient(90deg,transparent,#FF7A2A 20%,#FFE29A 50%,#FF7A2A 80%,transparent);background-size:200% 100%;animation:vb-flow 2.4s linear infinite;opacity:.9}
+@keyframes vb-flow{to{background-position:-200% 0}}
+.vb-x{position:absolute;top:10px;right:10px;width:32px;height:32px;border-radius:50%;border:1px solid rgba(240,212,155,.35);background:rgba(255,255,255,.04);color:var(--gold-hi);font:400 22px/1 var(--ru);cursor:pointer}
+.vb-hd{display:flex;align-items:center;gap:10px;direction:ltr;margin:2px 40px 4px 0}
+.vb-inf{font:400 31px/1.1 var(--d-ru);color:#FFE6B0;letter-spacing:.01em;text-shadow:0 0 18px rgba(255,150,60,.45)}
+.vb-meta{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin:6px 0 10px}
+.vb-mean{font:800 17px var(--ar);color:#F4EDE0}
+.vb-asp{font:700 11.5px var(--ar);padding:3px 10px;border-radius:999px;border:1px solid rgba(214,168,90,.6);color:var(--gold-hi);background:rgba(214,168,90,.08)}
+.vb-asp.p{border-color:#FF9A3C;color:#FFC889;background:rgba(255,120,40,.12)}
+.vb-acts{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.vb-pair,.vb-all{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:7px 12px;font:700 12.5px var(--ar);cursor:pointer;border:1px solid rgba(240,212,155,.45);background:rgba(255,255,255,.05);color:#F2ECE1}
+.vb-pair .ru{font:700 13.5px var(--ru);color:#FFE6B0}
+.vb-all{background:linear-gradient(135deg,#E8A33D,#C9702A);color:#140B05;border:0}
+.vb-all .ico{width:15px;height:15px}
+.vb-all.on{background:linear-gradient(135deg,#FFB25C,#E0612A);box-shadow:0 0 18px rgba(255,120,40,.55)}
+.vb-s{margin-top:8px;padding-top:8px;border-top:1px solid rgba(240,212,155,.14)}
+.vb-s h4{margin:0 0 4px;font:800 13px var(--ar);color:var(--gold)}
+.vb-r{display:grid;grid-template-columns:30px auto 1fr;align-items:center;gap:6px;padding:4px 6px;border-radius:12px;transition:background .25s,box-shadow .25s}
+.vb-r.on{background:rgba(255,150,60,.14);box-shadow:inset 0 0 0 1px rgba(255,170,90,.45)}
+.vb-f{font:500 16px var(--ru);white-space:nowrap}
+.vb-f b{font-weight:700;color:#F7F1E6}
+.vb-pn{color:#A9B4C8;font-weight:500}
+.vb-end{font-style:normal;color:#FFB25C;text-shadow:0 0 8px rgba(255,140,50,.35)}
+.vb-a{font:600 12.5px/1.5 var(--ar);color:#C9D2E3;text-align:right;direction:rtl}
+.vb-note{margin:2px 6px 0;font:700 13px var(--ar);color:var(--gold-hi)}
+.vb-p{width:28px;height:28px;border-radius:50%;border:1px solid rgba(240,212,155,.45);background:rgba(214,168,90,.10);color:var(--gold-hi);display:grid;place-items:center;cursor:pointer;padding:0}
+.vb-p .ico{width:13px;height:13px}
+.vb-p.big{width:38px;height:38px;background:linear-gradient(135deg,#E8A33D,#C9702A);color:#140B05;border:0;box-shadow:0 0 16px rgba(255,140,50,.45)}
+.vb-p.big .ico{width:17px;height:17px}
+/* Жа́ра spreads her wings over the card */
+#cat[data-st=wings] .b-wing{animation:st-wings 1.6s cubic-bezier(.3,0,.2,1) forwards}
+@keyframes st-wings{0%{transform:none}30%{transform:rotate(-96deg) scale(1.28)}55%{transform:rotate(-70deg) scale(1.2)}75%,100%{transform:rotate(-84deg) scale(1.24)}}
+#cat[data-st=wings] .b-tail{animation:st-fan 1.6s ease-in-out forwards}
+#cat[data-st=wings] .aura{animation:none;opacity:1;transform:scale(1.5);transition:transform .6s,opacity .6s}
+#cat[data-st=wings] .cat-btn{filter:drop-shadow(0 0 18px rgba(255,150,60,.9)) drop-shadow(0 0 40px rgba(255,90,30,.55))}
+#cat{transition:none}
+@media (prefers-reduced-motion:reduce){.vbw.lit{animation:none}.vb-fire{animation:none}.vb-bd{transition:none}}

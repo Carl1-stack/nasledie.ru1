@@ -125,6 +125,7 @@ function vLesson(l, d, tab) {
   h += '<div class="cs-end"><a class="btn" href="#cases/' + l.key + '/quiz">' + A.ico('test') + A.G('اعمل الكويز', 'اعملي الكويز') + '</a>' +
     (nx ? '<a class="btn ghost" href="' + (canOpen(nx) ? '#cases/' + nx.key : '#unlock/0') + '">الدرس اللي بعده</a>' : '') + '</div></div>';
   view().innerHTML = h;
+  loadVerbs().then(function () { if (CUR === l && !document.getElementById('csq')) markVerbs(view()); });
 }
 
 /* ---------- quiz (reading only) ---------- */
@@ -168,6 +169,151 @@ function send(l, Z, tot, pct) {
   if (!jobs.length) return;
   Promise.all(jobs).then(function () { var e = document.getElementById('cssent'); if (e) e.textContent = 'النتيجة وصلت للمدرس.'; }).catch(function () {});
 }
+
+/* ---------- conjugation cards (teacher, 2026-11-22: "a button on every verb … shown by the little Firebird, from its wings or as fire;
+   super cool and cinematic"). Data: data/cases/verbs.json (tools/cases_verbs.py: {cards, forms}), voices audio/cases/_verbs/<id>.mp3 (free).
+   Every verb form in a lesson's Russian text gets a quiet gold dotted underline; a tap: the word ignites → Жа́ра flies to the card's
+   top edge → she spreads her wings → the card opens out of a ring of fire → the forms light up one by one. Close: the card burns away
+   upward into embers and she flies home. Without Жа́ра (hidden in «حسابي») the card rises out of a flame from the word itself. */
+var VB = null, VBP = null, CARD = null, VAU = null;
+function loadVerbs() { if (VB) return Promise.resolve(VB); if (!VBP) VBP = fetch('data/cases/verbs.json', { cache: 'no-cache' }).then(function (r) { return r.json(); }).then(function (j) { VB = j; return j; }).catch(function () { VBP = null; return null; }); return VBP; }
+var VWORD = /[А-Яа-яЁё́]+(?:-[А-Яа-яЁё́]+)?/g;
+function markVerbs(root) {
+  if (!VB || !root) return;
+  var tw = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, { acceptNode: function (n) {
+    var p = n.parentElement; if (!p || !p.closest('.ru') || p.closest('button,.vbw,.cs-sub,.q-ru,#csq,.vb-card')) return NodeFilter.FILTER_REJECT;
+    return /[А-Яа-яЁё]/.test(n.nodeValue) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT; } });
+  var nodes = []; while (tw.nextNode()) nodes.push(tw.currentNode);
+  nodes.forEach(function (n) {
+    var t = n.nodeValue, out = [], last = 0, hit = false;
+    t.replace(VWORD, function (w, i) {
+      var lem = VB.forms[w.toLowerCase()];
+      if (lem && VB.cards[lem]) { out.push(document.createTextNode(t.slice(last, i))); var s = document.createElement('span'); s.className = 'vbw'; s.setAttribute('role', 'button'); s.tabIndex = 0; s.dataset.vb = lem; s.textContent = w; out.push(s); last = i + w.length; hit = true; }
+      return w;
+    });
+    if (!hit) return;
+    out.push(document.createTextNode(t.slice(last)));
+    var f = document.createDocumentFragment(); out.forEach(function (x) { f.appendChild(x); }); n.parentNode.replaceChild(f, n);
+  });
+}
+function vbUrl(id) { return 'audio/cases/_verbs/' + id + '.mp3'; }
+function stripAcc(s) { return s.replace(/́/g, ''); }
+function lastWord(f) { var p = f.split(' '); return p[p.length - 1]; }
+function stemOf(list) {   // the shared beginning of the forms (stress ignored) → the endings get the gold
+  var w = list.map(function (f) { return stripAcc(lastWord(f)).replace(/!$/, ''); }); if (w.length < 2) return 0;
+  var k = 0; while (w.every(function (x) { return x[k] && x[k] === w[0][k]; })) k++; return k;
+}
+function formHtml(f, stem) {   // «я ви́жу» → «я» + «ви́» + gold «жу»
+  var p = f.split(' '), w = p.pop(), pre = p.length ? '<span class="vb-pn">' + esc(p.join(' ')) + '</span> ' : '';
+  var i = 0, n = 0; while (i < w.length && n < stem) { i++; if (w[i] === '́') i++; n++; }
+  if (stem < 2 || i >= w.length) return pre + '<b>' + esc(w) + '</b>';
+  return pre + '<b>' + esc(w.slice(0, i)) + '<i class="vb-end">' + esc(w.slice(i)) + '</i></b>';
+}
+function cardHtml(c) {
+  var row = function (r, st, hasAr) { var id = r[r.length - 1]; return '<div class="vb-r" data-vid="' + id + '"><button class="vb-p" data-vplay="' + id + '" aria-label="اسمع">' + A.ico('play') + '</button><span class="ru vb-f">' + formHtml(r[0], st) + '</span>' + (hasAr && r[1] ? '<span class="ar vb-a">' + esc(r[1]) + '</span>' : '') + '</div>'; };
+  var sec = function (title, rows, hasAr, note) { if (!rows || !rows.length) return ''; var fs = rows.map(function (r) { return r[0]; }), st = stemOf(fs.length > 3 ? fs.slice(1) : fs);   // the я form may add a letter (люб‑лю́)
+    return '<section class="vb-s"><h4 class="ar">' + title + '</h4>' + rows.map(function (r) { return row(r, st, hasAr); }).join('') + (note ? '<p class="ar vb-note">' + esc(note) + '</p>' : '') + '</section>'; };
+  var perf = c.asp === 'p', fut = perf || c.fut;
+  var pair = c.pair && VB.cards[c.pair] ? '<button class="vb-pair" data-vb="' + esc(c.pair) + '"><span class="ar">' + (perf ? 'المش مكتمل:' : 'المكتمل:') + '</span> <span class="ru">' + esc(c.pair) + '</span></button>' : '';
+  return '<div class="vb-fire" aria-hidden="true"></div><button class="vb-x" data-vbx aria-label="اقفل">×</button>' +
+    '<div class="vb-hd"><button class="vb-p big" data-vplay="' + c.a + '" aria-label="اسمع">' + A.ico('play') + '</button><span class="ru vb-inf">' + esc(c.v) + '</span></div>' +
+    '<div class="vb-meta"><span class="ar vb-mean">' + esc(c.ar) + '</span><span class="ar vb-asp' + (perf ? ' p' : '') + '">' + (perf ? 'مكتمل: عمل وخلص' : 'مش مكتمل: بيعمل') + '</span></div>' +
+    '<div class="vb-acts">' + pair + '<button class="vb-all" data-vball>' + A.ico('play') + '<span class="ar">' + A.G('اسمع التصريف كله', 'اسمعي التصريف كله') + '</span></button></div>' +
+    '<div class="vb-body">' + sec(fut ? 'المستقبل' : 'المضارع (دلوقتي)', c.pres, true) + sec('الماضي', c.past, true) + sec('الأمر', (c.imp || []).map(function (r) { return [r[0], '', r[1]]; }), false, c.imp_ar ? '= ' + c.imp_ar : '') + '</div>';
+}
+function vbStop() { if (VAU) { VAU.pause(); VAU = null; } if (CARD) CARD.el.querySelectorAll('.vb-r.on,.vb-all.on').forEach(function (x) { x.classList.remove('on'); }); }
+function playAll() {
+  if (!CARD) return; var btn = CARD.el.querySelector('[data-vball]'); if (btn.classList.contains('on')) { vbStop(); return; }
+  vbStop(); btn.classList.add('on');
+  var rows = [].slice.call(CARD.el.querySelectorAll('.vb-r')), k = 0, me = CARD;
+  (function next() {
+    if (CARD !== me || !btn.classList.contains('on')) return;
+    rows.forEach(function (r) { r.classList.remove('on'); });
+    if (k >= rows.length) { btn.classList.remove('on'); return; }
+    var r = rows[k++]; r.classList.add('on'); r.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    VAU = new Audio(vbUrl(r.dataset.vid)); VAU.onended = function () { setTimeout(next, 180); }; VAU.onerror = function () { setTimeout(next, 120); };
+    VAU.play().catch(function () { setTimeout(next, 120); });
+  })();
+}
+function place(card, r) {   // above the word when there is room, else below; always inside the screen
+  var W = Math.min(380, innerWidth - 24), H = innerHeight, x = Math.max(12, Math.min(innerWidth - W - 12, r.left + r.width / 2 - W / 2));
+  card.style.width = W + 'px'; card.style.left = x + 'px';
+  var up = r.top - 24, down = H - r.bottom - 24, above = up > down, room = (above ? up : down) - 46, full = card.scrollHeight, top, h;
+  if (room >= Math.min(full, 460)) {   // fits next to the word
+    card.style.maxHeight = Math.min(room, H - 110) + 'px'; h = Math.min(full, room, H - 110);
+    top = above ? Math.max(70, r.top - 18 - h) : Math.min(H - 16 - h, r.bottom + 18);
+  } else {   // little room: the card rises to the middle of the screen, over the text
+    card.style.maxHeight = Math.round(H * .74) + 'px'; h = Math.min(full, Math.round(H * .74));
+    top = Math.max(64, Math.round((H - h) / 2) + 10);
+  }
+  card.style.top = top + 'px';
+  return { x: x + W / 2, y: top };   // the top edge's middle: where Жа́ра perches
+}
+function openCard(lem, src) {
+  var c = VB && VB.cards[lem]; if (!c) return;
+  var swap = !!CARD; if (CARD) closeCard(true);
+  var r = src.getBoundingClientRect(), RMm = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var bd = document.createElement('div'); bd.className = 'vb-bd'; document.body.appendChild(bd);
+  var el = document.createElement('div'); el.className = 'vb-card'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', 'تصريف ' + stripAcc(c.v)); el.innerHTML = cardHtml(c);
+  document.body.appendChild(el);
+  var at = place(el, r);
+  CARD = { el: el, bd: bd, lem: lem, src: src }; src.classList.add('lit');
+  requestAnimationFrame(function () { bd.classList.add('in'); });
+  var reveal = function (cx, cy) {
+    if (CARD === null || CARD.el !== el) return;
+    var er = el.getBoundingClientRect(), ox = cx - er.left, oy = cy - er.top;
+    el.style.setProperty('--ox', ox + 'px'); el.style.setProperty('--oy', oy + 'px');
+    el.classList.add('open');
+    if (!RMm && el.animate) {
+      var R = Math.hypot(Math.max(ox, er.width - ox), Math.max(oy, er.height - oy)) + 30;
+      el.animate([{ clipPath: 'circle(0px at ' + ox + 'px ' + oy + 'px)', filter: 'brightness(2.2) saturate(1.4)' }, { clipPath: 'circle(' + R * .55 + 'px at ' + ox + 'px ' + oy + 'px)', filter: 'brightness(1.4)', offset: .45 },
+        { clipPath: 'circle(' + R + 'px at ' + ox + 'px ' + oy + 'px)', filter: 'none' }], { duration: 760, easing: 'cubic-bezier(.2,.7,.2,1)' });
+      A.embers(cx, cy, 46, 4.2, 1.1);
+      [].slice.call(el.querySelectorAll('.vb-r')).forEach(function (row, i) { row.animate([{ opacity: 0, transform: 'translateY(8px)', textShadow: '0 0 0 transparent' }, { opacity: 1, transform: 'none', textShadow: '0 0 14px rgba(255,170,80,.9)', offset: .6 }, { opacity: 1, transform: 'none', textShadow: '0 0 0 transparent' }], { duration: 520, delay: 300 + i * 55, easing: 'ease-out', fill: 'backwards' }); });
+    }
+    A.chime && A.chime([659.3, 987.8]);
+  };
+  if (RMm) { reveal(at.x, at.y); return; }
+  if (swap) { A.embers(at.x, at.y + 30, 34, 3.4, .6); setTimeout(function () { reveal(at.x, at.y + 30); }, 90); return; }   // the partner verb: a quick flare in place
+  A.embers(r.left + r.width / 2, r.top + r.height / 2, 18, 2.2, .9);   // the word ignites
+  if (A.bird && A.bird.here() && !swap) {
+    A.bird.to(at.x, at.y - 22, function () {
+      if (!CARD || CARD.el !== el) return;
+      A.bird.st('wings'); A.embers(at.x, at.y - 10, 30, 3.5, .5);
+      setTimeout(function () { reveal(at.x, at.y); }, 260);
+    });
+  } else {   // no bird (or switching cards): a flame climbs from the word to the card
+    var steps = 14, k = 0, sx = r.left + r.width / 2, sy = above(r, at) ? r.top : r.bottom;
+    (function climb() { if (!CARD || CARD.el !== el) return; var t = k / steps; A.embers(sx + (at.x - sx) * t, sy + (at.y + 20 - sy) * t, 5, 1.6, .8); if (++k <= steps) requestAnimationFrame(climb); else reveal(at.x, at.y + 20); })();
+  }
+}
+function above(r, at) { return at.y < r.top; }
+function closeCard(instant) {
+  var C = CARD; if (!C) return; CARD = null; vbStop();
+  C.src.classList.remove('lit'); C.bd.classList.remove('in');
+  var bye = function () { C.el.remove(); C.bd.remove(); };
+  var RMm = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (instant || RMm || !C.el.animate) { bye(); if (!instant && A.bird) A.bird.home(); return; }
+  var er = C.el.getBoundingClientRect(), t0 = performance.now(), D = 640;
+  C.el.style.pointerEvents = 'none';
+  C.el.animate([{ clipPath: 'inset(0 0 0 0)', filter: 'none' }, { clipPath: 'inset(0 0 100% 0)', filter: 'brightness(1.6) sepia(.6)' }], { duration: D, easing: 'cubic-bezier(.5,0,.75,0)', fill: 'forwards' });
+  (function burn(now) { var t = Math.min(1, (now - t0) / D), y = er.bottom - er.height * (t * t * t); A.embers(er.left + Math.random() * er.width, y, 4, 1.8, 1.3); if (t < 1) requestAnimationFrame(burn); })(t0);
+  if (A.bird) { A.bird.st(null); setTimeout(function () { A.bird.home(); }, 260); }
+  setTimeout(bye, D + 40);
+}
+document.addEventListener('click', function (e) {
+  var w = e.target.closest('[data-vb]');
+  if (w) { e.preventDefault(); e.stopPropagation(); if (CARD && CARD.lem === w.dataset.vb && !w.closest('.vb-card')) { closeCard(); return; } openCard(w.dataset.vb, w.closest('.vb-card') && CARD ? CARD.src : w); return; }
+  if (!CARD) return;
+  var p = e.target.closest('[data-vplay]'); if (p) { e.preventDefault(); vbStop(); A.playOne(p, vbUrl(p.dataset.vplay)); return; }
+  if (e.target.closest('[data-vball]')) { playAll(); return; }
+  if (e.target.closest('[data-vbx]') || e.target.closest('.vb-bd')) { closeCard(); return; }
+}, true);
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'Escape' && CARD) { closeCard(); return; }
+  if ((e.key === 'Enter' || e.key === ' ') && e.target.classList && e.target.classList.contains('vbw')) { e.preventDefault(); openCard(e.target.dataset.vb, e.target); }
+});
+window.addEventListener('hashchange', function () { if (CARD) closeCard(true); });
 
 /* ---------- route ---------- */
 function route(arg) {
