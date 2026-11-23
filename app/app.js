@@ -22,8 +22,8 @@ function save() { store(); syncLater(); }
 S.progress = S.progress || {}; S.streak = S.streak || { last: '', count: 0 };
 function G(m, f) { return S.g === 'f' ? f : m; }
 function pad(n) { return (n < 10 ? '0' : '') + n; }
-function ad(n) { return String(n).replace(/\d/g, function (d) { return AR_DIG[d]; }); }
-function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+function ad(n) { return esc(String(n)).replace(/\d/g, function (d) { return AR_DIG[d]; }); }   // escaped too (security 2026-11-23)
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 function ico(id, cls) { return '<svg class="ico' + (cls ? ' ' + cls : '') + '"><use href="#i-' + id + '"/></svg>'; }
 function today() { var d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
 function touchStreak() {
@@ -111,6 +111,54 @@ function refreshStatus() {
 /* ---------- toast ---------- */
 var toastT;
 function toast(t) { var x = document.getElementById('toast'); x.textContent = t; x.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(function () { x.classList.remove('show'); }, 1900); }
+/* ---------- app errors → the teacher's panel (2026-11-23): every crash on a student's phone is recorded, at most 5 a session ---------- */
+var ERRS = {};
+function sendErr(msg) {
+  if (!API || Object.keys(ERRS).length >= 5) return; msg = String(msg || '').slice(0, 1200); if (!msg || ERRS[msg]) return; ERRS[msg] = 1;
+  try { fetch(API + '/api/report', { method: 'POST', headers: { 'content-type': 'application/json' }, keepalive: true,
+    body: JSON.stringify({ kind: 'error', page: location.hash || '#home', msg: msg + ' · ' + innerWidth + '×' + innerHeight, device: S.device, t: S.token || '' }) }).catch(function () {}); } catch (e) {}
+}
+window.addEventListener('error', function (e) { if (e && e.message && !/^Script error/.test(e.message)) sendErr(e.message + (e.filename ? ' @' + String(e.filename).split('/').pop() + ':' + e.lineno : '') + (e.error && e.error.stack ? '\n' + String(e.error.stack).slice(0, 600) : '')); });
+window.addEventListener('unhandledrejection', function (e) { var r = e && e.reason; if (r && (r.name === 'AbortError' || /Failed to fetch|NetworkError|Load failed/.test(String(r.message || r)))) return; sendErr('promise: ' + String((r && (r.stack || r.message)) || r)); });
+/* «بلّغ عن مشكلة» (2026-11-23): from «حسابي» or from Жа́ра's bubble on any screen; the page and the phone size go with it */
+function reportSheet() {
+  var w0 = document.querySelector('.sheetwrap'); if (w0) w0.remove();
+  var d = document.createElement('div'); d.className = 'sheetwrap';
+  d.innerHTML = '<div class="sheet-bg" data-act="sheetclose"></div><div class="sheet" role="dialog" aria-label="بلّغ عن مشكلة"><h3 class="ar">بلّغ عن مشكلة أو غلطة</h3>' +
+    '<p class="ar" style="margin:0;color:var(--dim)">' + G('اكتب', 'اكتبي') + ' إيه اللي حصل: زرار مش شغال، صوت مش مظبوط، غلطة في كلمة… الصفحة اللي ' + G('إنت', 'إنتي') + ' فيها بتتبعت لوحدها.</p>' +
+    '<textarea id="rp-msg" class="f" rows="4" maxlength="1500" dir="auto" style="width:100%;margin-top:10px"></textarea>' +
+    '<button class="btn block" data-act="report-send">ابعت للمدرس</button><button class="btn ghost block" data-act="sheetclose">مش دلوقتي</button></div>';
+  document.body.appendChild(d); setTimeout(function () { var t = document.getElementById('rp-msg'); if (t) t.focus(); }, 200);
+}
+function reportSend() {
+  var t = document.getElementById('rp-msg'), msg = t ? t.value.trim() : '';
+  if (msg.length < 3) { toast(G('اكتب', 'اكتبي') + ' المشكلة الأول'); return; }
+  if (!API) { toast('محتاج نت'); return; }
+  fetch(API + '/api/report', { method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ kind: 'report', page: (lastHash || location.hash || '#home') + ' · ' + innerWidth + '×' + innerHeight + (STANDALONE ? ' · app' : ' · browser'), msg: msg, device: S.device, t: S.token || '' }) })
+    .then(function (r) { if (r.status === 429) { toast('بعت كتير النهارده، جرب بكرة'); return; } var w = document.querySelector('.sheetwrap'); if (w) w.remove(); toast('وصلت للمدرس، شكرًا!'); })
+    .catch(function () { toast(G('محتاج نت، جرب تاني', 'محتاجة نت، جربي تاني')); });
+}
+/* «ثبّت التطبيق» (2026-11-23): a one-time card on the home screen for phones that opened the app in the browser */
+var INSTALL_EVT = null;
+window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); INSTALL_EVT = e; });
+var IS_IOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+function isInstalled() { return (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true; }
+function installCard() {
+  if (isInstalled() || S.installSeen || !S.onboarded || !(S.tour && S.tour.main)) return '';
+  return '<section class="shelf pad"><div class="inst"><b class="ar">' + G('ثبّت', 'ثبّتي') + ' التطبيق على الموبايل</b><small class="ar">بيفتح أسرع، وبيشتغل من غير نت، والتنبيهات توصل' + (IS_IOS ? ' (على الآيفون لازم يتثبت الأول)' : '') + '.</small>' +
+    '<div class="row2"><button class="btn sm" data-act="install">إزاي؟</button><button class="btn ghost sm" data-act="install-no">بعدين</button></div></div></section>';
+}
+function installSheet() {
+  if (INSTALL_EVT && !IS_IOS) { var ev = INSTALL_EVT; INSTALL_EVT = null; ev.prompt(); ev.userChoice.then(function (c) { if (c && c.outcome === 'accepted') { S.installSeen = 1; store(); render(); toast('اتثبت!'); } }).catch(function () {}); return; }
+  var w0 = document.querySelector('.sheetwrap'); if (w0) w0.remove();
+  var d = document.createElement('div'); d.className = 'sheetwrap';
+  var steps = IS_IOS ? ['افتح التطبيق من «Safari» (مش من جوه واتساب).', 'دوس على زرار المشاركة تحت (المربع اللي طالع منه سهم).', 'انزل لتحت ودوس «Add to Home Screen» (إضافة إلى الشاشة الرئيسية).', 'دوس «Add» (إضافة). الأيقونة هتظهر على الشاشة: افتح منها على طول.']
+    : ['افتح التطبيق من «Chrome».', 'دوس على التلات نقط فوق على اليمين.', 'دوس «Install app» أو «Add to Home screen» (تثبيت التطبيق).', 'دوس «Install». الأيقونة هتظهر على الشاشة: افتح منها على طول.'];
+  d.innerHTML = '<div class="sheet-bg" data-act="sheetclose"></div><div class="sheet" role="dialog" aria-label="ثبّت التطبيق"><h3 class="ar">' + (IS_IOS ? 'على الآيفون' : 'على الأندرويد') + ': ٤ خطوات</h3><ol class="ar inst-steps">' +
+    steps.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ol><button class="btn block" data-act="install-done">تمام</button></div>';
+  document.body.appendChild(d);
+}
 
 /* ---------- audio player (one for the whole app) ---------- */
 var au = new Audio(); au.preload = 'auto';
@@ -280,6 +328,7 @@ function vHome() {
     '<div class="go"><a class="btn" href="#lesson/' + n + '">' + ico('play') + (started ? G('كمّل', 'كمّلي') : G('يلا نبدأ', 'يلا نبدأ')) + '</a>' +
     '<span class="meta">' + (crs(n) === 'b1' ? 'В1 · ' : 'الوحدة ' + ad(unitOf(n) + 1) + ' · ') + lessonLabel(n) + '</span></div></div></section>';
   var md = mistDue().length;
+  h += installCard();
   if (md) h += '<section class="shelf pad"><a class="lrow due" href="#mistakes">' + ico('review') + '<span class="tx"><b>' + G('راجع غلطاتك', 'راجعي غلطاتك') + ' · ' + ad(md) + ' سؤال</b><small>' + G('الأسئلة اللي غلطت فيها رجعت عشان تثبت', 'الأسئلة اللي غلطتي فيها رجعت عشان تثبت') + '</small></span>' + ico('back', 'end') + '</a></section>';
   h += rmdCard();
   h += socialHtml();
@@ -2376,6 +2425,8 @@ function vProfile() {
     setRow('hideTr', 'إخفاء الترجمة في الحوارات', G('عشان تفهم بالروسي بس', 'عشان تفهمي بالروسي بس')) +
     setRow('light', 'الوضع الفاتح', 'للمذاكرة في النور') +
     '<button class="set gold" data-act="tour"><span class="tx">جولة مع ژارا<small>' + G('هفرّجك', 'هفرّجك') + ' على التطبيق كله من الأول، وكل صفحة ' + G('هتفتحها', 'هتفتحيها') + ' هشرحها تاني</small></span>' + ico('feather') + '</button>' +
+    '<button class="set" data-act="report"><span class="tx">بلّغ عن مشكلة أو غلطة<small>زرار مش شغال، صوت مش مظبوط، كلمة غلط: بتوصل للمدرس على طول</small></span>' + ico('send') + '</button>' +
+    (isInstalled() ? '' : '<button class="set" data-act="install"><span class="tx">' + G('ثبّت', 'ثبّتي') + ' التطبيق على الموبايل<small>أسرع، ومن غير نت، والتنبيهات بتوصل</small></span>' + ico('down') + '</button>') +
     '<button class="set" data-act="birdstory"><span class="tx">حكاية ژارا، طائر النار<small>مين هي، وليه ريشها بيرجع كل يوم ' + G('بتذاكر', 'بتذاكري') + ' فيه</small></span>' + ico('feather') + '</button>' +
     setRow('noCat', 'إخفاء ژارا', 'طائر النار اللي ' + G('بيديك', 'بيديكي') + ' نصايح وبيطير بين الصفحات') +
     setRow('noHello', 'من غير صوت الترحيب', 'ليرا بتسلّم ' + G('عليك', 'عليكي') + ' بالروسي لما ' + G('تفتح', 'تفتحي') + ' التطبيق') +
@@ -2518,6 +2569,10 @@ document.addEventListener('click', function (e) {
   else if (a === 'readall') { (S.inbox || []).forEach(function (m) { m.read = true; }); store(); paintBell(); }
   else if (a === 'pushon') { go('#profile'); }
   else if (a === 'logout') { logoutSheet(); }
+  else if (a === 'report') { reportSheet(); }
+  else if (a === 'report-send') { reportSend(); }
+  else if (a === 'install') { installSheet(); }
+  else if (a === 'install-no' || a === 'install-done') { S.installSeen = 1; store(); var wi = document.querySelector('.sheetwrap'); if (wi) wi.remove(); if (parse().name === 'home') render(); }
   else if (a === 'logoutyes') { doLogout(); }
   else if (a === 'sheetclose') { var w = document.querySelector('.sheetwrap'); if (w) w.remove(); }
   else if (a === 'setlevel') { S.level = act.dataset.l; store(); var w2 = document.querySelector('.sheetwrap'); if (w2) w2.remove(); render(); }
@@ -2736,7 +2791,7 @@ function catEl() {
 var catT = 0;
 function catSay(txt, ms) {
   if (S.noCat) return; var c = catEl(), b = c.querySelector('.cat-bub');
-  b.innerHTML = '<b class="ru">Жа́ра</b><span class="ar">' + mix(txt) + '</span>'; c.classList.add('talk'); clearTimeout(catT);
+  b.innerHTML = '<b class="ru">Жа́ра</b><span class="ar">' + mix(txt) + '</span><button class="cat-rep ar" data-act="report">فيه مشكلة في الصفحة دي؟</button>'; c.classList.add('talk'); clearTimeout(catT);
   catT = setTimeout(function () { c.classList.remove('talk'); }, ms || 6500);
 }
 var birdAt = null;
