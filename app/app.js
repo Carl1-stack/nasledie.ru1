@@ -2630,6 +2630,7 @@ function sayHello(k) {
 }
 document.addEventListener('pointerdown', function () { if (helloPending) { var k = helloPending; helloPending = null; sayHello(k); } }, { capture: true, passive: true });
 function splash() {
+  if (window.NINTRO && !NINTRO.done) { NINTRO.wait = splash; return; }   // the Firebird opening (index.html, tools/app_intro.py) plays first
   if (!S.onboarded) return;
   var away = S.lastOpen ? Date.now() - S.lastOpen : 864e5; S.lastOpen = Date.now(); store();
   var seen = false; try { seen = sessionStorage.getItem('nasl-open') === '1'; sessionStorage.setItem('nasl-open', '1'); } catch (e) {}
