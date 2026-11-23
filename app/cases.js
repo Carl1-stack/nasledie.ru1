@@ -171,7 +171,7 @@ function send(l, Z, tot, pct) {
 }
 
 /* ---------- conjugation cards (teacher, 2026-11-22: "a button on every verb … shown by the little Firebird, from its wings or as fire;
-   super cool and cinematic"). Data: data/cases/verbs.json (tools/cases_verbs.py: {cards, forms}), voices audio/cases/_verbs/<id>.mp3 (free).
+   super cool and cinematic"). Data: data/cases/verbs.json (tools/cases_verbs.py: {cards, forms}), voices audio/cases/verbs/<id>.mp3 (free).
    Every verb form in a lesson's Russian text gets a quiet gold dotted underline; a tap: the word ignites → Жа́ра flies to the card's
    top edge → she spreads her wings → the card opens out of a ring of fire → the forms light up one by one. Close: the card burns away
    upward into embers and she flies home. Without Жа́ра (hidden in «حسابي») the card rises out of a flame from the word itself. */
@@ -196,7 +196,7 @@ function markVerbs(root) {
     var f = document.createDocumentFragment(); out.forEach(function (x) { f.appendChild(x); }); n.parentNode.replaceChild(f, n);
   });
 }
-function vbUrl(id) { return 'audio/cases/_verbs/' + id + '.mp3'; }
+function vbUrl(id) { return 'audio/cases/verbs/' + id + '.mp3'; }
 function stripAcc(s) { return s.replace(/́/g, ''); }
 function lastWord(f) { var p = f.split(' '); return p[p.length - 1]; }
 function stemOf(list) {   // the shared beginning of the forms (stress ignored) → the endings get the gold
