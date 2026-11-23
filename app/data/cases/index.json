@@ -828,7 +828,7 @@
 "free": false,
 "q": 15,
 "slides": 10,
-"videos": false
+"videos": true
 },
 {
 "key": "prf03",
@@ -948,7 +948,7 @@
 "free": false,
 "q": 15,
 "slides": 8,
-"videos": false
+"videos": true
 },
 {
 "key": "pru04",
@@ -978,7 +978,7 @@
 "free": false,
 "q": 15,
 "slides": 9,
-"videos": false
+"videos": true
 },
 {
 "key": "pru06",
@@ -993,7 +993,7 @@
 "free": false,
 "q": 15,
 "slides": 8,
-"videos": false
+"videos": true
 },
 {
 "key": "pru07",
@@ -1038,7 +1038,7 @@
 "free": false,
 "q": 15,
 "slides": 10,
-"videos": false
+"videos": true
 },
 {
 "key": "prv02",
@@ -1143,7 +1143,7 @@
 "free": false,
 "q": 15,
 "slides": 9,
-"videos": false
+"videos": true
 },
 {
 "key": "rodf06",
@@ -1173,7 +1173,7 @@
 "free": false,
 "q": 15,
 "slides": 9,
-"videos": false
+"videos": true
 },
 {
 "key": "rodf08",
@@ -1218,7 +1218,7 @@
 "free": false,
 "q": 15,
 "slides": 8,
-"videos": false
+"videos": true
 },
 {
 "key": "rodu01",
@@ -1278,7 +1278,7 @@
 "free": false,
 "q": 15,
 "slides": 8,
-"videos": false
+"videos": true
 },
 {
 "key": "rodu05",
@@ -1353,7 +1353,7 @@
 "free": false,
 "q": 15,
 "slides": 7,
-"videos": false
+"videos": true
 },
 {
 "key": "rodu10",
@@ -1368,7 +1368,7 @@
 "free": false,
 "q": 15,
 "slides": 8,
-"videos": false
+"videos": true
 },
 {
 "key": "rodu11",
@@ -1413,7 +1413,7 @@
 "free": false,
 "q": 15,
 "slides": 8,
-"videos": false
+"videos": true
 },
 {
 "key": "rodu14",
@@ -1443,7 +1443,7 @@
 "free": false,
 "q": 13,
 "slides": 8,
-"videos": false
+"videos": true
 },
 {
 "key": "rodv02",
@@ -1458,7 +1458,7 @@
 "free": false,
 "q": 13,
 "slides": 8,
-"videos": false
+"videos": true
 },
 {
 "key": "rodv03",
@@ -1473,7 +1473,7 @@
 "free": false,
 "q": 13,
 "slides": 7,
-"videos": false
+"videos": true
 },
 {
 "key": "rodv04",
@@ -1518,7 +1518,7 @@
 "free": false,
 "q": 13,
 "slides": 8,
-"videos": false
+"videos": true
 },
 {
 "key": "dat00",
@@ -1623,7 +1623,7 @@
 "free": false,
 "q": 11,
 "slides": 6,
-"videos": false
+"videos": true
 },
 {
 "key": "datu01",
@@ -1638,7 +1638,7 @@
 "free": false,
 "q": 11,
 "slides": 7,
-"videos": false
+"videos": true
 },
 {
 "key": "datu02",
@@ -1653,7 +1653,7 @@
 "free": false,
 "q": 11,
 "slides": 7,
-"videos": false
+"videos": true
 },
 {
 "key": "datu03",
@@ -1743,7 +1743,7 @@
 "free": false,
 "q": 10,
 "slides": 7,
-"videos": false
+"videos": true
 },
 {
 "key": "datu09",
@@ -1758,7 +1758,7 @@
 "free": false,
 "q": 10,
 "slides": 7,
-"videos": false
+"videos": true
 },
 {
 "key": "datv01",
@@ -1773,7 +1773,7 @@
 "free": false,
 "q": 11,
 "slides": 8,
-"videos": false
+"videos": true
 },
 {
 "key": "datv02",
@@ -1788,7 +1788,7 @@
 "free": false,
 "q": 11,
 "slides": 8,
-"videos": false
+"videos": true
 },
 {
 "key": "datv03",
@@ -1803,7 +1803,7 @@
 "free": false,
 "q": 11,
 "slides": 8,
-"videos": false
+"videos": true
 },
 {
 "key": "datv04",
@@ -1818,7 +1818,7 @@
 "free": false,
 "q": 11,
 "slides": 8,
-"videos": false
+"videos": true
 },
 {
 "key": "tv00",
@@ -1893,7 +1893,7 @@
 "free": false,
 "q": 10,
 "slides": 6,
-"videos": false
+"videos": true
 },
 {
 "key": "tvf05",
@@ -1923,7 +1923,7 @@
 "free": false,
 "q": 10,
 "slides": 6,
-"videos": false
+"videos": true
 },
 {
 "key": "tvf07",
@@ -1983,7 +1983,7 @@
 "free": false,
 "q": 9,
 "slides": 6,
-"videos": false
+"videos": true
 },
 {
 "key": "tvu04",
@@ -2088,7 +2088,7 @@
 "free": false,
 "q": 8,
 "slides": 6,
-"videos": false
+"videos": true
 },
 {
 "key": "tvv03",
@@ -2133,7 +2133,7 @@
 "free": false,
 "q": 8,
 "slides": 6,
-"videos": false
+"videos": true
 }
 ],
 "reviews": [

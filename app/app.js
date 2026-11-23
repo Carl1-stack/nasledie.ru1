@@ -238,6 +238,7 @@ function render() {
   refreshChrome();
   applyPrefs();
   if (document.getElementById('cat')) catPlace();
+  if (window.NTOUR) NTOUR.screen(route);
 }
 function refreshChrome() {
   var tabs = document.getElementById('tabs'), mini = document.getElementById('mini');
@@ -2371,6 +2372,7 @@ function vProfile() {
 
     setRow('hideTr', 'إخفاء الترجمة في الحوارات', G('عشان تفهم بالروسي بس', 'عشان تفهمي بالروسي بس')) +
     setRow('light', 'الوضع الفاتح', 'للمذاكرة في النور') +
+    '<button class="set gold" data-act="tour"><span class="tx">جولة مع ژارا<small>' + G('هفرّجك', 'هفرّجك') + ' على التطبيق كله من الأول، وكل صفحة ' + G('هتفتحها', 'هتفتحيها') + ' هشرحها تاني</small></span>' + ico('feather') + '</button>' +
     '<button class="set" data-act="birdstory"><span class="tx">حكاية ژارا، طائر النار<small>مين هي، وليه ريشها بيرجع كل يوم ' + G('بتذاكر', 'بتذاكري') + ' فيه</small></span>' + ico('feather') + '</button>' +
     setRow('noCat', 'إخفاء ژارا', 'طائر النار اللي ' + G('بيديك', 'بيديكي') + ' نصايح وبيطير بين الصفحات') +
     setRow('noHello', 'من غير صوت الترحيب', 'ليرا بتسلّم ' + G('عليك', 'عليكي') + ' بالروسي لما ' + G('تفتح', 'تفتحي') + ' التطبيق') +
@@ -2505,6 +2507,7 @@ document.addEventListener('click', function (e) {
   else if (a === 'ask-send') { askSend(); }
   else if (a === 'ask-clear') { S.askHist = []; store(); vAsk(); }
   else if (a === 'birdstory') { birdStory(); }
+  else if (a === 'tour') { if (window.NTOUR) { S.tour = S.tour || {}; S.tour.seen = {}; S.tour.main = 0; store(); NTOUR.start('main'); } }   // «جولة مع ژارا»: the first tour again, and every page's mini-tour once more
   else if (a === 'greplay') { setTimeout(render, 0); }
   else if (a === 'segy') { e.preventDefault(); var yi = LS.segs.map(function (x) { return x.k; }).indexOf('y'); if (yi >= 0) { LS.seg = yi; renderSeg(); window.scrollTo(0, 0); } }
   else if (a === 'bossgo') { if (GM) { GM.done = false; gameNext(); } }
@@ -2570,8 +2573,8 @@ document.addEventListener('click', function (e) {
     S.name = nm; S.avatar = S.avatar || (S.g === 'm' ? 'm' : 'f'); save(); applyPrefs();
     if (S.onboarded) { W.step = 0; go('#profile'); } else { W.step = 2; vWelcome(); }
   }
-  else if (a === 'w-begin') { finishOnboarding(); go('#lesson/1'); }
-  else if (a === 'w-test') { finishOnboarding(); }
+  else if (a === 'w-begin') { finishOnboarding(); catIntro(); go(window.NTOUR ? '#home' : '#lesson/1'); }   // the tour starts on the home screen and ends by opening Lesson 1
+  else if (a === 'w-test') { finishOnboarding(); catIntro(); }
 });
 document.addEventListener('keydown', function (e) {
   if (e.key === 'Enter' && e.target.id === 'code') tryCode();
@@ -2820,7 +2823,9 @@ function dropFeather(x, y) {
   f.animate([{ transform: 'translate(0,0) rotate(0)', opacity: 1 }, { transform: 'translate(' + dx * .5 + 'px,40px) rotate(40deg)', opacity: 1, offset: .4 }, { transform: 'translate(' + dx + 'px,90px) rotate(-30deg)', opacity: 0 }], { duration: 2200, easing: 'ease-in-out' }).onfinish = function () { f.remove(); };
 }
 function catPlace() {
-  var c = document.getElementById('cat'); if (!c) return; BIRD.away = false;
+  var c = document.getElementById('cat'); if (!c) return;
+  if (window.NTOUR && NTOUR.on()) { c.hidden = false; return; }   // Жа́ра is guiding the tour (tour.js): she stays where the tour put her
+  BIRD.away = false;
   var hide = S.noCat || !S.onboarded || ['welcome', 'chat', 'call', 'view', 'watch', 'quiz'].indexOf(route.name) >= 0;
   var sp = hide ? null : birdSpot(); if (!sp) hide = true;
   c.hidden = hide; if (hide) { birdAt = null; } else requestAnimationFrame(function () { birdMove(c, birdSpot() || sp); });
@@ -2834,7 +2839,8 @@ function catPlace() {
 }
 function catIntro() {
   birdLife();
-  if (S.noCat || S.catMet || !S.onboarded) { catEl(); catPlace(); return; }
+  if (window.NTOUR && S.onboarded && !(S.tour || {}).main) { catEl(); catPlace(); NTOUR.screen(parse()); return; }   // a new phone: the tour introduces her (tour.js)
+  if (S.noCat || S.catMet || !S.onboarded) { catEl(); catPlace(); if (window.NTOUR && !S.noCat) NTOUR.news(); return; }
   catEl(); catPlace(); S.catMet = 1; store();
   setTimeout(function () { catSay(G('أهلًا! أنا ژارا، طائر النار. ريشي ضاع في السكة من روسيا لمصر، وكل يوم بتذاكر فيه بترجعلي ريشة. دوس عليّ في أي وقت وأديك نصيحة.', 'أهلًا! أنا ژارا، طائر النار. ريشي ضاع في السكة من روسيا لمصر، وكل يوم بتذاكري فيه بترجعلي ريشة. دوسي عليّ في أي وقت وأديكي نصيحة.'), 9000); }, 700);
 }
@@ -2854,7 +2860,7 @@ function birdStory() {
 }
 function catGameAnswer(ok) { if (ok) { catMiss = 0; if (GM && GM.combo && GM.combo % 5 === 0) { var c = document.getElementById('cat'); if (c) { c.classList.remove('joy'); void c.offsetWidth; c.classList.add('joy'); var rj = c.getBoundingClientRect(); embers(rj.left + rj.width / 2, rj.top, 24, 3, 1); } } return; } catMiss++; if (catMiss === 2 && GM && GM.q && CAT_GAME[GM.q.type]) { catSay(CAT_CHEER[Math.floor(Math.random() * CAT_CHEER.length)] + ' ' + CAT_GAME[GM.q.type], 7000); catMiss = 0; } }
 document.addEventListener('click', function (e) {
-  if (!e.target.closest('#cat .cat-btn')) return;
+  if (!e.target.closest('#cat .cat-btn') || (window.NTOUR && NTOUR.on())) return;
   var c = document.getElementById('cat'); c.classList.remove('hop'); void c.offsetWidth; c.classList.add('hop'); BIRD.lastTouch = Date.now();
   var rr = c.getBoundingClientRect(); embers(rr.left + rr.width / 2, rr.top + rr.height / 2, 10, 2, .4);
   if (c.classList.contains('talk')) { c.classList.remove('talk'); return; }
@@ -2872,6 +2878,13 @@ if (window.NCASES) window.NCASES.init({ S: function () { return S; }, API: API, 
     st: function (st) { var c = document.getElementById('cat'); if (!c) return; if (st) { c.dataset.st = st; clearTimeout(BIRD.sto); } else delete c.dataset.st; },
     home: function () { BIRD.away = false; var c = document.getElementById('cat'); if (!c || c.hidden) return; delete c.dataset.st; var sp = birdSpot(); if (sp) birdMove(c, sp); }
   }, embers: embers, feather: dropFeather });
+if (window.NTOUR) window.NTOUR.init({ S: function () { return S; }, G: G, ad: ad, mix: mix, go: go, store: store, chime: chime, embers: embers, pddOnly: pddOnly,
+  route: function () { return parse(); }, say: function (t, ms) { catSay(t, ms); },
+  bird: {   // Жа́ра for the tour: shown even where she usually hides (chat) or was hidden in the settings, flies to each stop
+    show: function () { var c = catEl(); c.hidden = false; c.classList.remove('talk'); clearTimeout(catT); BIRD.away = true; BIRD.sleep = false; delete c.dataset.st; if (!birdAt) { var sp = birdSpot(); birdMove(c, sp || { x: innerWidth / 2 - 35, y: innerHeight - 140 }); } },
+    to: function (x, y) { var c = catEl(); BIRD.away = true; birdMove(c, { x: x - 35, y: y - 27 }); },
+    home: function () { BIRD.away = false; catPlace(); }
+  } });
 if (window.NPDD) window.NPDD.init({ S: function () { return S; }, API: API, esc: esc, ad: ad, G: G, ico: ico, mix: mix, chime: chime, buzz: buzz, touchStreak: touchStreak,
   hasCourse: hasCourse, openedPdd: pddOpened, stopMain: function () { try { au.pause(); } catch (e) {} } });
 window.addEventListener('hashchange', navRender);

@@ -1055,3 +1055,35 @@ body.sp-on #embers{z-index:95}
 .cj-v b{color:var(--gold-hi);font-weight:800}
 .cj-c .pr{font-size:11.5px;direction:rtl;text-align:left}
 @media (max-width:340px){.cj-v{font-size:15.5px}.rchips span{font-size:14px}}
+
+/* ---------- Жа́ра's tour (tour.js, 2026-11-23): dim + spotlight hole on the real button, bubble, hands-on «tap» stops ---------- */
+#tour{position:fixed;inset:0;z-index:45;pointer-events:none;opacity:0;transition:opacity .35s ease}
+#tour.in{opacity:1}
+#tour .tr-b{position:fixed;pointer-events:auto;background:transparent;-webkit-tap-highlight-color:transparent}
+#tour:not(.in) .tr-b,#tour:not(.in) .tr-bub{pointer-events:none}
+#tour .tr-hole{position:fixed;border-radius:14px;pointer-events:none;box-shadow:0 0 0 200vmax rgba(4,7,14,.74),0 0 0 2px #F7C46A,0 0 24px 4px rgba(255,186,84,.5);
+  transition:left .5s cubic-bezier(.45,0,.2,1),top .5s cubic-bezier(.45,0,.2,1),width .5s cubic-bezier(.45,0,.2,1),height .5s cubic-bezier(.45,0,.2,1),box-shadow .4s}
+#tour.center .tr-hole{box-shadow:0 0 0 200vmax rgba(4,7,14,.82)}
+#tour.tap .tr-hole{animation:tr-pulse 1.5s ease-in-out infinite}
+@keyframes tr-pulse{50%{box-shadow:0 0 0 200vmax rgba(4,7,14,.74),0 0 0 3px #FFE29A,0 0 38px 12px rgba(255,160,60,.7)}}
+#tour .tr-hole.nudge{animation:tr-nudge .45s ease}
+@keyframes tr-nudge{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+#tour .tr-bub{position:fixed;pointer-events:auto;box-sizing:border-box;padding:14px 16px 12px;border-radius:18px;color:#F2ECE1;
+  background:linear-gradient(180deg,#1E2E52 0%,#111A30 100%);border:1px solid rgba(232,163,61,.55);box-shadow:0 20px 44px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,226,154,.18);
+  transition:top .5s cubic-bezier(.45,0,.2,1),opacity .28s ease,transform .28s ease}
+#tour.busy .tr-bub{opacity:0;transform:translateY(6px)}
+#tour .tr-hd{display:flex;align-items:center;gap:8px;direction:ltr;margin-bottom:6px}
+#tour .tr-ru{font:600 17px var(--ru);color:#FFD98A;letter-spacing:.2px}
+#tour .tr-say{width:28px;height:28px;border-radius:50%;border:1px solid rgba(255,217,138,.5);background:rgba(255,217,138,.1);color:#FFD98A;font-size:11px;line-height:1;cursor:pointer;padding:0}
+#tour .tr-hd.nosay .tr-say{display:none}
+#tour .tr-n{margin-left:auto;direction:rtl;font:600 12px var(--ar);color:rgba(242,236,225,.55)}
+#tour .tr-t{margin:0 0 12px;font:500 15px/1.8 var(--ar);direction:rtl;text-align:right}
+#tour .tr-acts{display:flex;align-items:center;justify-content:space-between;gap:10px;direction:rtl;flex-wrap:wrap}
+#tour .tr-skip{background:none;border:0;color:rgba(242,236,225,.6);font:500 13px var(--ar);text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:6px 2px}
+#tour .tr-hint{font:700 13.5px var(--ar);color:#FFD98A;animation:tr-blink 1.6s ease-in-out infinite}
+@keyframes tr-blink{50%{opacity:.55}}
+body.tour-on #cat{z-index:47}
+body.tour-on #embers{z-index:48}
+body.tour-on #cat .cat-bub{display:none}
+body.tour-on .toast{z-index:49}
+@media (prefers-reduced-motion:reduce){#tour,#tour .tr-hole,#tour .tr-bub{transition:none}#tour.tap .tr-hole,#tour .tr-hint{animation:none}}
