@@ -39,7 +39,7 @@ function scopeHas(c) { var a = S().acc; return !!(a && S().token && String(a.sco
 function canOpen(l) {
   if (l.free) return true;
   var a = S().acc; if (!a || !S().token || a.state === 'cancelled') return false;
-  if (a.state === 'active' && ((K.id === 'cases' && scopeHas('cases')) || scopeHas('b1') || scopeHas('b2') || (l.level === 'a1' && (scopeHas('a1') || scopeHas('a2'))) || (l.level === 'a2' && scopeHas('a2')))) return true;   // the level rules (grammar: teacher, 2026-11-23)
+  if (a.state === 'active' && ((K.id === 'cases' && scopeHas('cases')) || (K.id === 'grammar' && scopeHas('grammar')) || scopeHas('b1') || scopeHas('b2') || (l.level === 'a1' && (scopeHas('a1') || scopeHas('a2'))) || (l.level === 'a2' && scopeHas('a2')))) return true;   // the level rules (grammar: teacher, 2026-11-23)
   return (a.opened || []).indexOf(K.opened + ':' + l.id) >= 0;
 }
 function fileUrl(l) { return l.free ? 'data/' + K.id + '/' + l.key + '.json' : A.API + '/c/' + K.id + '/' + l.key + '.json?t=' + encodeURIComponent(S().token || ''); }
