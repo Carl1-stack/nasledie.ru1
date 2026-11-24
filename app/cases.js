@@ -14,6 +14,8 @@ var COURSES = {
     intro: ['كل مستوى متقسم بالموضوع: الفعل، أفعال الحركة، الظرف، والباقي. ابدأ بدرس المقدمة بتاع كل موضوع، وبعدين بالترتيب.', 'كل مستوى متقسم بالموضوع: الفعل، أفعال الحركة، الظرف، والباقي. ابدئي بدرس المقدمة بتاع كل موضوع، وبعدين بالترتيب.'] }
 };
 var K = COURSES.cases, IDXS = {};
+/* a note under a recording made before a fix in the lesson (teacher, 2026-11-24) */
+var VNOTE = { 'cases:pr00': 'تصحيح للفيديو: «أنا في البيت» بالروسي «Я до́ма»، مش «Я в до́ме». «в до́ме» معناها جوه المبنى نفسه، زي «В э́том до́ме пять этаже́й». الدرس المكتوب متصحح.' };
 function esc(s) { return A.esc(s); }
 function S() { return A.S(); }
 var ACC = /([АаЕеЁёИиОоУуЫыЭэЮюЯя])'/g;
@@ -114,7 +116,8 @@ var R = {
   section: function (d) { return '<div class="cs-band"><div class="ru">' + ru(d.q) + '</div>' + paras(d.points, d.pa_points) + '</div>'; },
 };
 function lessonHead(l, d, tab) {
-  var tabs = [['', 'الدرس'], ['quiz', 'الكويز']].concat(d.xvideos ? [['videos', 'فيديوهات إضافية']] : []);
+  var vid = A.hasVid && A.hasVid(l.key);   // the teacher's recording first (2026-11-24), like the A1 lessons
+  var tabs = (vid ? [['', 'فيديو الدرس'], ['text', 'الدرس']] : [['', 'الدرس']]).concat([['quiz', 'الكويز']]).concat(d.xvideos ? [['videos', 'فيديوهات إضافية']] : []);
   return '<div class="page pad cs"><div class="ph1"><a class="back" href="#' + K.id + '" aria-label="رجوع">' + A.ico('back') + '</a><div><span class="ru cs-lab">' + esc(d.label) + ' · ' + IDX.levels.filter(function (x) { return x.id === l.level; })[0].ru + '</span>' +
     '<h1 class="ar" style="font-size:22px;margin:2px 0">' + esc(d.ar) + '</h1><span class="ru cs-t1">' + esc(d.ru) + '</span></div></div>' +
     '<div class="seg">' + tabs.map(function (t) { return '<a class="sg' + (t[0] === tab ? ' on' : '') + '" href="#' + K.id + '/' + l.key + (t[0] ? '/' + t[0] : '') + '">' + t[1] + '</a>'; }).join('') + '</div>';
@@ -128,6 +131,11 @@ function vLesson(l, d, tab) {
   CUR = l; var h = lessonHead(l, d, tab);
   if (tab === 'quiz') { view().innerHTML = h + '<div id="csq"></div></div>'; quizStart(l, d); return; }
   if (tab === 'videos') { view().innerHTML = h + A.xvHtml(d.xvideos, 0) + '</div>'; return; }
+  if (tab === '' && A.hasVid && A.hasVid(l.key)) {
+    var fix = VNOTE[K.id + ':' + l.key] ? '<div class="cs-box warn" style="margin:12px 0"><p class="ar">' + ar(VNOTE[K.id + ':' + l.key]) + '</p></div>' : '';
+    view().innerHTML = h + fix + '<div class="cs-vid">' + A.vidHtml(l.key) + '</div>' + '<div class="cs-end"><a class="btn" href="#' + K.id + '/' + l.key + '/text">' + A.ico('book') + 'الدرس مكتوب</a><a class="btn ghost" href="#' + K.id + '/' + l.key + '/quiz">الكويز</a></div></div>';
+    A.bindVid(); return;
+  }
   h += '<p class="ar cs-sit">' + ar(d.situation) + '</p>';
   d.slides.forEach(function (s) { h += '<section class="cs-sec"><h3 class="ar">' + ar(s.ar) + '</h3><div class="cs-sub">' + ru(s.ru) + '</div>' + (R[s.type] ? R[s.type](s) : '') + '</section>'; });
   var nx = nextLesson(l);

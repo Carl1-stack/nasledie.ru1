@@ -534,7 +534,7 @@ function loadVideos() {
   return fetch(API + '/api/videos').then(function (r) { return r.json(); }).then(function (j) { VIDS = j; try { localStorage.setItem('nasledie.vids', JSON.stringify(j)); } catch (e) {} }).catch(function () {});
 }
 function vidOf(course, key) { return VIDS && VIDS[course] && VIDS[course][key] && VIDS[course][key].parts && VIDS[course][key].parts.length ? VIDS[course][key] : null; }
-function vidFree(course, key) { return (course === 'a1' && /^l0[12]$/.test(key)) || (course === 'b1' && key === 'intro'); }
+function vidFree(course, key) { return (course === 'a1' && /^l0[12]$/.test(key)) || (course === 'b1' && key === 'intro') || (course === 'cases' && /^(buk00|im00)$/.test(key)); }
 function vidSrc(course, key, file) { return API + '/v/' + file + (vidFree(course, key) ? '' : '?t=' + encodeURIComponent(S.token || '')); }
 function mmss(t) { t = Math.max(0, Math.round(t)); return Math.floor(t / 60) + ':' + pad(t % 60); }
 var VP = { course: '', key: '', part: 0 };
@@ -2928,7 +2928,9 @@ document.addEventListener('click', function (e) {
 
 /* ---------- boot ---------- */
 if (window.NCASES) window.NCASES.init({ S: function () { return S; }, API: API, CONF: CONF, esc: esc, ad: ad, G: G, ico: ico, mix: mix, mixAr: mixAr, chime: chime, buzz: buzz, touchStreak: touchStreak,
-  save: save, levelNow: levelNow, xvHtml: xvHtml, playOne: playOne, oldCase: function (n) { return LINKS.cases(n); },
+  save: save, levelNow: levelNow, xvHtml: xvHtml, playOne: playOne,
+  /* the teacher's recording of a case lesson (2026-11-24): same player, chapters and resume as the A1 lessons */
+  hasVid: function (key) { return !!vidOf('cases', key); }, vidHtml: function (key) { return videoHtml('cases', key, 'img/u3.jpg'); }, bindVid: function () { bindVideo(null); }, oldCase: function (n) { return LINKS.cases(n); },
   /* Жа́ра for the conjugation cards (cases.js, 2026-11-22): fly to a point, spread the wings, fly home */
   bird: {
     here: function () { var c = document.getElementById('cat'); return !!(c && !c.hidden && !S.noCat && !RM); },
