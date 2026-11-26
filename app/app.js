@@ -8,7 +8,8 @@ var CONF = window.NCONF || { codes: [], whatsapp: '' };
 var LINKS = { quiz: function (n) { return n <= 2 ? '../quiz_site/quiz' + pad(n) + '.html' : '#open/a1/quiz' + pad(n) + '.html'; }, review: function (n) { return '#quiz/r' + n; },
   videos: function (n) { return n ? '#lesson/' + n + '/videos' : '#library'; }, level: '#view/level',
   b1: function () { return '#library'; }, cases: function (n) { return hasCourse('cases') || hasCourse('b1') ? '#view/p/cases/cases' + n + '.html' : '#unlock/0'; } };
-function hasCourse(c) { return !!(S.acc && S.token && String(S.acc.scope || '').split('+').some(function (x) { return x.split(':')[0] === c; })); }
+function hasCourse(c) { return !!(S.acc && S.token && (String(S.acc.scope || '').split('+').some(function (x) { return x.split(':')[0] === c; }) ||
+  (S.acc.opened || []).some(function (k) { return k.split(':')[0] === c; }))); }   // a manual code (2026-11-26): the lessons the teacher picked count too
 var UNIT_PHOTO = ['u1', 'u2', 'u3', 'u4', 'u5', 'u6'];
 var LESSON_PHOTO = { 2: 'l2', 3: 'l3' };
 var AR_DIG = '٠١٢٣٤٥٦٧٨٩';
