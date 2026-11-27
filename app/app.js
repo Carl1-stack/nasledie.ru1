@@ -2374,7 +2374,8 @@ function callListen() {
 
 /* profile */
 function avatarHtml(cls) {
-  if (S.avatar === 'm') return '<img class="av ' + (cls || '') + '" src="img/learner_m.jpg" alt="">';
+  var pic = { m: 'learner_m', fh: 'learner_fh', f: 'learner_f' }[S.avatar];   // painted learner portraits (Canva, Лера's style)
+  if (pic) return '<img class="av ' + (cls || '') + '" src="img/' + pic + '.jpg" alt="">';
   return '<span class="av ' + (cls || '') + '">' + esc((S.name || 'ن').trim().charAt(0)) + '</span>';
 }
 function lvProgress(lv) {
@@ -2497,9 +2498,8 @@ function vWelcome() {
       '<div><label class="ar">أكلمك إزاي؟</label><div class="choice"><button data-g-set="m"' + (S.g === 'm' ? ' class="on"' : '') + '>إنت</button><button data-g-set="f"' + (S.g === 'f' ? ' class="on"' : '') + '>إنتي</button></div></div>' +
       '<div><label class="ar">صورتك في التطبيق</label><div class="avs">' +
       '<button data-av="m"' + (S.avatar === 'm' ? ' class="on"' : '') + '><img class="av" src="img/learner_m.jpg" alt="">شاب</button>' +
-      '<button data-av="fh"' + (S.avatar === 'fh' ? ' class="on"' : '') + '><span class="av">' + ico('user') + '</span>بنت بالحجاب</button>' +
-      '<button data-av="f"' + (S.avatar === 'f' ? ' class="on"' : '') + '><span class="av">' + ico('user') + '</span>بنت</button></div>' +
-      '<p class="note ar" style="text-align:center">صور البنات المرسومة جاية قريب</p></div>' +
+      '<button data-av="fh"' + (S.avatar === 'fh' ? ' class="on"' : '') + '><img class="av" src="img/learner_fh.jpg" alt="">بنت بالحجاب</button>' +
+      '<button data-av="f"' + (S.avatar === 'f' ? ' class="on"' : '') + '><img class="av" src="img/learner_f.jpg" alt="">بنت</button></div></div>' +
       '<button class="btn block" data-act="w-save">كمّل</button></div>';
     return;
   }
